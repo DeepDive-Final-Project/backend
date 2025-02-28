@@ -1,0 +1,15 @@
+spring:
+  datasource:
+    url: jdbc:mysql://${PROD_DB_HOST}:${DB_PORT:3306}/${PROD_DB_NAME}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    username: ${PROD_DB_USERNAME}
+    password: ${PROD_DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      default_batch_fetch_size: 1000
+      jdbc:
+        time_zone: Asia/Seoul
+    defer-datasource-initialization: true
+    show-sql: false
+    open-in-view: false
