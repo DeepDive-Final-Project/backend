@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   create-jira-issue:
-    name: Create Jira Issue and Update Sub-task
+    name: Create Jira Issue and Update Story
     runs-on: ubuntu-latest
     steps:
       - name: Login to Jira
@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: main
+          ref: dev
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Parse Issue Inputs
@@ -37,8 +37,8 @@ jobs:
         run: |
           RESPONSE=$(curl -s -w "\nHTTP_STATUS=%{http_code}" -u "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" \
           -X POST -H "Content-Type: application/json" \
-          --data '{"transition": {"id": "4"}}' \
-          "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.issue-parser.outputs.issueparser_storyKey }}/transitions")
+          --data '{"transition": {"id": "2"}}' \
+          "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.issue-parser.outputs.storyKey }}/transitions")
 
           HTTP_STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | cut -d= -f2)
           echo "Jira API Response: $RESPONSE"
@@ -49,7 +49,6 @@ jobs:
           else
             echo "SUCCESS: Jira Story transitioned to In Progress!"
           fi
-
 
       - name: Create Branch
         run: |
