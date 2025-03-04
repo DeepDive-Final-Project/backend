@@ -32,7 +32,7 @@ jobs:
         uses: stefanbuck/github-issue-parser@v3
         with:
           template-path: .github/ISSUE_TEMPLATE/issue-form.yml
-
+          
       - name: Move Story to "In Progress"
         run: |
           echo "Moving Jira Story ${{ steps.issue-parser.outputs.storyKey }} to In Progress"
@@ -52,7 +52,6 @@ jobs:
           else
             echo "SUCCESS: Jira Story transitioned to In Progress!"
           fi
-
 
       - name: Create Branch
         run: |
