@@ -1,14 +1,14 @@
 name: '✨ feature'
-description: '새로운 기능, 명세가 있나요?(지라와 연동됩니다.)'
+description: '새로운 기능, 명세가 있나요?(Jira Story와 연동됩니다.)'
 labels: [feat]
 title: '이슈 제목을 입력하세요'
 body:
   - type: input
-    id: subtaskKey
+    id: storyKey
     attributes:
-      label: '🌳기능 구현 키 (Sub-task Ticket Number)'
-      description: 'Jira의 Sub-task Ticket Number를 입력해주세요 (예: ICT-2)'
-      placeholder: 'EX) ICT-2'
+      label: '🌳 기능 구현 키 (Story Ticket Number)'
+      description: 'Jira의 Story Ticket Number를 입력해주세요 (예: ICT-100)'
+      placeholder: 'EX) ICT-100'
     validations:
       required: true
 
