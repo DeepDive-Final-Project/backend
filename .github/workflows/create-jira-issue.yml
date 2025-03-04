@@ -35,6 +35,8 @@ jobs:
 
       - name: Move Story to "In Progress"
         run: |
+          echo "Moving Jira Story ${{ steps.issue-parser.outputs.storyKey }} to In Progress"
+
           RESPONSE=$(curl -s -w "\nHTTP_STATUS=%{http_code}" -u "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" \
           -X POST -H "Content-Type: application/json" \
           --data '{"transition": {"id": "2"}}' \
@@ -42,6 +44,7 @@ jobs:
 
           HTTP_STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | cut -d= -f2)
           echo "Jira API Response: $RESPONSE"
+          echo "HTTP Status Code: $HTTP_STATUS"
 
           if [[ "$HTTP_STATUS" -ne 204 ]]; then
             echo "ERROR: Failed to transition Jira Story to In Progress. HTTP Status: $HTTP_STATUS"
@@ -49,6 +52,7 @@ jobs:
           else
             echo "SUCCESS: Jira Story transitioned to In Progress!"
           fi
+
 
       - name: Create Branch
         run: |
