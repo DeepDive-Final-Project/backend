@@ -42,19 +42,18 @@ jobs:
 
       - name: Move Jira Story to "Done"
         run: |
-          echo "Attempting to move Jira Story to 'Done' with ID $TRANSITION_ID"
-
           RESPONSE=$(curl -s -w "\nHTTP_STATUS=%{http_code}" -u "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" \
           -X POST -H "Content-Type: application/json" \
-          --data "{\"transition\": {\"id\": \"${{ env.TRANSITION_ID }}\"}}" \
+          --data '{"transition": {"id": "4"}}' \
           "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ env.JIRA_KEY }}/transitions")
 
           HTTP_STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | cut -d= -f2)
           echo "Jira API Response: $RESPONSE"
 
           if [[ "$HTTP_STATUS" -ne 204 ]]; then
-            echo "ERROR: Failed to transition Jira Story. HTTP Status: $HTTP_STATUS"
+            echo "ERROR: Failed to transition Jira Story to Done. HTTP Status: $HTTP_STATUS"
             exit 1
           else
-            echo "SUCCESS: Jira Story transitioned to 'Done'!"
+            echo "SUCCESS: Jira Story transitioned to Done!"
           fi
+
