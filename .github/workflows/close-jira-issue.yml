@@ -16,12 +16,13 @@ jobs:
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
 
-      - name: Extract Jira Issue Key from GitHub Issue Body
+      - name: Extract Jira Story Key from GitHub Issue Body
         id: extract-key
         run: |
           ISSUE_BODY="${{ github.event.issue.body }}"
           JIRA_KEY=$(echo "$ISSUE_BODY" | grep -oE '[A-Z]+-[0-9]+')
           echo "JIRA_KEY=$JIRA_KEY" >> $GITHUB_ENV
+
 
       - name: Debug Jira Issue Key
         run: |
@@ -39,9 +40,9 @@ jobs:
           echo "Found Transition ID: $TRANSITION_ID"
           echo "TRANSITION_ID=$TRANSITION_ID" >> $GITHUB_ENV
 
-      - name: Move Jira Sub-task to "Done"
+      - name: Move Jira Story to "Done"
         run: |
-          echo "Attempting to move Jira Sub-task to 'Done' with ID $TRANSITION_ID"
+          echo "Attempting to move Jira Story to 'Done' with ID $TRANSITION_ID"
 
           RESPONSE=$(curl -s -w "\nHTTP_STATUS=%{http_code}" -u "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" \
           -X POST -H "Content-Type: application/json" \
@@ -52,8 +53,8 @@ jobs:
           echo "Jira API Response: $RESPONSE"
 
           if [[ "$HTTP_STATUS" -ne 204 ]]; then
-            echo "ERROR: Failed to transition Jira Sub-task. HTTP Status: $HTTP_STATUS"
+            echo "ERROR: Failed to transition Jira Story. HTTP Status: $HTTP_STATUS"
             exit 1
           else
-            echo "SUCCESS: Jira Sub-task transitioned to 'Done'!"
+            echo "SUCCESS: Jira Story transitioned to 'Done'!"
           fi
