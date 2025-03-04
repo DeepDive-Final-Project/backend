@@ -39,7 +39,7 @@ jobs:
 
           RESPONSE=$(curl -s -w "\nHTTP_STATUS=%{http_code}" -u "${{ secrets.JIRA_USER_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}" \
           -X POST -H "Content-Type: application/json" \
-          --data '{"transition": {"id": "21"}}' \
+          --data '{"transition": {"id": "2"}}' \
           "${{ secrets.JIRA_BASE_URL }}/rest/api/3/issue/${{ steps.issue-parser.outputs.issueparser_storyKey }}/transitions")
 
           HTTP_STATUS=$(echo "$RESPONSE" | grep HTTP_STATUS | cut -d= -f2)
