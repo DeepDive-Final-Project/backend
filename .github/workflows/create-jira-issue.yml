@@ -101,7 +101,7 @@ jobs:
         run: |
           echo "All Parsed Outputs:"
           echo "${{ toJson(steps.issue-parser.outputs) }}"
-      
+
 
       - name: Add Comment with Jira Sub-task Link
         uses: actions-cool/issues-helper@v3

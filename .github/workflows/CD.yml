@@ -1,0 +1,37 @@
+name: CD - Build & Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+    workflow_run:
+      workflows: [ "CI - Build & Test" ]
+      types:
+        - completed
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2
+        run: |
+          for IP in ${{ secrets.EC2_PUBLIC_IP }}; do
+            ssh ubuntu@$IP << 'EOF'
+              cd /home/ubuntu/your-project-folder
+              git pull origin main
+              docker-compose down
+              docker-compose up -d --build
+            EOF
+          done
