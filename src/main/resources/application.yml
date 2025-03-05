@@ -2,11 +2,30 @@ spring:
   application:
     name: I-Contact
 
+  security:
+    user:
+      name: admin
+      password: admin
+
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:i_contact_local}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
+    mongodb:
+      host: ${MONGO_HOST}
+      port: ${MONGO_PORT}
+      database:  ${MONGO_DATABASE}
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
+      authentication-database: admin
 
   jpa:
     defer-datasource-initialization: true
@@ -26,3 +45,4 @@ spring:
   logging:
     level:
       org.hibernate.SQL: debug
+
