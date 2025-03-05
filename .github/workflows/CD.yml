@@ -29,6 +29,7 @@ jobs:
       - name: Deploy to EC2 Server A
         run: |
           ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+            export PATH=$PATH:/usr/bin:/usr/local/bin
             cd /home/ubuntu/backend
             git pull origin main
             ./gradlew build --no-daemon
@@ -39,6 +40,7 @@ jobs:
       - name: Deploy to EC2 Server B
         run: |
           ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+            export PATH=$PATH:/usr/bin:/usr/local/bin
             cd /home/ubuntu/backend
             git pull origin main
             ./gradlew build --no-daemon
