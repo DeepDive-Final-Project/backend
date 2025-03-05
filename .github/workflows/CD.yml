@@ -23,19 +23,19 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          IFS=',' read -ra IPS <<< "${{ secrets.EC2_PUBLIC_IP }}"
+          IFS=',' read -r -a IPS <<< "${{ secrets.EC2_PUBLIC_IP }}"
           for IP in "${IPS[@]}"; do
             ssh-keyscan -H "$IP" >> ~/.ssh/known_hosts
           done
 
       - name: Deploy to EC2
         run: |
-          IFS=',' read -ra IPS <<< "${{ secrets.EC2_PUBLIC_IP }}"
+          IFS=',' read -r -a IPS <<< "${{ secrets.EC2_PUBLIC_IP }}"
           for IP in "${IPS[@]}"; do
-            ssh -o StrictHostKeyChecking=no ubuntu@"$IP" << 'EOF'
-              cd /home/ubuntu/your-project-folder
-              git pull origin main || echo "Git pull failed, check if branch exists"
-              docker-compose down || echo "No running containers"
-              docker-compose up -d --build
-            EOF
+            ssh -o StrictHostKeyChecking=no ubuntu@"$IP" <<EOF
+cd /home/ubuntu/your-project-folder
+git pull origin main || echo "Git pull failed, check if branch exists"
+docker-compose down || echo "No running containers"
+docker-compose up -d --build
+EOF
           done
