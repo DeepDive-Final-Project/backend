@@ -18,10 +18,15 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Debug SSH Key Setup
+        run: |
+          ls -lah ~/.ssh/
+          cat ~/.ssh/id_rsa | head -5
+      
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_A }} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_B }} >> ~/.ssh/known_hosts
