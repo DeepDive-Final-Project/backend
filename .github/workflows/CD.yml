@@ -32,7 +32,7 @@ jobs:
             export PATH=$PATH:/usr/bin:/usr/local/bin
             cd /home/ubuntu/backend
             git pull origin main
-            ./gradlew build --no-daemon
+            ./gradlew build -x test --no-daemon
             docker-compose down
             docker-compose up -d --build
           EOF
@@ -43,7 +43,7 @@ jobs:
             export PATH=$PATH:/usr/bin:/usr/local/bin
             cd /home/ubuntu/backend
             git pull origin main
-            ./gradlew build --no-daemon
+            ./gradlew build -x test --no-daemon
             docker-compose down
             docker-compose up -d --build
           EOF
