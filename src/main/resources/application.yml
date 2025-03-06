@@ -8,6 +8,20 @@ spring:
     password: ${DB_PASSWORD:root}
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+
+    mongodb:
+      host: ${MONGO_HOST}
+      port: ${MONGO_PORT}
+      database:  ${MONGO_DATABASE}
+      username: ${MONGO_USERNAME}
+      password: ${MONGO_PASSWORD}
+      authentication-database: admin
+
   jpa:
     defer-datasource-initialization: true
     show-sql: true
@@ -16,6 +30,7 @@ spring:
       ddl-auto: update
     properties:
       hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
         format_sql: true
         default_batch_fetch_size: 1000
         order_inserts: true
@@ -26,19 +41,21 @@ spring:
   logging:
     level:
       org.hibernate.SQL: debug
+      org.springframework.security: DEBUG
 
   security:
     oauth2:
       client:
         registration:
-#          google:
-#            client-id: your-google-client-id
-#            client-secret: your-google-client-secret
-#            scope: profile, email
           github:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
             scope: user:email
+            redirect-uri: "{baseUrl}/login/oauth2/code/github"
+#          google:
+#            client-id: your-google-client-id
+#            client-secret: your-google-client-secret
+#            scope: profile, email
 #          kakao:
 #            client-id: your-kakao-client-id
 #            client-secret: your-kakao-client-secret
