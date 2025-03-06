@@ -4,20 +4,25 @@ import com.goorm.team9.icontact.sociallogin.domain.OAuth;
 import com.goorm.team9.icontact.sociallogin.domain.User;
 import com.goorm.team9.icontact.sociallogin.repository.OAuthRepository;
 import com.goorm.team9.icontact.sociallogin.repository.UserRepository;
+import com.goorm.team9.icontact.sociallogin.security.jwt.JwtTokenProvider;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.stereotype.Service;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Optional;
 import org.springframework.web.client.RestTemplate;
 
@@ -27,25 +32,37 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
     private final OAuthRepository oauthRepository;
+    private final JwtTokenProvider jwtTokenProvider; // JWT 발급을 위한 프로바이더 추가
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-        // ✅ Access Token 가져오기
+        // Access Token 가져오기
         OAuth2AccessToken accessToken = userRequest.getAccessToken();
         OAuth2User oAuth2User = super.loadUser(userRequest);
-        Map<String, Object> attributes = oAuth2User.getAttributes();
 
-        String provider = userRequest.getClientRegistration().getRegistrationId(); // "github"
+        // 기존 attributes를 변경 가능한 HashMap으로 변환
+        Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
+
+        String provider = userRequest.getClientRegistration().getRegistrationId();
         String oauthUserId = attributes.get("id").toString();
-//        String email = (String) attributes.getOrDefault("email", "no-email"); // email이 없을 경우 기본값 설정
-        String nickname = (String) attributes.get("login"); // GitHub username
-        // ✅ GitHub API를 호출해서 이메일 가져오기
+        String nickname = (String) attributes.get("login");
+
+        // GitHub API를 호출해서 이메일 가져오기
         String email = getGitHubEmail(accessToken.getTokenValue());
 
-        // ✅ Access Token을 포함하여 사용자 저장 또는 업데이트
+        // 사용자 정보 저장 또는 업데이트
         saveOrUpdateUser(provider, oauthUserId, email, nickname, accessToken);
 
-        return oAuth2User;
+        // JWT 발급
+        String jwtToken = jwtTokenProvider.createToken(email);
+
+        // JWT 추가
+        attributes.put("jwtToken", jwtToken);
+
+        return new DefaultOAuth2User(
+                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
+                attributes, "id"
+        );
     }
 
     private void saveOrUpdateUser(String provider, String oauthUserId, String email, String nickname, OAuth2AccessToken accessToken) {
