@@ -1,54 +1,68 @@
-name: CD - Build & Deploy to EC2
+name: CI/CD - Build & Deploy to EC2
 
 on:
   push:
     branches:
       - main
       - dev
-    workflow_run:
-      workflows: [ "CI - Build & Test" ]
-      types:
-        - completed
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build -t deepdive/i-contact-backend:latest .
+          docker tag deepdive/i-contact-backend:latest deepdive/i-contact-backend:${{ github.sha }}
+          docker push deepdive/i-contact-backend:latest
+          docker push deepdive/i-contact-backend:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
       - name: Set up SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" | tr -d '\r' > ~/.ssh/id_rsa
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_A }} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_B }} >> ~/.ssh/known_hosts
-      
-      - name: Debug SSH Key Setup
-        run: |
-          ls -lah ~/.ssh/
-          cat ~/.ssh/id_rsa | head -5
-          
+
       - name: Deploy to EC2 Server A
         run: |
           ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
-            export PATH=$PATH:/usr/bin:/usr/local/bin
-            cd /home/ubuntu/backend
-            git pull origin main
-            ./gradlew build -x test --no-daemon
-            docker-compose down
-            docker-compose up -d --build
+            docker pull deepdive/i-contact-backend:latest
+            docker stop springboot_container || true
+            docker rm springboot_container || true
+            docker run -d --name springboot_container -p 8080:8080 deepdive/i-contact-backend:latest
           EOF
+
+      - name: Wait for Health Check (Server A)
+        run: |
+          sleep 30
+          curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
 
       - name: Deploy to EC2 Server B
         run: |
           ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
-            export PATH=$PATH:/usr/bin:/usr/local/bin
-            cd /home/ubuntu/backend
-            git pull origin main
-            ./gradlew build -x test --no-daemon
-            docker-compose down
-            docker-compose up -d --build
+            docker pull deepdive/i-contact-backend:latest
+            docker stop springboot_container || true
+            docker rm springboot_container || true
+            docker run -d --name springboot_container -p 8080:8080 deepdive/i-contact-backend:latest
           EOF
+
+      - name: Wait for Health Check (Server B)
+        run: |
+          sleep 30
+          curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
