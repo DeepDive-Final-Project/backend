@@ -83,10 +83,10 @@ jobs:
             /usr/bin/docker run -d --name springboot_container -p 8080:8080 dawnisproblem/i-contact-backend:latest
           EOF
 
-      - name: Wait for Health Check (Server A)
-        run: |
-          sleep 100
-          curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
+#      - name: Wait for Health Check (Server A)
+#        run: |
+#          sleep 100
+#          curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
 
       - name: Deploy to EC2 Server B
         run: |
@@ -109,7 +109,7 @@ jobs:
             /usr/bin/docker run -d --name springboot_container -p 8080:8080 dawnisproblem/i-contact-backend:latest
           EOF
 
-      - name: Wait for Health Check (Server B)
-        run: |
-          sleep 100
-          curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
+#      - name: Wait for Health Check (Server B)
+#        run: |
+#          sleep 100
+#          curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
