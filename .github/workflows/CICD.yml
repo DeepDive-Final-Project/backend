@@ -85,7 +85,7 @@ jobs:
 
       - name: Wait for Health Check (Server A)
         run: |
-          sleep 30
+          sleep 100
           curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
 
       - name: Deploy to EC2 Server B
@@ -111,5 +111,5 @@ jobs:
 
       - name: Wait for Health Check (Server B)
         run: |
-          sleep 30
+          sleep 100
           curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
