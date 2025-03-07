@@ -4,8 +4,8 @@ FROM openjdk:21-jdk
 # Working Directory Settings
 WORKDIR /app
 
-# jar File Copy
-ARG JAR_FILE=Backend-0.0.1-SNAPSHOT.jar
+# JAR 파일 복사
+ARG JAR_FILE
 COPY build/libs/${JAR_FILE} app.jar
 
 # Starting Execute Commands
