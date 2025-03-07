@@ -1,28 +1,33 @@
-name: CD - Build & Deploy to EC2
+name: CI/CD - Build & Deploy to EC2
 
 on:
-  workflow_run:
-    workflows: ["CI - Build & Test"]
-    types:
-      - completed
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout Github Repository
         uses: actions/checkout@v3
 
-      - name: Ensure build/libs directory exists
-        run: mkdir -p build/libs
-
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
         with:
-          name: backend-jar
-          path: build/libs
+          distribution: 'temurin'
+          java-version: '21'
 
-      - name: Debug Artifact
+      - name: Build With Gradle
+        run: ./gradlew clean build -x test --no-daemon
+
+      - name: Debug Build Output
         run: ls -lah build/libs
 
       - name: Set up Docker Buildx
@@ -33,7 +38,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build --build-arg JAR_FILE=Backend-0.0.1-SNAPSHOT.jar -t deepdive/i-contact-backend:latest .
+          docker build --build-arg JAR_FILE=build/libs/Backend-0.0.1-SNAPSHOT.jar -t deepdive/i-contact-backend:latest .
           docker tag deepdive/i-contact-backend:latest deepdive/i-contact-backend:${{ github.sha }}
           docker push deepdive/i-contact-backend:latest
           docker push deepdive/i-contact-backend:${{ github.sha }}
