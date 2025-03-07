@@ -6,7 +6,7 @@ WORKDIR /app
 
 # JAR 파일 복사
 ARG JAR_FILE
-COPY build/libs/${JAR_FILE} app.jar
+COPY ${JAR_FILE} app.jar
 
 # Starting Execute Commands
 ENTRYPOINT ["java", "-jar", "app.jar"]
