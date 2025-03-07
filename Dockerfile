@@ -5,8 +5,8 @@ FROM openjdk:21-jdk
 WORKDIR /app
 
 # jar File Copy
-ARG JAR_FILE=build/libs/*.jar
-COPY ${JAR_FILE} app.jar
+ARG JAR_FILE=Backend-0.0.1-SNAPSHOT.jar
+COPY build/libs/${JAR_FILE} app.jar
 
 # Starting Execute Commands
 ENTRYPOINT ["java", "-jar", "app.jar"]
