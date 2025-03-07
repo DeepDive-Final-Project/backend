@@ -22,6 +22,9 @@ jobs:
           name: backend-jar
           path: build/libs
 
+      - name: Debug Artifact
+        run: ls -lah build/libs
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
