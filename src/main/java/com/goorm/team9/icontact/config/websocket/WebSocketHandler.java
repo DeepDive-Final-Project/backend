@@ -18,15 +18,15 @@ public class WebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         Long chatRoomId = (Long) session.getAttributes().get("chatRoomId");
-        String userNickname = (String) session.getAttributes().get("userNickname");
-        webSocketSessionService.addSession(chatRoomId, userNickname, session);
+        String senderNickname = (String) session.getAttributes().get("senderNickname");
+        webSocketSessionService.addSession(chatRoomId, senderNickname, session);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
         Long chatRoomId = (Long) session.getAttributes().get("chatRoomId");
-        String userNickname = (String) session.getAttributes().get("userNickname");
-        webSocketSessionService.removeSession(chatRoomId, userNickname);
+        String senderNickname = (String) session.getAttributes().get("senderNickname");
+        webSocketSessionService.removeSession(chatRoomId, senderNickname);
     }
 }
 

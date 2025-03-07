@@ -1,6 +1,7 @@
 package com.goorm.team9.icontact.chat.service;
 
 import com.goorm.team9.icontact.chat.dto.ChatMessageDto;
+import com.goorm.team9.icontact.chat.entity.ChatRoom;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.stereotype.Service;
@@ -11,11 +12,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketSessionService {
 
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatRoomService chatRoomService;
 
     private final Map<Long, Map<String, WebSocketSession>> chatRoomSessions = new ConcurrentHashMap<>();
 
-    public WebSocketSessionService(SimpMessagingTemplate messagingTemplate) {
+    public WebSocketSessionService(SimpMessagingTemplate messagingTemplate, ChatRoomService chatRoomService) {
         this.messagingTemplate = messagingTemplate;
+        this.chatRoomService = chatRoomService;
     }
 
     public void addSession(Long chatRoomId, String senderNickname, WebSocketSession session) {
@@ -50,5 +53,9 @@ public class WebSocketSessionService {
                 messagingTemplate.convertAndSendToUser(session.getId(), "/queue/" + chatRoomId, message);
             }
         }
+    }
+
+    public Long createOrGetChatRoomId(String senderNickname, String receiverNickname) {
+        return chatRoomService.createOrGetChatRoomId(senderNickname, receiverNickname);
     }
 }
