@@ -28,7 +28,8 @@ jobs:
         run: ./gradlew clean build -x test --no-daemon
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-jar
-          path: build/libs/*.jar
+          path: build/libs/Backend-0.0.1-SNAPSHOT.jar
+
