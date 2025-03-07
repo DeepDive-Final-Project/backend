@@ -5,7 +5,8 @@ on:
     branches:
       - main
       - dev
-    push:
+  push:
+    branches:
       - main
       - dev
 
@@ -24,8 +25,7 @@ jobs:
           java-version: '21'
 
       - name: Build With Gradle
-        run: ./gradlew build --no-daemon
+        run: ./gradlew clean build --no-daemon
 
       - name: Run Test Code
         run: ./gradlew test
-
