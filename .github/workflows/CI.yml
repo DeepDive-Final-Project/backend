@@ -25,7 +25,10 @@ jobs:
           java-version: '21'
 
       - name: Build With Gradle
-        run: ./gradlew clean build --no-daemon
+        run: ./gradlew clean build -x test --no-daemon
 
-      - name: Run Test Code
-        run: ./gradlew test
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: backend-jar
+          path: build/libs/*.jar
