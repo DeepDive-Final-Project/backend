@@ -65,10 +65,22 @@ jobs:
       - name: Deploy to EC2 Server A
         run: |
           ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
-            docker pull deepdive/i-contact-backend:latest
-            docker stop springboot_container || true
-            docker rm springboot_container || true
-            docker run -d --name springboot_container -p 8080:8080 deepdive/i-contact-backend:latest
+            echo "Checking Docker Status..."
+            if ! systemctl is-active --quiet docker; then
+              echo "Docker is not running. Restarting..."
+              sudo systemctl restart docker
+              sleep 5
+            fi
+          
+            echo "Pulling latest Docker image..."
+            /usr/bin/docker pull dawnisproblem/i-contact-backend:latest
+          
+            echo "Stopping and removing old container..."
+            /usr/bin/docker stop springboot_container || true
+            /usr/bin/docker rm springboot_container || true
+          
+            echo "Running new container..."
+            /usr/bin/docker run -d --name springboot_container -p 8080:8080 dawnisproblem/i-contact-backend:latest
           EOF
 
       - name: Wait for Health Check (Server A)
@@ -79,10 +91,22 @@ jobs:
       - name: Deploy to EC2 Server B
         run: |
           ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
-            docker pull deepdive/i-contact-backend:latest
-            docker stop springboot_container || true
-            docker rm springboot_container || true
-            docker run -d --name springboot_container -p 8080:8080 deepdive/i-contact-backend:latest
+            echo "Checking Docker Status..."
+            if ! systemctl is-active --quiet docker; then
+              echo "Docker is not running. Restarting..."
+              sudo systemctl restart docker
+              sleep 5
+            fi
+          
+            echo "Pulling latest Docker image..."
+            /usr/bin/docker pull dawnisproblem/i-contact-backend:latest
+          
+            echo "Stopping and removing old container..."
+            /usr/bin/docker stop springboot_container || true
+            /usr/bin/docker rm springboot_container || true
+          
+            echo "Running new container..."
+            /usr/bin/docker run -d --name springboot_container -p 8080:8080 dawnisproblem/i-contact-backend:latest
           EOF
 
       - name: Wait for Health Check (Server B)
