@@ -55,3 +55,14 @@ security:
           client-id: ${GITHUB_CLIENT_ID}
           client-secret: ${GITHUB_CLIENT_SECRET}
           scope: user:email
+
+  management:
+    endpoints:
+      web:
+        exposure:
+          include: health
+    endpoint:
+      health:
+        show-details: always
+    server:
+      port: 8080
