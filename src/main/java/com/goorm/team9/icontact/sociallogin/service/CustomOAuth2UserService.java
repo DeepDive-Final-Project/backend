@@ -5,11 +5,14 @@ import com.goorm.team9.icontact.sociallogin.domain.User;
 import com.goorm.team9.icontact.sociallogin.repository.OAuthRepository;
 import com.goorm.team9.icontact.sociallogin.repository.UserRepository;
 import com.goorm.team9.icontact.sociallogin.security.jwt.JwtTokenProvider;
+import com.goorm.team9.icontact.sociallogin.security.provider.GitHubOAuthProvider;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -30,16 +33,18 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
+    private final OAuthService oAuthService;
     private final UserRepository userRepository;
     private final OAuthRepository oauthRepository;
     private final JwtTokenProvider jwtTokenProvider; // JWT 발급을 위한 프로바이더 추가
+    private final GitHubOAuthProvider gitHubOAuthProvider;
+    private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         // Access Token 가져오기
         OAuth2AccessToken accessToken = userRequest.getAccessToken();
         OAuth2User oAuth2User = super.loadUser(userRequest);
-
         // 기존 attributes를 변경 가능한 HashMap으로 변환
         Map<String, Object> attributes = new HashMap<>(oAuth2User.getAttributes());
 
@@ -48,10 +53,22 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String nickname = (String) attributes.get("login");
 
         // GitHub API를 호출해서 이메일 가져오기
-        String email = getGitHubEmail(accessToken.getTokenValue());
+//        String email = getGitHubEmail(accessToken.getTokenValue());
+        Map<String, Object> githubUserInfo = gitHubOAuthProvider.getUserInfo(accessToken.getTokenValue());
+        String email = (String) githubUserInfo.getOrDefault("email", "no-email");
 
         // 사용자 정보 저장 또는 업데이트
-        saveOrUpdateUser(provider, oauthUserId, email, nickname, accessToken);
+        // 중복 제거: OAuthService의 saveOrUpdateUser 메서드 호출
+        oAuthService.saveOrUpdateUser(
+                provider,
+                oauthUserId,
+                email,
+                nickname,
+                accessToken.getTokenValue(),
+                "dummy-refresh-token",
+                accessToken.getExpiresAt() != null ?
+                        LocalDateTime.ofInstant(accessToken.getExpiresAt(), ZoneId.systemDefault()) : null
+        );
 
         // JWT 발급
         String jwtToken = jwtTokenProvider.createToken(email);
@@ -63,70 +80,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
                 attributes, "id"
         );
-    }
-
-    private void saveOrUpdateUser(String provider, String oauthUserId, String email, String nickname, OAuth2AccessToken accessToken) {
-        Optional<OAuth> existingOAuth = oauthRepository.findByProviderAndOauthUserId(provider, oauthUserId);
-
-        if (existingOAuth.isEmpty()) {
-            User user = userRepository.findByEmail(email)
-                    .orElseGet(() -> userRepository.save(
-                            User.builder()
-                                    .nickname(nickname)
-                                    .email(email)
-                                    .age(25L)  // 기본값
-                                    .industry(null)
-                                    .role(null)
-                                    .career(null)
-                                    .status(null)
-                                    .introduction("")
-                                    .link("")
-                                    .profileImage(null)
-                                    .chatOpportunity(0L)
-                                    .chatMessage(0L)
-                                    .offline(false)
-                                    .isDeleted(false)
-                                    .deletedAt(null)
-                                    .build()
-                    ));
-
-            OAuth oauth = OAuth.builder()
-                    .provider(provider)
-                    .oauthUserId(oauthUserId)
-                    .email(email)
-                    .user(user)
-                    .accessToken(accessToken.getTokenValue())  // ✅ 실제 Access Token 저장
-                    .refreshToken("dummy-refresh-token")  // OAuth 토큰 처리 필요, GitHub OAuth에는 refresh token이 없을 수도 있음
-                    .expiresAt(accessToken.getExpiresAt() != null ?
-                            LocalDateTime.ofInstant(accessToken.getExpiresAt(), ZoneId.systemDefault()) : null)// ✅ 토큰 만료 시간 저장
-                    .createdAt(java.time.LocalDateTime.now())
-                    .updatedAt(java.time.LocalDateTime.now())
-                    .build();
-
-            oauthRepository.save(oauth);
-        }
-    }
-
-    private String getGitHubEmail(String accessToken) {
-        String emailEndpoint = "https://api.github.com/user/emails";
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + accessToken);
-        headers.set("Accept", "application/vnd.github.v3+json");
-
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        RestTemplate restTemplate = new RestTemplate();
-
-        ResponseEntity<List> response = restTemplate.exchange(emailEndpoint, HttpMethod.GET, entity, List.class);
-
-        if (response.getBody() != null) {
-            for (Object obj : response.getBody()) {
-                Map<String, Object> emailData = (Map<String, Object>) obj;
-                if ((boolean) emailData.get("primary")) { // 기본 이메일 선택
-                    return (String) emailData.get("email");
-                }
-            }
-        }
-        return "no-email"; // 이메일이 없을 경우 기본값
     }
 }
