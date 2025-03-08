@@ -9,6 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Table(name = "oauth")
 public class OAuth {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -41,4 +42,9 @@ public class OAuth {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    public void updateAccessToken(String newAccessToken) {
+        this.accessToken = newAccessToken;
+        this.updatedAt = LocalDateTime.now();
+    }
 }
