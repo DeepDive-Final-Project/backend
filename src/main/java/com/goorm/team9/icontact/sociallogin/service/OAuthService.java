@@ -62,4 +62,14 @@ public class OAuthService {
 
         return userRepository.findByEmail(email).orElseThrow();
     }
+    @Transactional
+    public void invalidateAccessToken(String email) {
+        oauthRepository.findByEmail(email).ifPresent(oauth -> {
+            System.out.println("🛑 [로그아웃] 기존 accessToken: " + oauth.getAccessToken());
+            oauth.updateAccessToken(null); // accessToken을 null로 변경
+            oauthRepository.save(oauth);
+            System.out.println("✅ [로그아웃] accessToken 제거 완료! DB 업데이트 확인 필요");
+        });
+    }
+
 }
