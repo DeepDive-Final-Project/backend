@@ -22,6 +22,18 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
+//    @Value("${jwt.secret}")
+//    private String secretKey;
+//
+//    @Value("${jwt.expiration}")
+//    private long validityInMilliseconds;
+//
+//    private Key key;
+//
+//    public void init() {
+//        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
+//    }
+
     private final String secretKey = "ThisIsAReallyStrongSecretKeyForJwt12345"; // 🚨 256비트 이상으로 설정해야 보안 강화 가능
     private final long validityInMilliseconds = 3600000; // 1시간 (밀리초)
     private final Key key = Keys.hmacShaKeyFor(secretKey.getBytes()); // HMAC 키 생성
@@ -46,12 +58,7 @@ public class JwtTokenProvider {
      * JWT에서 사용자 이메일 추출
      */
     public String getUserEmail(String token) {
-        return Jwts.parser()
-                .setSigningKey(key) // 서명 키 설정
-                .build()
-                .parseClaimsJws(token) // JWT 파싱
-                .getBody()
-                .getSubject(); // subject(email) 가져오기
+        return parseToken(token).getSubject();
     }
 
     /**
@@ -82,22 +89,22 @@ public class JwtTokenProvider {
      */
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
+        return (bearerToken != null && bearerToken.startsWith("Bearer ")) ? bearerToken.substring(7) : null;
     }
 
     /**
      * JWT 토큰의 만료 시간을 가져오는 메서드
      */
     public long getExpirationMillis(String token) {
-        Claims claims = Jwts.parser()
+        return parseToken(token).getExpiration().getTime() - System.currentTimeMillis();
+    }
+
+    private Claims parseToken(String token) {
+        return Jwts.parser()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-        return claims.getExpiration().getTime() - System.currentTimeMillis();
     }
 
 }
