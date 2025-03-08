@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
@@ -16,6 +18,7 @@ import java.util.Map;
 public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationSuccessHandler.class);
 
     public JwtAuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -37,13 +40,9 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         tokenResponse.put("accessToken", jwtToken);
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(tokenResponse));
+        logger.info("✅ 로그인 성공: {}", email);
 
-        // JWT를 쿠키로 저장하는 방식 (필요하면 사용 가능)
-        /*
-        Cookie jwtCookie = new Cookie("Authorization", jwtToken);
-        jwtCookie.setHttpOnly(true);
-        jwtCookie.setPath("/");
-        response.addCookie(jwtCookie);
-        */
+        // 홈으로 리다이렉트
+        response.sendRedirect("/auth/home");
     }
 }
