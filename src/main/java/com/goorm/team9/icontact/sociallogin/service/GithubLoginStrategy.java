@@ -29,17 +29,11 @@ public class GithubLoginStrategy {
     }
 
     public String authenticate(String code) {
-
         logger.info("🔹 GitHub 인증 코드: {}", code);  // ✅ 이게 찍히는지 확인
-
         // GitHub OAuth 코드로 액세스 토큰 요청
         String accessToken = getAccessTokenFromGitHub(code);
-
-        logger.info("🔹 GitHub Access Token: {}", accessToken);  // ✅ 이게 찍히는지 확인
-
         OAuth2User oAuth2User = loadUserFromGitHub(accessToken);
         logger.info("🔹 GitHub API 응답: {}", oAuth2User.getAttributes());  // ✅ 응답 확인
-
         // JWT 발급
         String email = (String) oAuth2User.getAttributes().get("email");
         return jwtTokenProvider.createToken(email);
@@ -47,13 +41,12 @@ public class GithubLoginStrategy {
 
     private String getAccessTokenFromGitHub(String code) {
         String tokenUrl = "https://github.com/login/oauth/access_token";
-
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json");
 
         Map<String, String> body = new HashMap<>();
-        body.put("client_id", "your-client-id");  // GitHub OAuth 클라이언트 ID
-        body.put("client_secret", "your-client-secret");  // GitHub OAuth 클라이언트 시크릿
+        body.put("client_id", "Ov23liz6HPq0e9dtvnKS");  // GitHub OAuth 클라이언트 ID
+        body.put("client_secret", "d971d4ecfeb0b598399510899d44a3a258b8357d");  // GitHub OAuth 클라이언트 시크릿
         body.put("code", code);
 
         HttpEntity<Map<String, String>> entity = new HttpEntity<>(body, headers);
