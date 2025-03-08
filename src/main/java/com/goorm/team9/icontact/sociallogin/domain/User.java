@@ -2,11 +2,13 @@ package com.goorm.team9.icontact.sociallogin.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.*;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
 public class User {
@@ -59,7 +61,9 @@ public class User {
     @Column
     private LocalDateTime deletedAt;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "oauth_id")
-    private OAuth oauth;
+//    @OneToOne(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "oauth_id")
+//    private OAuth oauth;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OAuth> oauthAccounts = new ArrayList<>(); // 한 User가 여러 OAuth 계정을 가짐
 }
