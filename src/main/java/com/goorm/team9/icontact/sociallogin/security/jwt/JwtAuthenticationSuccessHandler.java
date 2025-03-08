@@ -27,6 +27,8 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         String email = authentication.getName(); // OAuth 로그인한 사용자 이메일 가져오기
         String jwtToken = jwtTokenProvider.createToken(email); // JWT 생성
 
+        // Authorization 헤더로 JWT 반환
+        response.setHeader("Authorization", "Bearer " + jwtToken);
         // JWT를 JSON 형식으로 응답
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
