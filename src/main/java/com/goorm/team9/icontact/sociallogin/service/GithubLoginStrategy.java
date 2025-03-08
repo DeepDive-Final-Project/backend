@@ -14,8 +14,14 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Component
 public class GithubLoginStrategy {
+
+    private static final Logger logger = LoggerFactory.getLogger(GithubLoginStrategy.class);
+
     private final JwtTokenProvider jwtTokenProvider;
 
     public GithubLoginStrategy(JwtTokenProvider jwtTokenProvider) {
@@ -23,9 +29,16 @@ public class GithubLoginStrategy {
     }
 
     public String authenticate(String code) {
+
+        logger.info("🔹 GitHub 인증 코드: {}", code);  // ✅ 이게 찍히는지 확인
+
         // GitHub OAuth 코드로 액세스 토큰 요청
         String accessToken = getAccessTokenFromGitHub(code);
+
+        logger.info("🔹 GitHub Access Token: {}", accessToken);  // ✅ 이게 찍히는지 확인
+
         OAuth2User oAuth2User = loadUserFromGitHub(accessToken);
+        logger.info("🔹 GitHub API 응답: {}", oAuth2User.getAttributes());  // ✅ 응답 확인
 
         // JWT 발급
         String email = (String) oAuth2User.getAttributes().get("email");
