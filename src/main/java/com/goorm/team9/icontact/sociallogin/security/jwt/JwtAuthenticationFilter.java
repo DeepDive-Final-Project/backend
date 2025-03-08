@@ -5,6 +5,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -15,6 +17,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtBlacklist jwtBlacklist;
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+
 
     public JwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, JwtBlacklist jwtBlacklist) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -25,11 +29,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         String token = jwtTokenProvider.resolveToken(request); // 공통 메서드 사용;
-        System.out.println("🔍 [JWT 필터] 요청 헤더에서 추출한 토큰: " + token);
 
         if (token != null) {
             if (jwtBlacklist.isBlacklisted(token)) { // 블랙리스트 확인 후 차단
-                System.out.println("🚨 차단된 토큰 사용 시도: " + token);
+                logger.warn("🚨 차단된 토큰 사용 시도: {}", token);
                 SecurityContextHolder.clearContext(); // 블랙리스트된 토큰이면 즉시 SecurityContext 초기화
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("{\"error\": \"로그아웃된 토큰입니다.\"}");
@@ -40,12 +43,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (jwtTokenProvider.validateToken(token)) {
                 Authentication authentication = jwtTokenProvider.getAuthentication(token);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
-                System.out.println("✅ [JWT 필터] SecurityContext에 인증 정보 저장 완료");
+                logger.info("✅ JWT 인증 성공: {}", authentication.getName());
             } else {
-                System.out.println("🛑 [JWT 필터] 유효하지 않거나 블랙리스트에 등록된 토큰! 인증 불가");
+                logger.warn("🛑 유효하지 않은 토큰: {}", token);
             }
         }
-
         filterChain.doFilter(request, response);
     }
 }
