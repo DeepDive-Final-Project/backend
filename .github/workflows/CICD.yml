@@ -28,7 +28,12 @@ jobs:
         run: ./gradlew clean build -x test --no-daemon
 
       - name: Debug Build Output
-        run: ls -lah build/libs
+        run: |
+          ls -lah build/libs/
+          if [ ! -f build/libs/*.jar ]; then
+            echo "JAR file not found! Check build output."
+            exit 1
+          fi
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
@@ -43,9 +48,12 @@ jobs:
             exit 1
           fi
 
+      - name: Clear Docker Cache
+        run: docker system prune -af
+
       - name: Build and Push Docker Image
         run: |
-          docker build --build-arg JAR_FILE=build/libs/Backend-0.0.1-SNAPSHOT.jar -t dawnisproblem/i-contact-backend:latest .
+          docker build --build-arg JAR_FILE=build/libs/*.jar -t dawnisproblem/i-contact-backend:latest .
           docker tag dawnisproblem/i-contact-backend:latest dawnisproblem/i-contact-backend:${{ github.sha }}
           docker push dawnisproblem/i-contact-backend:latest
           docker push dawnisproblem/i-contact-backend:${{ github.sha }}
@@ -65,60 +73,57 @@ jobs:
       - name: Deploy to EC2 Server A
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
-            echo "Checking Docker Status..."
-            if ! pgrep -x "dockerd" > /dev/null; then
-              echo "Docker is not running. Restarting..."
-              sudo service docker restart
-              sleep 5
-            fi
-
-            echo "Checking if Docker Compose is installed..."
-            if ! command -v docker-compose &> /dev/null; then
-              echo "Docker Compose not found. Installing..."
-              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
-            fi
-
-            echo "Navigating to Backend Directory..."
+            echo "Checking and Creating Backend Directory..."
+            mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
-
+            git pull origin main || echo "No Git repository found, skipping..."
             echo "Pulling latest Docker image..."
             docker-compose pull
-
-            echo "Stopping and removing old containers..."
-            docker-compose down
-
-            echo "Starting new containers..."
-            docker-compose up -d
+            echo "Restarting Containers..."
+            docker-compose up -d --force-recreate
           EOF
+
+      - name: ALB Health Check for Server A
+        run: |
+          echo "Waiting for Server A to be Healthy in ALB..."
+          for i in {1..30}; do
+            STATUS=$(aws elbv2 describe-target-health --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} | jq -r '.TargetHealthDescriptions[] | select(.Target.Id=="${{ secrets.EC2_INSTANCE_ID_A }}") | .TargetHealth.State')
+            echo "ALB Target Health Status (Server A): $STATUS"
+            if [ "$STATUS" == "healthy" ]; then
+              echo "Server A is Healthy!"
+              exit 0
+            fi
+            echo "Waiting for Server A... ($i/30)"
+            sleep 10
+          done
+          echo "Server A did not become Healthy in time. Failing deployment."
+          exit 1
 
       - name: Deploy to EC2 Server B
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
-            echo "Checking Docker Status..."
-            if ! pgrep -x "dockerd" > /dev/null; then
-              echo "Docker is not running. Restarting..."
-              sudo service docker restart
-              sleep 5
-            fi
-
-            echo "Checking if Docker Compose is installed..."
-            if ! command -v docker-compose &> /dev/null; then
-              echo "Docker Compose not found. Installing..."
-              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-              sudo chmod +x /usr/local/bin/docker-compose
-            fi
-
-            echo "Navigating to Backend Directory..."
+            echo "Checking and Creating Backend Directory..."
+            mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
-
+            git pull origin main || echo "No Git repository found, skipping..."
             echo "Pulling latest Docker image..."
             docker-compose pull
-
-            echo "Stopping and removing old containers..."
-            docker-compose down
-
-            echo "Starting new containers..."
-            docker-compose up -d
+            echo "Restarting Containers..."
+            docker-compose up -d --force-recreate
           EOF
-  
+
+      - name: ALB Health Check for Server B
+        run: |
+          echo "Waiting for Server B to be Healthy in ALB..."
+          for i in {1..30}; do
+            STATUS=$(aws elbv2 describe-target-health --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} | jq -r '.TargetHealthDescriptions[] | select(.Target.Id=="${{ secrets.EC2_INSTANCE_ID_B }}") | .TargetHealth.State')
+            echo "ALB Target Health Status (Server B): $STATUS"
+            if [ "$STATUS" == "healthy" ]; then
+              echo "Server B is Healthy!"
+              exit 0
+            fi
+            echo "Waiting for Server B... ($i/30)"
+            sleep 10
+          done
+          echo "Server B did not become Healthy in time. Failing deployment."
+          exit 1
