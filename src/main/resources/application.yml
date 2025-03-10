@@ -60,9 +60,12 @@ security:
     endpoints:
       web:
         exposure:
-          include: health
+          include: health, info
     endpoint:
       health:
         show-details: always
     server:
       port: 8080
+    security:
+      enabled: false
+  
