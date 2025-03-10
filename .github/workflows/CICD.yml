@@ -100,7 +100,7 @@ jobs:
         run: |
           echo "Waiting for Server A to be Healthy in ALB..."
           for i in {1..30}; do
-            STATUS=$(aws elbv2 describe-target-health --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} | jq -r '.TargetHealthDescriptions[] | select(.Target.Id=="${{ secrets.EC2_INSTANCE_ID_A }}") | .TargetHealth.State')
+            STATUS=$(aws elbv2 describe-target-health --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} --region ap-northeast-2 | jq -r '.TargetHealthDescriptions[] | select(.Target.Id=="${{ secrets.EC2_INSTANCE_ID_A }}") | .TargetHealth.State')
             echo "ALB Target Health Status (Server A): $STATUS"
             if [ "$STATUS" == "healthy" ]; then
               echo "Server A is Healthy!"
@@ -111,7 +111,7 @@ jobs:
           done
           echo "Server A did not become Healthy in time. Failing deployment."
           exit 1
-
+      
       - name: Ensure Dependencies on EC2 Server B
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
@@ -142,7 +142,7 @@ jobs:
         run: |
           echo "Waiting for Server B to be Healthy in ALB..."
           for i in {1..30}; do
-            STATUS=$(aws elbv2 describe-target-health --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} | jq -r '.TargetHealthDescriptions[] | select(.Target.Id=="${{ secrets.EC2_INSTANCE_ID_B }}") | .TargetHealth.State')
+            STATUS=$(aws elbv2 describe-target-health --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} --region ap-northeast-2 | jq -r '.TargetHealthDescriptions[] | select(.Target.Id=="${{ secrets.EC2_INSTANCE_ID_B }}") | .TargetHealth.State')
             echo "ALB Target Health Status (Server B): $STATUS"
             if [ "$STATUS" == "healthy" ]; then
               echo "Server B is Healthy!"
@@ -153,4 +153,3 @@ jobs:
           done
           echo "Server B did not become Healthy in time. Failing deployment."
           exit 1
-  
