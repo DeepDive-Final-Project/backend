@@ -64,7 +64,7 @@ jobs:
 
       - name: Deploy to EC2 Server A
         run: |
-          ssh -t StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
             echo "Checking Docker Status..."
             if ! pgrep -x "dockerd" > /dev/null; then
               echo "Docker is not running. Restarting..."
@@ -94,7 +94,7 @@ jobs:
 
       - name: Deploy to EC2 Server B
         run: |
-          ssh -t StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
             echo "Checking Docker Status..."
             if ! pgrep -x "dockerd" > /dev/null; then
               echo "Docker is not running. Restarting..."
