@@ -64,46 +64,61 @@ jobs:
 
       - name: Deploy to EC2 Server A
         run: |
-          ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
             echo "Checking Docker Status..."
-            if ! systemctl is-active --quiet docker; then
+            if ! pgrep -x "dockerd" > /dev/null; then
               echo "Docker is not running. Restarting..."
-              sudo systemctl restart docker
+              sudo service docker restart
               sleep 5
             fi
-          
+
+            echo "Checking if Docker Compose is installed..."
+            if ! command -v docker-compose &> /dev/null; then
+              echo "Docker Compose not found. Installing..."
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
+
             echo "Navigating to Backend Directory..."
-            cd /home/ubuntu/backend  # docker-compose.yml이 있는 경로로 이동
+            cd /home/ubuntu/backend
 
             echo "Pulling latest Docker image..."
-            /usr/bin/docker-compose pull
+            docker-compose pull
 
             echo "Stopping and removing old containers..."
-            /usr/bin/docker-compose down
+            docker-compose down
 
             echo "Starting new containers..."
-            /usr/bin/docker-compose up -d
+            docker-compose up -d
           EOF
 
       - name: Deploy to EC2 Server B
         run: |
-          ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
             echo "Checking Docker Status..."
-            if ! systemctl is-active --quiet docker; then
+            if ! pgrep -x "dockerd" > /dev/null; then
               echo "Docker is not running. Restarting..."
-              sudo systemctl restart docker
+              sudo service docker restart
               sleep 5
             fi
-          
+
+            echo "Checking if Docker Compose is installed..."
+            if ! command -v docker-compose &> /dev/null; then
+              echo "Docker Compose not found. Installing..."
+              sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
+
             echo "Navigating to Backend Directory..."
-            cd /home/ubuntu/backend  # docker-compose.yml이 있는 경로로 이동
+            cd /home/ubuntu/backend
 
             echo "Pulling latest Docker image..."
-            /usr/bin/docker-compose pull
+            docker-compose pull
 
             echo "Stopping and removing old containers..."
-            /usr/bin/docker-compose down
+            docker-compose down
 
             echo "Starting new containers..."
-            /usr/bin/docker-compose up -d
+            docker-compose up -d
           EOF
+  
