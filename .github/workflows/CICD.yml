@@ -1,0 +1,115 @@
+name: CI/CD - Build & Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build With Gradle
+        run: ./gradlew clean build -x test --no-daemon
+
+      - name: Debug Build Output
+        run: ls -lah build/libs
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          if docker info | grep -q "Username"; then
+            echo "Docker login successful"
+          else
+            echo "Docker login failed"
+            exit 1
+          fi
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build --build-arg JAR_FILE=build/libs/Backend-0.0.1-SNAPSHOT.jar -t dawnisproblem/i-contact-backend:latest .
+          docker tag dawnisproblem/i-contact-backend:latest dawnisproblem/i-contact-backend:${{ github.sha }}
+          docker push dawnisproblem/i-contact-backend:latest
+          docker push dawnisproblem/i-contact-backend:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_A }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_B }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to EC2 Server A
+        run: |
+          ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+            echo "Checking Docker Status..."
+            if ! systemctl is-active --quiet docker; then
+              echo "Docker is not running. Restarting..."
+              sudo systemctl restart docker
+              sleep 5
+            fi
+          
+            echo "Pulling latest Docker image..."
+            /usr/bin/docker pull dawnisproblem/i-contact-backend:latest
+          
+            echo "Stopping and removing old container..."
+            /usr/bin/docker stop springboot_container || true
+            /usr/bin/docker rm springboot_container || true
+          
+            echo "Running new container..."
+            /usr/bin/docker run -d --name springboot_container -p 8080:8080 dawnisproblem/i-contact-backend:latest
+          EOF
+
+#      - name: Wait for Health Check (Server A)
+#        run: |
+#          sleep 100
+#          curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
+
+      - name: Deploy to EC2 Server B
+        run: |
+          ssh ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+            echo "Checking Docker Status..."
+            if ! systemctl is-active --quiet docker; then
+              echo "Docker is not running. Restarting..."
+              sudo systemctl restart docker
+              sleep 5
+            fi
+          
+            echo "Pulling latest Docker image..."
+            /usr/bin/docker pull dawnisproblem/i-contact-backend:latest
+          
+            echo "Stopping and removing old container..."
+            /usr/bin/docker stop springboot_container || true
+            /usr/bin/docker rm springboot_container || true
+          
+            echo "Running new container..."
+            /usr/bin/docker run -d --name springboot_container -p 8080:8080 dawnisproblem/i-contact-backend:latest
+          EOF
+
+#      - name: Wait for Health Check (Server B)
+#        run: |
+#          sleep 100
+#          curl -f http://i-contact-alb-xxx.ap-northeast-2.elb.amazonaws.com/actuator/health || exit 1
