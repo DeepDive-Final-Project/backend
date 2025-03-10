@@ -70,9 +70,22 @@ jobs:
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_A }} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_B }} >> ~/.ssh/known_hosts
 
+      - name: Ensure Dependencies on EC2 Server A
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Ensuring required packages are installed..."
+            sudo apt update
+            sudo apt install -y git docker-compose-plugin
+            sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
+          EOF
+
       - name: Deploy to EC2 Server A
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
             echo "Checking and Creating Backend Directory..."
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
@@ -99,9 +112,22 @@ jobs:
           echo "Server A did not become Healthy in time. Failing deployment."
           exit 1
 
+      - name: Ensure Dependencies on EC2 Server B
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Ensuring required packages are installed..."
+            sudo apt update
+            sudo apt install -y git docker-compose-plugin
+            sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
+          EOF
+
       - name: Deploy to EC2 Server B
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
             echo "Checking and Creating Backend Directory..."
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
@@ -127,3 +153,4 @@ jobs:
           done
           echo "Server B did not become Healthy in time. Failing deployment."
           exit 1
+  
