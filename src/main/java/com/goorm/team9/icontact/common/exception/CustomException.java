@@ -1,13 +1,14 @@
 package com.goorm.team9.icontact.common.exception;
 
+import com.goorm.team9.icontact.common.error.ErrorCodeInterface;
 import lombok.Getter;
 
 @Getter
 public class CustomException extends RuntimeException {
-    private final GlobalExceptionErrorCode errorCode;
+    private final ErrorCodeInterface errorCode;
 
-    public CustomException(GlobalExceptionErrorCode errorCode) {
-        super(errorCode.getMessage());
+    public CustomException(ErrorCodeInterface errorCode) {
+        super(errorCode.getDescription());
         this.errorCode = errorCode;
     }
 }
