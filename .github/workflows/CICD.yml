@@ -96,7 +96,11 @@ jobs:
             echo "Checking and Creating Backend Directory..."
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
-            git pull origin main || echo "No Git repository found, skipping..."
+
+            echo "Checking out dev branch..."
+            git checkout dev || git checkout -b dev
+            git pull origin dev
+
             echo "Pulling latest Docker image..."
             docker-compose pull
             echo "Restarting Containers..."
@@ -138,7 +142,11 @@ jobs:
             echo "Checking and Creating Backend Directory..."
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
-            git pull origin main || echo "No Git repository found, skipping..."
+
+            echo "Checking out dev branch..."
+            git checkout dev || git checkout -b dev
+            git pull origin dev
+
             echo "Pulling latest Docker image..."
             docker-compose pull
             echo "Restarting Containers..."
