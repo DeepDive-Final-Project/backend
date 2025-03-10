@@ -16,8 +16,16 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/ws-chat/**", "/topic/**", "/app/**").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html", "/actuator/health").permitAll()
+                        .requestMatchers(
+                                "/ws-chat/**",
+                                "/topic/**",
+                                "/app/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/swagger-ui.html",
+                                "/actuator/health",
+                                "/api/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .csrf(csrf -> csrf.disable())
@@ -30,4 +38,3 @@ public class SecurityConfig {
         return http.build();
     }
 }
-
