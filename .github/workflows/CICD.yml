@@ -103,11 +103,19 @@ jobs:
             git reset --hard origin/dev
             git pull origin dev
 
+            echo "Stopping and removing existing containers..."
+            docker-compose down || true 
+
+            echo "Removing old Docker images..."
+            docker rmi -f dawnisproblem/i-contact-backend:latest || true
+
             echo "Pulling latest Docker image..."
             docker-compose pull
+
             echo "Restarting Containers..."
             docker-compose up -d --force-recreate
           EOF
+
 
 
 #      - name: ALB Health Check for Server A
@@ -152,11 +160,19 @@ jobs:
             git reset --hard origin/dev
             git pull origin dev
 
+            echo "Stopping and removing existing containers..."
+            docker-compose down || true
+
+            echo "Removing old Docker images..."
+            docker rmi -f dawnisproblem/i-contact-backend:latest || true
+
             echo "Pulling latest Docker image..."
             docker-compose pull
+
             echo "Restarting Containers..."
             docker-compose up -d --force-recreate
           EOF
+
 
 
 #      - name: ALB Health Check for Server B
