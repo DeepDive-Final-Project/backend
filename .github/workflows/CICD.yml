@@ -97,8 +97,10 @@ jobs:
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
 
-            echo "Checking out dev branch..."
-            git checkout dev || git checkout -b dev
+            echo "Fetching latest changes from remote repository..."
+            git fetch --all
+            git checkout dev || git checkout -b dev origin/dev
+            git reset --hard origin/dev
             git pull origin dev
 
             echo "Pulling latest Docker image..."
@@ -106,6 +108,7 @@ jobs:
             echo "Restarting Containers..."
             docker-compose up -d --force-recreate
           EOF
+
 
 #      - name: ALB Health Check for Server A
 #        run: |
@@ -143,8 +146,10 @@ jobs:
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
 
-            echo "Checking out dev branch..."
-            git checkout dev || git checkout -b dev
+            echo "Fetching latest changes from remote repository..."
+            git fetch --all
+            git checkout dev || git checkout -b dev origin/dev
+            git reset --hard origin/dev
             git pull origin dev
 
             echo "Pulling latest Docker image..."
@@ -152,6 +157,7 @@ jobs:
             echo "Restarting Containers..."
             docker-compose up -d --force-recreate
           EOF
+
 
 #      - name: ALB Health Check for Server B
 #        run: |
