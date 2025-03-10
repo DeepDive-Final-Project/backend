@@ -14,7 +14,8 @@ public enum GlobalExceptionErrorCode {
     CLIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 참가자를 찾을 수 없습니다."),
     DUPLICATE_CLIENT(HttpStatus.CONFLICT, "중복된 참가자의 정보가 존재합니다."),
     INVALID_LOCATION_DATA(HttpStatus.BAD_REQUEST, "유효하지 않은 위도/경도 값입니다."),
-    GPS_ERROR(HttpStatus.BAD_REQUEST, "GPS 데이터가 올바르지 않습니다.");
+    GPS_ERROR(HttpStatus.BAD_REQUEST, "GPS 데이터가 올바르지 않습니다."),
+    INVALID_USER_ID(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 ID입니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
