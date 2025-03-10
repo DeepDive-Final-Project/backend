@@ -26,12 +26,13 @@ public class LocationController {
     @GetMapping("/nearby")
     public ResponseEntity<Map<String, Object>> getNearbyUsers(
             @RequestParam double latitude,
-            @RequestParam double longitude
+            @RequestParam double longitude,
+            @RequestParam String interest
     ) {
-        List<LocationResponse> nearbyUsers = locationService.getNearbyUsers(latitude, longitude);
+        List<LocationResponse> nearbyUsers = locationService.getNearbyUsers(latitude, longitude, interest);
 
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "근처 참가자 조회 완료");
+        response.put("message", "근처 참가자 조회 및 관심분야 추출 완료");
         response.put("data", nearbyUsers);
 
         return ResponseEntity.ok(response);
