@@ -11,4 +11,5 @@ public class LocationRequest {
     private String userId;
     private double latitude;
     private double longitude;
+    private String interest;
 }
