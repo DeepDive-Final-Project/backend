@@ -82,4 +82,11 @@ public class ChatRoomController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
+
+    @Operation(summary = "채팅방 퇴장 API", description = "사용자가 특정 채팅방을 나갑니다.")
+    @PostMapping("/{roomId}/exit/{clientId}")
+    public ResponseEntity<Void> exitChatRoom(@PathVariable Long roomId, @PathVariable Long clientId) {
+        chatRoomService.exitChatRoom(roomId, clientId);
+        return ResponseEntity.ok().build();
+    }
 }
