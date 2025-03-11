@@ -1,5 +1,6 @@
 package com.goorm.team9.icontact.chat.entity;
 
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,16 +16,23 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long roomId;
-    private String senderNickname;
+    @ManyToOne
+    @JoinColumn(name = "room_id", nullable = false)
+    private ChatRoom chatRoom;
+
+    @ManyToOne
+    @JoinColumn(name = "sender_nickname", nullable = false)
+    private ClientEntity senderNickname;
+
+    @Column(nullable = false)
     private String content;
 
     @Enumerated(EnumType.STRING)
     private ChatMessageType type;
 
-    public static ChatMessage create(Long roomId, String senderNickname, String content, ChatMessageType type) {
+    public static ChatMessage createChatMessage(ChatRoom chatRoom, ClientEntity senderNickname, String content, ChatMessageType type) {
         return ChatMessage.builder()
-                .roomId(roomId)
+                .chatRoom(chatRoom)
                 .senderNickname(senderNickname)
                 .content(content)
                 .type(type)
