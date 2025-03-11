@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.config;
+package com.goorm.team9.icontact.config.redis;
 
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
