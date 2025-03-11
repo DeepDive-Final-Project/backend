@@ -59,6 +59,10 @@ public class ChatRoomService {
         ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자는 채팅방에 존재하지 않습니다."));
 
+        if (chatJoin.isExited()) {
+            throw new IllegalArgumentException("이미 나간 채팅방입니다.");
+        }
+
         chatJoin.exitChatRoom();
         chatJoinRepository.save(chatJoin);
     }
@@ -67,6 +71,11 @@ public class ChatRoomService {
         List<ChatRoom> chatRooms = chatRoomRepository.findBySenderNicknameOrReceiverNickname(client.getNickName());
 
         return chatRooms.stream()
+                .filter(chatRoom -> {
+                    ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client)
+                            .orElse(null);
+                    return chatJoin == null || !chatJoin.isExited();
+                })
                 .map(ChatRoomResponse::fromEntity)
                 .collect(Collectors.toList());
     }
