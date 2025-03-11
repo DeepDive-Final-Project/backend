@@ -2,11 +2,6 @@ spring:
   application:
     name: I-Contact
 
-  security:
-    user:
-      name: admin
-      password: admin
-
   datasource:
     url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/${DB_NAME:i_contact_local}?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: ${DB_USERNAME:root}
@@ -48,16 +43,39 @@ spring:
       org.springdoc: DEBUG
       org.hibernate.SQL: DEBUG
       org.springframework.security: DEBUG
-      root=DEBUG:    
 
-security:
-  oauth2:
-    client:
-      registration:
-        github:
-          client-id: ${GITHUB_CLIENT_ID}
-          client-secret: ${GITHUB_CLIENT_SECRET}
-          scope: user:email
+  security:
+    user:
+      name: admin
+      password: admin
+    oauth2:
+      client:
+        registration:
+          github:
+            client-id: ${GITHUB_CLIENT_ID}
+            client-secret: ${GITHUB_CLIENT_SECRET}
+            scope: user:email, read:user
+            redirect-uri: "{baseUrl}/login/oauth2/code/github"
+#          google:
+#            client-id: your-google-client-id
+#            client-secret: your-google-client-secret
+#            scope: profile, email
+#          kakao:
+#            client-id: your-kakao-client-id
+#            client-secret: your-kakao-client-secret
+#            client-authentication-method: POST
+#            authorization-grant-type: authorization_code
+#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+#            scope: profile_nickname, account_email
+#            client-name: Kakao
+#          naver:
+#            client-id: your-naver-client-id
+#            client-secret: your-naver-client-secret
+#            client-authentication-method: POST
+#            authorization-grant-type: authorization_code
+#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+#            scope: name, email
+#            client-name: Naver
 
   management:
     endpoints:
@@ -75,14 +93,9 @@ security:
 springdoc:
   api-docs:
     enabled: true
-    path: /v3/api-docs
   swagger-ui:
     enabled: true
-    path: /swagger-ui.html
-    operations-sorter: method
-    disable-swagger-default-url: true
-  paths-to-match: /api/**
+  paths-to-match: /**
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
-
 

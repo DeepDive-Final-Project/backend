@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.sociallogin.security.jwt;
+package com.goorm.team9.icontact.domain.sociallogin.security.jwt;
 
 import java.time.Instant;
 import java.util.Iterator;
@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**

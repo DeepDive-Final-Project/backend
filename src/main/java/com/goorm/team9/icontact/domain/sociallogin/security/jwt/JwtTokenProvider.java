@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.sociallogin.security.jwt;
+package com.goorm.team9.icontact.domain.sociallogin.security.jwt;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -22,7 +22,6 @@ import org.springframework.stereotype.Component;
 import java.security.Key;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * JWT 생성 및 검증을 담당하는 클래스.

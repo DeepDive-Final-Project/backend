@@ -1,7 +1,7 @@
-package com.goorm.team9.icontact.sociallogin.service;
+package com.goorm.team9.icontact.domain.sociallogin.service;
 
-import com.goorm.team9.icontact.sociallogin.security.jwt.JwtTokenProvider;
-import com.goorm.team9.icontact.sociallogin.security.provider.GitHubOAuthProvider;
+import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
+import com.goorm.team9.icontact.domain.sociallogin.security.provider.GitHubOAuthProvider;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
