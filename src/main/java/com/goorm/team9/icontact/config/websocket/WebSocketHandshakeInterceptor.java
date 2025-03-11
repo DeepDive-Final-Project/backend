@@ -14,7 +14,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
 
-        String chatRoomId = request.getURI().getPath().split("/")[2];
+        String roomId = request.getURI().getPath().split("/")[2];
 
         String senderNickname = request.getURI().getQuery();
         String[] params = senderNickname.split("=");
@@ -22,7 +22,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
             senderNickname = params[1];
         }
 
-        attributes.put("chatRoomId", chatRoomId);
+        attributes.put("roomId", roomId);
         attributes.put("senderNickname", senderNickname);
         return true;
     }

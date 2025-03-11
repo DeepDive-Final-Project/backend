@@ -17,16 +17,16 @@ public class WebSocketHandler extends TextWebSocketHandler {
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-        Long chatRoomId = (Long) session.getAttributes().get("chatRoomId");
+        Long roomId = (Long) session.getAttributes().get("RoomId");
         String senderNickname = (String) session.getAttributes().get("senderNickname");
-        webSocketSessionService.addSession(chatRoomId, senderNickname, session);
+        webSocketSessionService.addSession(roomId, senderNickname, session);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) throws Exception {
-        Long chatRoomId = (Long) session.getAttributes().get("chatRoomId");
+        Long roomId = (Long) session.getAttributes().get("chatRoomId");
         String senderNickname = (String) session.getAttributes().get("senderNickname");
-        webSocketSessionService.removeSession(chatRoomId, senderNickname);
+        webSocketSessionService.removeSession(roomId, senderNickname);
     }
 }
 

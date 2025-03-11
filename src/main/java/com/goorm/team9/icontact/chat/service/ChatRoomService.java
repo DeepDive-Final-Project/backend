@@ -20,7 +20,7 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public Long createOrGetChatRoomId(String senderNickname, String receiverNickname) {
+    public Long createOrGetRoomId(String senderNickname, String receiverNickname) {
         Optional<ChatRoom> existingChatRoom = chatRoomRepository.findBySenderNicknameAndReceiverNickname(senderNickname, receiverNickname);
 
         if (existingChatRoom.isPresent()) {
