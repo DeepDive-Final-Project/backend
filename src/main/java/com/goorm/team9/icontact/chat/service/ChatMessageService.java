@@ -18,14 +18,14 @@ public class ChatMessageService {
     @Transactional
     public void sendMessage(ChatMessageDto chatMessageDto) {
         ChatMessage chatMessage = ChatMessage.builder()
-                .chatRoomId(chatMessageDto.getChatRoomId())
+                .roomId(chatMessageDto.getRoomId())
                 .senderNickname(chatMessageDto.getSenderNickname())
                 .content(chatMessageDto.getContent())
                 .type(chatMessageDto.getType())
                 .build();
         chatMessageRepository.save(chatMessage);
 
-        String destination = "/queue/" + chatMessageDto.getChatRoomId();
+        String destination = "/queue/" + chatMessageDto.getRoomId();
         messagingTemplate.convertAndSend(destination, chatMessageDto);
     }
 }

@@ -21,41 +21,41 @@ public class WebSocketSessionService {
         this.chatRoomService = chatRoomService;
     }
 
-    public void addSession(Long chatRoomId, String senderNickname, WebSocketSession session) {
+    public void addSession(Long roomId, String senderNickname, WebSocketSession session) {
         chatRoomSessions
-                .computeIfAbsent(chatRoomId, k -> new ConcurrentHashMap<>())
+                .computeIfAbsent(roomId, k -> new ConcurrentHashMap<>())
                 .put(senderNickname, session);
-        sendJoinMessage(chatRoomId, senderNickname);
+        sendJoinMessage(roomId, senderNickname);
     }
 
-    public void removeSession(Long chatRoomId, String senderNickname) {
-        Map<String, WebSocketSession> usersInRoom = chatRoomSessions.get(chatRoomId);
+    public void removeSession(Long roomId, String senderNickname) {
+        Map<String, WebSocketSession> usersInRoom = chatRoomSessions.get(roomId);
         if (usersInRoom != null) {
             usersInRoom.remove(senderNickname);
-            sendLeaveMessage(chatRoomId, senderNickname);
+            sendLeaveMessage(roomId, senderNickname);
         }
     }
 
-    private void sendJoinMessage(Long chatRoomId, String senderNickname) {
-        ChatMessageDto joinMessage = ChatMessageDto.createJoinMessage(chatRoomId, senderNickname);
-        messagingTemplate.convertAndSend("/queue/" + chatRoomId, joinMessage);
+    private void sendJoinMessage(Long roomId, String senderNickname) {
+        ChatMessageDto joinMessage = ChatMessageDto.createJoinMessage(roomId, senderNickname);
+        messagingTemplate.convertAndSend("/queue/" + roomId, joinMessage);
     }
 
-    private void sendLeaveMessage(Long chatRoomId, String senderNickname) {
-        ChatMessageDto leaveMessage = ChatMessageDto.createLeaveMessage(chatRoomId, senderNickname);
-        messagingTemplate.convertAndSend("/queue/" + chatRoomId, leaveMessage);
+    private void sendLeaveMessage(Long roomId, String senderNickname) {
+        ChatMessageDto leaveMessage = ChatMessageDto.createLeaveMessage(roomId, senderNickname);
+        messagingTemplate.convertAndSend("/queue/" + roomId, leaveMessage);
     }
 
-    public void sendMessageToChatRoom(Long chatRoomId, String message) {
-        Map<String, WebSocketSession> usersInRoom = chatRoomSessions.get(chatRoomId);
+    public void sendMessageToChatRoom(Long roomId, String message) {
+        Map<String, WebSocketSession> usersInRoom = chatRoomSessions.get(roomId);
         if (usersInRoom != null) {
             for (WebSocketSession session : usersInRoom.values()) {
-                messagingTemplate.convertAndSendToUser(session.getId(), "/queue/" + chatRoomId, message);
+                messagingTemplate.convertAndSendToUser(session.getId(), "/queue/" + roomId, message);
             }
         }
     }
 
-    public Long createOrGetChatRoomId(String senderNickname, String receiverNickname) {
-        return chatRoomService.createOrGetChatRoomId(senderNickname, receiverNickname);
+    public Long createOrGetRoomId(String senderNickname, String receiverNickname) {
+        return chatRoomService.createOrGetRoomId(senderNickname, receiverNickname);
     }
 }

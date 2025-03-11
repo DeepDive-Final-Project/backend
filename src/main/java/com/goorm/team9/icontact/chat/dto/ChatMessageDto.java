@@ -8,33 +8,33 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ChatMessageDto {
 
-    private Long chatRoomId;
+    private Long roomId;
     private String senderNickname;
     private String content;
 
     private ChatMessageType type;
 
-    public static ChatMessageDto createChatMessage(Long chatRoomId, String senderNickname, String content) {
+    public static ChatMessageDto createChatMessage(Long roomId, String senderNickname, String content) {
         ChatMessageDto message = new ChatMessageDto();
-        message.chatRoomId = chatRoomId;
+        message.roomId = roomId;
         message.senderNickname = senderNickname;
         message.content = content;
         message.type = ChatMessageType.CHAT;
         return message;
     }
 
-    public static ChatMessageDto createJoinMessage(Long chatRoomId, String senderNickname) {
+    public static ChatMessageDto createJoinMessage(Long roomId, String senderNickname) {
         ChatMessageDto message = new ChatMessageDto();
-        message.chatRoomId = chatRoomId;
+        message.roomId = roomId;
         message.senderNickname = senderNickname;
         message.content = senderNickname + "님이 입장했습니다.";
         message.type = ChatMessageType.JOIN;
         return message;
     }
 
-    public static ChatMessageDto createLeaveMessage(Long chatRoomId, String senderNickname) {
+    public static ChatMessageDto createLeaveMessage(Long roomId, String senderNickname) {
         ChatMessageDto message = new ChatMessageDto();
-        message.chatRoomId = chatRoomId;
+        message.roomId = roomId;
         message.senderNickname = senderNickname;
         message.content = senderNickname + "님이 퇴장했습니다.";
         message.type = ChatMessageType.LEAVE;

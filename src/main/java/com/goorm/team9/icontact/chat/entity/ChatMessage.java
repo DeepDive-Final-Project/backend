@@ -15,16 +15,16 @@ public class ChatMessage {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long chatRoomId;
+    private Long roomId;
     private String senderNickname;
     private String content;
 
     @Enumerated(EnumType.STRING)
     private ChatMessageType type;
 
-    public static ChatMessage create(Long chatRoomId, String senderNickname, String content, ChatMessageType type) {
+    public static ChatMessage create(Long roomId, String senderNickname, String content, ChatMessageType type) {
         return ChatMessage.builder()
-                .chatRoomId(chatRoomId)
+                .roomId(roomId)
                 .senderNickname(senderNickname)
                 .content(content)
                 .type(type)
