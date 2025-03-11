@@ -129,7 +129,7 @@ jobs:
               exit 0
             fi
             echo "Waiting for Server A... ($i/30)"
-            sleep 10
+            sleep 60
           done
           echo "Server A did not become Healthy in time. Failing deployment."
           exit 1
@@ -184,7 +184,7 @@ jobs:
               exit 0
             fi
             echo "Waiting for Server B... ($i/30)"
-            sleep 10
+            sleep 60
           done
           echo "Server B did not become Healthy in time. Failing deployment."
           exit 1
