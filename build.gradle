@@ -43,6 +43,10 @@ dependencies {
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // WebSocket & STOMP
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-messaging'
+
     // Docker
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
