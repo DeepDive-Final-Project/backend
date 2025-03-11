@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.sociallogin.dto;
+package com.goorm.team9.icontact.domain.sociallogin.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

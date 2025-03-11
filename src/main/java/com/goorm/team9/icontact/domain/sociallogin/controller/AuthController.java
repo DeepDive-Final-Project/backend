@@ -1,15 +1,14 @@
-package com.goorm.team9.icontact.sociallogin.controller;
+package com.goorm.team9.icontact.domain.sociallogin.controller;
 
-import com.goorm.team9.icontact.sociallogin.dto.JwtResponse;
-import com.goorm.team9.icontact.sociallogin.dto.OAuthLoginRequest;
-import com.goorm.team9.icontact.sociallogin.service.AuthService;
+import com.goorm.team9.icontact.domain.sociallogin.dto.JwtResponse;
+import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthLoginRequest;
+import com.goorm.team9.icontact.domain.sociallogin.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;

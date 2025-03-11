@@ -5,11 +5,20 @@ import com.goorm.team9.icontact.domain.client.enums.Industry;
 import com.goorm.team9.icontact.domain.client.enums.Role;
 import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.common.BaseTimeEntity;
+import com.goorm.team9.icontact.domain.sociallogin.domain.OAuth;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.*;
 
-@Entity
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
 @Data
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
 @Table(name = "\"client\"")
 public class ClientEntity extends BaseTimeEntity {
 
@@ -65,5 +74,17 @@ public class ClientEntity extends BaseTimeEntity {
 
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private TopicEntity it_topic;
+
+    @OneToMany(mappedBy = "client_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OAuth> oauthAccounts = new ArrayList<>(); // 한 User가 여러 OAuth 계정을 가짐
+
+    public void setDeleted(boolean deleted) {
+        this.isDeleted = deleted;
+        if (deleted) {
+            super.setDeleted_at(LocalDateTime.now());
+        } else {
+            super.setDeleted_at(null);
+        }
+    }
 
 }

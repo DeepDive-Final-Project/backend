@@ -1,5 +1,6 @@
-package com.goorm.team9.icontact.sociallogin.domain;
+package com.goorm.team9.icontact.domain.sociallogin.domain;
 
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -16,8 +17,8 @@ public class OAuth {
     private Long oauthId;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "client_id", nullable = false)
+    private ClientEntity client_id;
 
     @Column(nullable = false)
     private String provider;

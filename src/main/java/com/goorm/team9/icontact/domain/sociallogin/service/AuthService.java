@@ -1,7 +1,7 @@
-package com.goorm.team9.icontact.sociallogin.service;
+package com.goorm.team9.icontact.domain.sociallogin.service;
 
-import com.goorm.team9.icontact.sociallogin.security.jwt.JwtBlacklist;
-import com.goorm.team9.icontact.sociallogin.security.jwt.JwtTokenProvider;
+import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtBlacklist;
+import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
