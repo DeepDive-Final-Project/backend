@@ -28,7 +28,6 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-web-services'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // Actuator
@@ -66,5 +65,6 @@ tasks.named('test') {
 }
 
 jar {
-    enabled = false
+    archiveBaseName.set('Backend')
+    archiveVersion.set('0.0.1-SNAPSHOT')
 }
