@@ -25,7 +25,6 @@ public class SecurityConfig {
     private final CustomOAuth2UserService customOAuth2UserService;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtBlacklist jwtBlacklist;
-    private static final Logger logger = LoggerFactory.getLogger(com.goorm.team9.icontact.config.security.SecurityConfig.class);
     private final JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
 
     @Bean
