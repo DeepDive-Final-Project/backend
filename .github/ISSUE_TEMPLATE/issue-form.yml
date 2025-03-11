@@ -36,4 +36,3 @@ body:
         ---
         **🔗 자동 생성된 정보**
         - Jira Story: `${{ inputs.storyKey }}`
-

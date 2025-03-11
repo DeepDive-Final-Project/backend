@@ -1,0 +1,194 @@
+name: CI/CD - Build & Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Github Repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Build With Gradle
+        run: |
+          ./gradlew clean --refresh-dependencies
+          ./gradlew build -x test --no-daemon
+
+      - name: Debug Build Output
+        run: |
+          ls -lah build/libs/
+          if [ ! -f build/libs/*.jar ]; then
+            echo "JAR file not found! Check build output."
+            exit 1
+          fi
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Log in to Docker Hub
+        run: |
+          echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          if docker info | grep -q "Username"; then
+            echo "Docker login successful"
+          else
+            echo "Docker login failed"
+            exit 1
+          fi
+
+      - name: Clear Docker Cache
+        run: docker system prune -af
+
+      - name: Build and Push Docker Image
+        run: |
+          docker build --build-arg JAR_FILE=build/libs/Backend-0.0.1-SNAPSHOT.jar -t dawnisproblem/i-contact-backend:latest .
+          docker tag dawnisproblem/i-contact-backend:latest dawnisproblem/i-contact-backend:${{ github.sha }}
+          docker push dawnisproblem/i-contact-backend:latest
+          docker push dawnisproblem/i-contact-backend:${{ github.sha }}
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Set up SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_A }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_B }} >> ~/.ssh/known_hosts
+
+      - name: Ensure Dependencies on EC2 Server A
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Ensuring required packages are installed..."
+            sudo apt update
+            sudo apt install -y git docker-compose-plugin
+            sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
+          EOF
+
+      - name: Deploy to EC2 Server A
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Checking and Creating Backend Directory..."
+            mkdir -p /home/ubuntu/backend
+            cd /home/ubuntu/backend
+
+            echo "Fetching latest changes from remote repository..."
+            git fetch --all
+            git checkout dev || git checkout -b dev origin/dev
+            git reset --hard origin/dev
+            git pull origin dev
+
+            echo "Stopping and removing existing containers..."
+            docker-compose down || true 
+
+            echo "Removing old Docker images..."
+            docker rmi -f dawnisproblem/i-contact-backend:latest || true
+
+            echo "Pulling latest Docker image..."
+            docker-compose pull
+
+            echo "Restarting Containers..."
+            docker-compose up -d --force-recreate
+          EOF
+
+
+
+#      - name: ALB Health Check for Server A
+#        run: |
+#          echo "Waiting for Server A to be Healthy in ALB..."
+#          for i in {1..30}; do
+#            STATUS=$(aws elbv2 describe-target-health --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} --region ap-northeast-2 | jq -r '.TargetHealthDescriptions[] | select(.Target.Id=="${{ secrets.EC2_INSTANCE_ID_A }}") | .TargetHealth.State')
+#            echo "ALB Target Health Status (Server A): $STATUS"
+#            if [ "$STATUS" == "healthy" ]; then
+#              echo "Server A is Healthy!"
+#              exit 0
+#            fi
+#            echo "Waiting for Server A... ($i/30)"
+#            sleep 10
+#          done
+#          echo "Server A did not become Healthy in time. Failing deployment."
+#          exit 1
+
+      - name: Ensure Dependencies on EC2 Server B
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Ensuring required packages are installed..."
+            sudo apt update
+            sudo apt install -y git docker-compose-plugin
+            sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
+          EOF
+
+      - name: Deploy to EC2 Server B
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Checking and Creating Backend Directory..."
+            mkdir -p /home/ubuntu/backend
+            cd /home/ubuntu/backend
+
+            echo "Fetching latest changes from remote repository..."
+            git fetch --all
+            git checkout dev || git checkout -b dev origin/dev
+            git reset --hard origin/dev
+            git pull origin dev
+
+            echo "Stopping and removing existing containers..."
+            docker-compose down || true
+
+            echo "Removing old Docker images..."
+            docker rmi -f dawnisproblem/i-contact-backend:latest || true
+
+            echo "Pulling latest Docker image..."
+            docker-compose pull
+
+            echo "Restarting Containers..."
+            docker-compose up -d --force-recreate
+          EOF
+
+
+
+#      - name: ALB Health Check for Server B
+#        run: |
+#          echo "Waiting for Server B to be Healthy in ALB..."
+#          for i in {1..30}; do
+#            STATUS=$(aws elbv2 describe-target-health --target-group-arn ${{ secrets.TARGET_GROUP_ARN }} --region ap-northeast-2 | jq -r '.TargetHealthDescriptions[] | select(.Target.Id=="${{ secrets.EC2_INSTANCE_ID_B }}") | .TargetHealth.State')
+#            echo "ALB Target Health Status (Server B): $STATUS"
+#            if [ "$STATUS" == "healthy" ]; then
+#              echo "Server B is Healthy!"
+#              exit 0
+#            fi
+#            echo "Waiting for Server B... ($i/30)"
+#            sleep 10
+#          done
+#          echo "Server B did not become Healthy in time. Failing deployment."
+#          exit 1

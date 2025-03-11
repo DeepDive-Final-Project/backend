@@ -1,29 +1,29 @@
 package com.goorm.team9.icontact.common.exception;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.goorm.team9.icontact.common.error.ErrorCodeInterface;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
 @Getter
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
-    private final int status;
-    private final String error;
+    private final Object data;
     private final String message;
-
-    public static ErrorResponse of(GlobalExceptionErrorCode errorCode) {
-        return ErrorResponse.builder()
-                .status(errorCode.getHttpStatus().value())
-                .error(errorCode.getHttpStatus().getReasonPhrase())
-                .message(errorCode.getMessage())
-                .build();
-    }
 
     public static ErrorResponse of(HttpStatus status, String message) {
         return ErrorResponse.builder()
-                .status(status.value())
-                .error(status.getReasonPhrase())
+                .data(null)
                 .message(message)
+                .build();
+    }
+
+    public static ErrorResponse of(ErrorCodeInterface errorCode) {
+        return ErrorResponse.builder()
+                .data(null)
+                .message(errorCode.getDescription())
                 .build();
     }
 }

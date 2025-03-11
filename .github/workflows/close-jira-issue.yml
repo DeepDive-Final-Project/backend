@@ -56,4 +56,3 @@ jobs:
           else
             echo "SUCCESS: Jira Story transitioned to Done!"
           fi
-
