@@ -24,41 +24,39 @@ repositories {
 }
 
 dependencies {
-    // Spring Boot 기본 설정
+    // Spring Boot Setting
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-web-services'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
-    // Actuator (서비스 모니터링)
+    // Actuator
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
-    // Lombok (코드 간결화)
+    // Lombok
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 
-    // MySQL 데이터베이스
+    // MySQL
     runtimeOnly 'com.mysql:mysql-connector-j'
 
-    // Redis (실시간 데이터 처리)
+    // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-    implementation 'org.springframework.data:spring-data-redis'
-    implementation group: 'io.lettuce', name: 'lettuce-core', version: '6.5.4.RELEASE'
 
-    // Docker Compose 지원
+    // Docker
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
-    // Swagger (API 문서화)
+    // Swagger
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 
-    // Jakarta Validation (입력값 검증)
-    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
-    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
-
-    // 테스트 관련 라이브러리
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Jakarta Validation
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
 }
 
 tasks.named('test') {
