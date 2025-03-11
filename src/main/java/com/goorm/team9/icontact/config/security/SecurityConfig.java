@@ -78,6 +78,7 @@ public class SecurityConfig {
                                 request -> request.getRequestURI().startsWith("/auth/home") // 여기만 401
                         )
                 )
+
                 .csrf(csrf -> csrf.disable())
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
