@@ -20,9 +20,6 @@ public class User {
     private String nickname;
 
     @Column(nullable = false)
-    private Long age;
-
-    @Column(nullable = false)
     private String email;
 
     @Enumerated(EnumType.STRING)
@@ -66,4 +63,14 @@ public class User {
 //    private OAuth oauth;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OAuth> oauthAccounts = new ArrayList<>(); // 한 User가 여러 OAuth 계정을 가짐
+
+    public void setDeleted(boolean deleted) {
+        this.isDeleted = deleted;
+        if (deleted) {
+            this.deletedAt = LocalDateTime.now();  // 탈퇴 시점 기록
+        }else {
+            this.deletedAt = null; // 계정 복구 시 탈퇴 날짜 초기화
+        }
+    }
+
 }
