@@ -18,7 +18,7 @@ public class ChatRoomResponse {
     public static ChatRoomResponse fromEntity(ChatRoom chatRoom) {
         return new ChatRoomResponse(
                 chatRoom.getRoomId(),
-                List.of(chatRoom.getSenderNickname(), chatRoom.getReceiverNickname()),
+                List.of(chatRoom.getSenderNickname().getNickName(), chatRoom.getReceiverNickname().getNickName()),
                 chatRoom.getLastMessage(),
                 chatRoom.getLastMessageTime()
         );
