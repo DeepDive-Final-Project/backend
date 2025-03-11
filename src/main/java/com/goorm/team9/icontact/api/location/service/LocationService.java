@@ -1,6 +1,5 @@
 package com.goorm.team9.icontact.api.location.service;
 
-import com.goorm.team9.icontact.api.location.dto.LocationRequest;
 import com.goorm.team9.icontact.api.location.dto.LocationResponse;
 import com.goorm.team9.icontact.common.exception.GlobalExceptionErrorCode;
 import com.goorm.team9.icontact.common.exception.CustomException;
@@ -23,42 +22,31 @@ public class LocationService {
     @Value("${app.geo.search-radius:10}")
     private double searchRadius;
 
-    public void saveLocation(LocationRequest request) {
-        try {
-            validateLocationData(request);
-            validateUserId(request.getUserId());
+    public boolean saveLocation(Long id, double latitude, double longitude, String interest) {
+        validateLocationData(latitude, longitude);
+        validateId(id);
 
-            String key = "offline_users";
+        String userKey = "client:" + id;
+        String globalKey = "location_data";
 
-            Boolean exists = redisTemplate.opsForGeo().position(key, request.getUserId()).size() > 0;
+        redisTemplate.delete(userKey);
+        redisTemplate.opsForZSet().remove(globalKey, id.toString());
 
-            if (Boolean.TRUE.equals(exists)) {
-                System.out.println("📌 기존 데이터 삭제: " + request.getUserId());
-                redisTemplate.opsForZSet().remove(key, request.getUserId());
-            }
+        redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
+        redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
 
-            System.out.println("📌 Redis 위치 데이터 저장 시도: " + request.getUserId());
-            redisTemplate.opsForGeo().add(key, new Point(request.getLongitude(), request.getLatitude()), request.getUserId());
-
-            saveUserInterest(request.getUserId(), request.getInterest());
-
-            System.out.println("✅ 위치 데이터 저장 완료: " + request.getUserId());
-        } catch (Exception e) {
-            System.err.println("❌ 오류 발생: " + e.getMessage());
-            e.printStackTrace();
-            throw new CustomException(GlobalExceptionErrorCode.INTERNAL_SERVER_ERROR);
-        }
+        saveUserInterest(id, interest);
+        return true;
     }
 
+    public List<LocationResponse> refreshNearbyUsers(Long id, double latitude, double longitude) {
+        boolean updated = saveLocation(id, latitude, longitude, getUserInterestAsString(id));
+        return getNearbyUsers(latitude, longitude, getUserInterestAsString(id));
+    }
 
-    public List<LocationResponse> getNearbyUsers(double latitude, double longitude, String userId) {
-        String key = "offline_users";
+    public List<LocationResponse> getNearbyUsers(double latitude, double longitude, String interest) {
+        String key = "location_data";
         double radius = 10;
-
-        Map<String, String> userInterest = getUserInterest(userId);
-        if (userInterest.isEmpty()) {
-            throw new CustomException(GlobalExceptionErrorCode.INVALID_USER_ID);
-        }
 
         GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo()
                 .radius(
@@ -67,80 +55,121 @@ public class LocationService {
                         RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs().includeCoordinates().includeDistance()
                 );
 
+        if (results == null || results.getContent().isEmpty()) {
+            return Collections.emptyList();
+        }
+
         List<LocationResponse> filteredUsers = new ArrayList<>();
-        Map<String, Integer> interestMatchCount = new HashMap<>();
+        Map<Long, Integer> interestMatchCount = new HashMap<>();
 
-        if (results != null && !results.getContent().isEmpty()) {
-            for (GeoResult<RedisGeoCommands.GeoLocation<String>> result : results.getContent()) {
-                String targetUserId = result.getContent().getName();
-                Map<String, String> targetInterest = getUserInterest(targetUserId);
+        List<GeoResult<RedisGeoCommands.GeoLocation<String>>> resultList = results.getContent();
 
-                if (!targetInterest.isEmpty()) {
-                    int matchScore = calculateInterestMatch(userInterest, targetInterest);
-                    if (matchScore > 0) {
-                        Double distanceValue = 0.0;
+        for (int i = 0; i < resultList.size(); i++) {
+            GeoResult<RedisGeoCommands.GeoLocation<String>> result = resultList.get(i);
+            Long targetId = Long.valueOf(result.getContent().getName());
 
-                        if (result.getDistance() != null) {
-                            distanceValue = result.getDistance().getValue();
-                        }
-
-                        filteredUsers.add(new LocationResponse(
-                                targetUserId,
-                                result.getContent().getPoint().getY(),
-                                result.getContent().getPoint().getX(),
-                                distanceValue,
-                                targetInterest.toString()
-                        ));
-
-                        interestMatchCount.put(targetUserId, matchScore);
+            Map<String, String> targetInterest = getUserInterest(targetId);
+            if (!targetInterest.isEmpty()) {
+                int matchScore = calculateInterestMatch(interest, targetInterest);
+                if (matchScore > 0) {
+                    Double distanceValue;
+                    if (result.getDistance() != null) {
+                        distanceValue = result.getDistance().getValue();
+                    } else {
+                        distanceValue = 0.0;
                     }
+
+                    filteredUsers.add(new LocationResponse(targetId,
+                            result.getContent().getPoint().getY(),
+                            result.getContent().getPoint().getX(),
+                            distanceValue,
+                            targetInterest.toString()));
+                    interestMatchCount.put(targetId, matchScore);
                 }
             }
         }
 
-        filteredUsers.sort((u1, u2) -> interestMatchCount.get(u2.getUserId()) - interestMatchCount.get(u1.getUserId()));
-
-        while (filteredUsers.size() > 10) {
-            int currentMaxMatch = interestMatchCount.values().stream().max(Integer::compareTo).orElse(0);
-
-            List<LocationResponse> highMatchUsers = new ArrayList<>();
-            for (LocationResponse user : filteredUsers) {
-                if (interestMatchCount.get(user.getUserId()) == currentMaxMatch) {
-                    highMatchUsers.add(user);
-                }
-            }
-
-            if (highMatchUsers.size() <= 10) {
-                filteredUsers = highMatchUsers;
-                break;
-            }
-
-            filteredUsers = highMatchUsers;
-        }
+        filteredUsers.sort((u1, u2) -> interestMatchCount.getOrDefault(u2.getId(), 0) -
+                interestMatchCount.getOrDefault(u1.getId(), 0));
 
         if (filteredUsers.size() > 10) {
-            Collections.shuffle(filteredUsers);
-            return filteredUsers.subList(0, 10);
+            List<LocationResponse> topMatches = new ArrayList<>();
+            int highestMatch = interestMatchCount.getOrDefault(filteredUsers.get(0).getId(), 0);
+
+            for (int i = 0; i < filteredUsers.size(); i++) {
+                LocationResponse user = filteredUsers.get(i);
+                if (interestMatchCount.getOrDefault(user.getId(), 0) == highestMatch) {
+                    topMatches.add(user);
+                }
+            }
+
+            Collections.shuffle(topMatches);
+
+            int limit = Math.min(10, topMatches.size());
+            List<LocationResponse> result = new ArrayList<>();
+            for (int i = 0; i < limit; i++) {
+                result.add(topMatches.get(i));
+            }
+
+            return result;
         }
 
         return filteredUsers;
     }
 
-    private void saveUserInterest(String userId, String interest) {
-        try {
-            String sql = "INSERT INTO it_topic (user_id, topic1, topic2, topic3) VALUES (?, ?, ?, ?) " +
-                    "ON DUPLICATE KEY UPDATE topic1 = VALUES(topic1), topic2 = VALUES(topic2), topic3 = VALUES(topic3)";
-            System.out.println("Executing SQL: " + sql + " with values: " + userId + ", " + interest);
-            jdbcTemplate.update(sql, userId, interest, "", "");
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new CustomException(GlobalExceptionErrorCode.INTERNAL_SERVER_ERROR);
+    private void saveUserInterest(Long id, String interest) {
+        String[] topicsArray = interest.split(",");
+        Set<String> uniqueTopics = new LinkedHashSet<>();
+
+        for (int i = 0; i < topicsArray.length; i++) {
+            String topic = topicsArray[i].trim();
+            if (!topic.isEmpty()) {
+                uniqueTopics.add(topic);
+            }
+            if (uniqueTopics.size() >= 3) {
+                break;
+            }
         }
+
+        List<String> topics = new ArrayList<>(uniqueTopics);
+        String topic1 = null;
+        String topic2 = null;
+        String topic3 = null;
+
+        for (int i = 0; i < topics.size(); i++) {
+            if (i == 0) {
+                topic1 = topics.get(i);
+            } else if (i == 1) {
+                topic2 = topics.get(i);
+            } else if (i == 2) {
+                topic3 = topics.get(i);
+            }
+        }
+
+        String sql = "INSERT INTO it_topic (client_id, topic1, topic2, topic3) VALUES (?, ?, ?, ?) " +
+                "ON DUPLICATE KEY UPDATE topic1 = VALUES(topic1), topic2 = VALUES(topic2), topic3 = VALUES(topic3)";
+        jdbcTemplate.update(sql, id, topic1, topic2, topic3);
     }
 
-    private Map<String, String> getUserInterest(String userId) {
-        String sql = "SELECT topic1, topic2, topic3 FROM it_topic WHERE user_id = ?";
-        return jdbcTemplate.queryForObject(sql, new Object[]{userId}, (rs, rowNum) -> {
+    private String getUserInterestAsString(Long id) {
+        Map<String, String> interestMap = getUserInterest(id);
+        Set<String> interestSet = new LinkedHashSet<>();
+
+        List<String> topicList = new ArrayList<>(interestMap.values());
+
+        for (int i = 0; i < topicList.size(); i++) {
+            String topic = topicList.get(i);
+            if (topic != null && !topic.isEmpty()) {
+                interestSet.add(topic);
+            }
+        }
+
+        return String.join(",", interestSet);
+    }
+
+    private Map<String, String> getUserInterest(Long id) {
+        String sql = "SELECT topic1, topic2, topic3 FROM it_topic WHERE client_id = ?";
+        return jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> {
             Map<String, String> interestMap = new HashMap<>();
             interestMap.put("topic1", rs.getString("topic1"));
             interestMap.put("topic2", rs.getString("topic2"));
@@ -149,29 +178,35 @@ public class LocationService {
         });
     }
 
-    private int calculateInterestMatch(Map<String, String> userInterest, Map<String, String> targetInterest) {
+    private int calculateInterestMatch(String userInterest, Map<String, String> targetInterest) {
         int matchScore = 0;
-        for (String topic : userInterest.values()) {
-            if (targetInterest.containsValue(topic)) {
+        Set<String> topicSet = new LinkedHashSet<>(Arrays.asList(userInterest.split(",")));
+
+        List<String> topicList = new ArrayList<>(targetInterest.values());
+
+        for (int i = 0; i < topicList.size(); i++) {
+            String topic = topicList.get(i);
+            if (topic != null && topicSet.contains(topic)) {
                 matchScore++;
             }
         }
+
         return matchScore;
     }
 
-    private void validateLocationData(LocationRequest request) {
-        if (request.getLatitude() < -90 || request.getLatitude() > 90 ||
-                request.getLongitude() < -180 || request.getLongitude() > 180) {
+    private void validateLocationData(double latitude, double longitude) {
+        if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
             throw new CustomException(GlobalExceptionErrorCode.INVALID_LOCATION_DATA);
         }
-
-        if (request.getLatitude() == 0.0 && request.getLongitude() == 0.0) {
+        if (latitude == 0.0 && longitude == 0.0) {
             throw new CustomException(GlobalExceptionErrorCode.GPS_ERROR);
         }
     }
 
-    private void validateUserId(String userId) {
-        if (userId == null || userId.trim().isEmpty()) {
+    private void validateId(Long id) {
+        String sql = "SELECT EXISTS (SELECT 1 FROM client WHERE client_id = ?)";
+        Boolean exists = jdbcTemplate.queryForObject(sql, new Object[]{id}, Boolean.class);
+        if (exists == null || !exists) {
             throw new CustomException(GlobalExceptionErrorCode.INVALID_USER_ID);
         }
     }
