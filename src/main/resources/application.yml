@@ -68,4 +68,12 @@ security:
       port: 8080
     security:
       enabled: false
-  
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+  paths-to-match: /**
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
