@@ -2,6 +2,7 @@ package com.goorm.team9.icontact.chat.service;
 
 import com.goorm.team9.icontact.chat.dto.ChatMessageDto;
 import com.goorm.team9.icontact.chat.entity.ChatRoom;
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.stereotype.Service;
@@ -55,7 +56,7 @@ public class WebSocketSessionService {
         }
     }
 
-    public Long createOrGetRoomId(String senderNickname, String receiverNickname) {
+    public Long createOrGetRoomId(ClientEntity senderNickname, ClientEntity receiverNickname) {
         return chatRoomService.createOrGetRoomId(senderNickname, receiverNickname);
     }
 }
