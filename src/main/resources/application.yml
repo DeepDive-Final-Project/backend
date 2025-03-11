@@ -48,36 +48,16 @@ spring:
       org.springdoc: DEBUG
       org.hibernate.SQL: DEBUG
       org.springframework.security: DEBUG
+      root=DEBUG:    
 
-  security:
-    oauth2:
-      client:
-        registration:
-          github:
-            client-id: ${GITHUB_CLIENT_ID}
-            client-secret: ${GITHUB_CLIENT_SECRET}
-            scope: user:email, read:user
-            redirect-uri: "{baseUrl}/login/oauth2/code/github"
-#          google:
-#            client-id: your-google-client-id
-#            client-secret: your-google-client-secret
-#            scope: profile, email
-#          kakao:
-#            client-id: your-kakao-client-id
-#            client-secret: your-kakao-client-secret
-#            client-authentication-method: POST
-#            authorization-grant-type: authorization_code
-#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-#            scope: profile_nickname, account_email
-#            client-name: Kakao
-#          naver:
-#            client-id: your-naver-client-id
-#            client-secret: your-naver-client-secret
-#            client-authentication-method: POST
-#            authorization-grant-type: authorization_code
-#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-#            scope: name, email
-#            client-name: Naver
+security:
+  oauth2:
+    client:
+      registration:
+        github:
+          client-id: ${GITHUB_CLIENT_ID}
+          client-secret: ${GITHUB_CLIENT_SECRET}
+          scope: user:email
 
   management:
     endpoints:
@@ -95,9 +75,14 @@ spring:
 springdoc:
   api-docs:
     enabled: true
+    path: /v3/api-docs
   swagger-ui:
     enabled: true
-  paths-to-match: /**
+    path: /swagger-ui.html
+    operations-sorter: method
+    disable-swagger-default-url: true
+  paths-to-match: /api/**
   default-consumes-media-type: application/json
   default-produces-media-type: application/json
+
 
