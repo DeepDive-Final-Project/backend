@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.sociallogin.security.jwt;
+package com.goorm.team9.icontact.domain.sociallogin.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;

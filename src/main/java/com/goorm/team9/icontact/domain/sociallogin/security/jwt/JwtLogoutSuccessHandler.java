@@ -1,6 +1,6 @@
-package com.goorm.team9.icontact.sociallogin.security.jwt;
+package com.goorm.team9.icontact.domain.sociallogin.security.jwt;
 
-import com.goorm.team9.icontact.sociallogin.service.OAuthService;
+import com.goorm.team9.icontact.domain.sociallogin.service.OAuthService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

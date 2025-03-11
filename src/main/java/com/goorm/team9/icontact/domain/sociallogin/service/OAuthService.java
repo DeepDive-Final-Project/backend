@@ -1,12 +1,10 @@
-package com.goorm.team9.icontact.sociallogin.service;
+package com.goorm.team9.icontact.domain.sociallogin.service;
 
-import com.goorm.team9.icontact.sociallogin.domain.OAuth;
-import com.goorm.team9.icontact.sociallogin.domain.User;
-import com.goorm.team9.icontact.sociallogin.repository.OAuthRepository;
-import com.goorm.team9.icontact.sociallogin.repository.UserRepository;
-import com.goorm.team9.icontact.sociallogin.security.provider.GitHubOAuthProvider;
-import java.util.List;
-import java.util.Map;
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
+import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
+import com.goorm.team9.icontact.domain.sociallogin.domain.OAuth;
+import com.goorm.team9.icontact.domain.sociallogin.repository.OAuthRepository;
+import com.goorm.team9.icontact.domain.sociallogin.security.provider.GitHubOAuthProvider;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,9 +15,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;
-import java.util.Optional;
 import org.springframework.web.client.RestTemplate;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * OAuth 인증 및 사용자 정보 관리 서비스.
@@ -31,7 +32,7 @@ import org.springframework.web.client.RestTemplate;
 @RequiredArgsConstructor
 public class OAuthService {
 
-    private final UserRepository userRepository;
+    private final ClientRepository clientRepository;
     private final OAuthRepository oauthRepository;
     private final GitHubOAuthProvider gitHubOAuthProvider;
     private static final Logger logger = LoggerFactory.getLogger(OAuthService.class);
@@ -84,9 +85,9 @@ public class OAuthService {
         }
 
         // 이메일 기준으로 기존 사용자 확인 (없으면 새로 생성)
-        User user = userRepository.findByEmail(email).orElseGet(() ->
-                userRepository.save(User.builder()
-                        .nickname(nickname)
+        ClientEntity clientEntity = clientRepository.findByEmail(email).orElseGet(() ->
+                clientRepository.save(ClientEntity.builder()
+                        .nickName(nickname)
                         .email(email)
                         .isDeleted(false)
                         .build()));
@@ -96,7 +97,7 @@ public class OAuthService {
                 .provider(provider)
                 .oauthUserId(oauthUserId)
                 .email(email)
-                .user(user)
+                .client_id(clientEntity)
                 .accessToken(accessToken)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())

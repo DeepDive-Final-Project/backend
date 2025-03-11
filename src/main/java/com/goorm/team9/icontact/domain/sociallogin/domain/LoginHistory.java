@@ -1,5 +1,6 @@
-package com.goorm.team9.icontact.sociallogin.domain;
+package com.goorm.team9.icontact.domain.sociallogin.domain;
 
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import lombok.*;
@@ -15,8 +16,8 @@ public class LoginHistory {
     private Long historyId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "client_id")
+    private ClientEntity clientEntity;
 
     @Column(nullable = false)
     private String provider;
