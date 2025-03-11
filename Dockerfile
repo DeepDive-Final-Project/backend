@@ -5,8 +5,7 @@ FROM openjdk:21-jdk
 WORKDIR /app
 
 # JAR 파일 복사
-ARG JAR_FILE
-COPY ${JAR_FILE} app.jar
+COPY build/libs/Backend-0.0.1-SNAPSHOT.jar app.jar
 
 # Starting Execute Commands
 ENTRYPOINT ["java", "-jar", "app.jar"]

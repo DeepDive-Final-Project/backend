@@ -25,7 +25,9 @@ jobs:
           java-version: '21'
 
       - name: Build With Gradle
-        run: ./gradlew clean build -x test --no-daemon
+        run: |
+          ./gradlew clean --refresh-dependencies
+          ./gradlew build -x test --no-daemon
 
       - name: Debug Build Output
         run: |
@@ -53,7 +55,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build --build-arg JAR_FILE=build/libs/*.jar -t dawnisproblem/i-contact-backend:latest .
+          docker build --build-arg JAR_FILE=build/libs/Backend-0.0.1-SNAPSHOT.jar -t dawnisproblem/i-contact-backend:latest .
           docker tag dawnisproblem/i-contact-backend:latest dawnisproblem/i-contact-backend:${{ github.sha }}
           docker push dawnisproblem/i-contact-backend:latest
           docker push dawnisproblem/i-contact-backend:${{ github.sha }}
