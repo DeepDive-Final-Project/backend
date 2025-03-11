@@ -3,6 +3,8 @@ package com.goorm.team9.icontact.chat.controller;
 import com.goorm.team9.icontact.chat.dto.ChatRoomRequest;
 import com.goorm.team9.icontact.chat.dto.ChatRoomResponse;
 import com.goorm.team9.icontact.chat.service.ChatRoomService;
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
+import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
@@ -17,20 +19,27 @@ import java.util.List;
 public class ChatRoomController {
 
     private final ChatRoomService chatRoomService;
+    private final ClientRepository clientRepository;
 
-    public ChatRoomController(ChatRoomService chatRoomService) {
+    public ChatRoomController(ChatRoomService chatRoomService, ClientRepository clientRepository) {
         this.chatRoomService = chatRoomService;
+        this.clientRepository = clientRepository;
     }
 
     @Operation(summary = "채팅방 생성 API", description = "새로운 1:1 채팅방을 생성합니다.")
     @PostMapping
     public ResponseEntity<ChatRoomResponse> createChatRoom(@RequestBody ChatRoomRequest request) {
         try {
-            Long roomId = chatRoomService.createChatRoom(request.getSenderNickname(), request.getReceiverNickname());
+            ClientEntity senderNickname = clientRepository.findByNickName(request.getSenderNickname())
+                    .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
+            ClientEntity receiverNickname = clientRepository.findByNickName(request.getReceiverNickname())
+                    .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
+
+            Long roomId = chatRoomService.createChatRoom(senderNickname, receiverNickname);
 
             ChatRoomResponse response = new ChatRoomResponse(
                     roomId,
-                    List.of(request.getSenderNickname(), request.getReceiverNickname()),
+                    List.of(senderNickname.getNickName(), receiverNickname.getNickName()),
                     null,null
             );
             return ResponseEntity.ok().body(response);
@@ -47,7 +56,10 @@ public class ChatRoomController {
     @GetMapping("/{nickname}")
     public ResponseEntity<List<ChatRoomResponse>> getChatRoomsByUser(@PathVariable String nickname) {
         try {
-            List<ChatRoomResponse> chatRooms = chatRoomService.getChatRoomsByUser(nickname);
+            ClientEntity client = clientRepository.findByNickName(nickname)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            List<ChatRoomResponse> chatRooms = chatRoomService.getChatRoomsByUser(client);
             if (chatRooms.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
