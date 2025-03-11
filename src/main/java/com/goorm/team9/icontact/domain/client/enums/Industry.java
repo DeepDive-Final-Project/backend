@@ -7,8 +7,7 @@ import lombok.Getter;
 public enum Industry implements EnumWithDescription {
 
     PD("프로덕트 디자이너"),
-    FE("프론트엔드"),
-    BE("백엔드"),
+    DEV("개발자"),
     PM("프로덕트 매니지먼트"),
     ETC("기타");
 
