@@ -5,12 +5,8 @@ import com.goorm.team9.icontact.chat.entity.ChatRoom;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface ChatJoinRepository extends JpaRepository<ChatJoin, Long> {
-
-    Optional<ChatJoin> findByChatRoomAndClientId(ChatRoom chatRoom, ClientEntity client);
-
-    List<ChatJoin> findByClientAndExitedFalse(ClientEntity client);
+    Optional<ChatJoin> findByChatRoomAndClientId(ChatRoom chatRoom, Long clientId);
 }
