@@ -25,15 +25,11 @@ public class ClientController {
     public ResponseEntity<ClientResponseDTO> createMyPage(
             @Parameter(description = "닉네임", example = "Noah")
             @RequestParam String nickName,
-            @Parameter(description = "나이", example = "27")
-            @RequestParam Long age,
             @Parameter(description = "이메일", example = "goorm@gmail.com")
             @RequestParam String email,
-            @Parameter(description = "분야")
-            @RequestParam Industry industry,
-            @Parameter(description = "직업")
+            @Parameter(description = "직업", example = "DEV")
             @RequestParam Role role,
-            @Parameter(description = "경력")
+            @Parameter(description = "경력", example = "JUNIOR")
             @RequestParam Career career,
             @Parameter(description = "공개여부")
             @RequestParam Status status,
@@ -55,10 +51,11 @@ public class ClientController {
             @RequestParam Framework framework
     ) {
         return ResponseEntity.ok(clientService.createMyPage(
-                nickName, age, email, industry, role, career, status, introduction, link, profileImage,
+                nickName, email, role, career, status, introduction, link, profileImage,
                 topic1, topic2, topic3, language, framework
         ));
     }
+
 
     @GetMapping("/{client_Id}")
     @Operation(summary = "사용자 정보 출력 API", description = "다른 사용자의 정보를 확인합니다.")
@@ -75,16 +72,12 @@ public class ClientController {
             @PathVariable Long client_Id,
             @Parameter(description = "닉네임", example = "Noah2222")
             @RequestParam(required = false) String nickName,
-            @Parameter(description = "나이", example = "27")
-            @RequestParam(required = false) Long age,
-            @Parameter(description = "분야")
-            @RequestParam(required = false) Industry industry,
-            @Parameter(description = "직업")
-            @RequestParam(required = false) Role role,
-            @Parameter(description = "경력")
-            @RequestParam(required = false) Career career,
-            @Parameter(description = "공개 여부")
-            @RequestParam(required = false) Status status,
+            @Parameter(description = "직업 (예: '개발자')", example = "개발자")
+            @RequestParam(required = false) String roleDescription,
+            @Parameter(description = "경력 (예: '주니어')", example = "주니어")
+            @RequestParam(required = false) String careerDescription,
+            @Parameter(description = "공개 여부 (예: '공개')", example = "공개")
+            @RequestParam(required = false) String statusDescription,
             @Parameter(description = "소개글", example = "안녕하세요. 바뀐 개발자입니다.")
             @RequestParam(required = false) String introduction,
             @Parameter(description = "접근 링크", example = "https://www.test22.com")
@@ -97,13 +90,17 @@ public class ClientController {
             @RequestParam(required = false) Interest topic2,
             @Parameter(description = "관심 주제 3")
             @RequestParam(required = false) Interest topic3,
-            @Parameter(description = "주략 언어")
+            @Parameter(description = "주력 언어")
             @RequestParam(required = false) Language language,
             @Parameter(description = "주력 프레임워크")
             @RequestParam(required = false) Framework framework
     ) {
+        Role role = (roleDescription != null) ? Role.fromDescription(roleDescription) : null;
+        Career career = (careerDescription != null) ? Career.fromDescription(careerDescription) : null;
+        Status status = (statusDescription != null) ? Status.fromDescription(statusDescription) : null;
+
         return ResponseEntity.ok(clientService.updateUser(
-                client_Id, nickName, age, industry, role, career, status, introduction, link, profileImage,
+                client_Id, nickName, role, career, status, introduction, link, profileImage,
                 topic1, topic2, topic3, language, framework
         ));
     }

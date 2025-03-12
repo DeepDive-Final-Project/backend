@@ -1,7 +1,6 @@
 package com.goorm.team9.icontact.domain.client.entity;
 
 import com.goorm.team9.icontact.domain.client.enums.Career;
-import com.goorm.team9.icontact.domain.client.enums.Industry;
 import com.goorm.team9.icontact.domain.client.enums.Role;
 import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.common.BaseTimeEntity;
@@ -29,15 +28,8 @@ public class ClientEntity extends BaseTimeEntity {
     @Column(nullable = false, unique = true)
     private String nickName;
 
-    @Column(nullable = false)
-    private Long age;
-
     @Column(nullable = false, unique = true)
     private String email;
-
-    @Enumerated(EnumType.STRING)
-    @Column
-    private Industry industry;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -11,11 +11,10 @@ public class ClientConverter {
         ClientResponseDTO clientResponseDTO = new ClientResponseDTO();
         clientResponseDTO.setId(clientEntity.getId());
         clientResponseDTO.setNickName(clientEntity.getNickName());
-        clientResponseDTO.setAge(clientEntity.getAge());
-        clientResponseDTO.setIndustry(clientEntity.getIndustry());
-        clientResponseDTO.setRole(clientEntity.getRole());
-        clientResponseDTO.setCareer(clientEntity.getCareer());
-        clientResponseDTO.setStatus(clientEntity.getStatus());
+        clientResponseDTO.setEmail(clientEntity.getEmail());
+        clientResponseDTO.setRole(clientEntity.getRole().getDescription());
+        clientResponseDTO.setCareer(clientEntity.getCareer().getDescription());
+        clientResponseDTO.setStatus(clientEntity.getStatus().getDescription());
         clientResponseDTO.setIntroduction(clientEntity.getIntroduction());
         clientResponseDTO.setLink(clientEntity.getLink());
         clientResponseDTO.setProfileImage(clientEntity.getProfileImage());
@@ -26,5 +25,4 @@ public class ClientConverter {
         clientResponseDTO.setUpdatedAt(clientEntity.getUpdated_at());
         return clientResponseDTO;
     }
-
 }
