@@ -34,7 +34,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = jwtTokenProvider.resolveToken(request);
 
         if (token != null) {
-            processToken(token, response);
+            if (jwtBlacklist.isBlacklisted(token)) {
+                handleInvalidToken(response, "🚨 차단된 토큰", token);
+                return;
+            }
+
+            if (!jwtTokenProvider.validateToken(token)) {  // 🔥 여기서 유효성 검사
+                handleInvalidToken(response, "🛑 유효하지 않은 토큰", token);
+                return;
+            }
+
+            Authentication authentication = jwtTokenProvider.getAuthentication(token);
+            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
 
         filterChain.doFilter(request, response);
