@@ -28,23 +28,36 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public Long createOrGetRoomId(ClientEntity senderNickname, ClientEntity receiverNickname) {
-        List<ChatRoom> chatRooms = chatRoomRepository.findBySenderNicknameOrReceiverNickname(senderNickname.getNickName());
+    public Long createOrGetRoomId(ClientEntity sender, ClientEntity receiver) {
+        List<ChatRoom> chatRooms = chatRoomRepository.findBySenderNicknameOrReceiverNickname(sender.getNickName());
 
         for (ChatRoom chatRoom : chatRooms) {
-            if ((chatRoom.getSenderNickname().equals(senderNickname) && chatRoom.getReceiverNickname().equals(receiverNickname)) ||
-                    (chatRoom.getSenderNickname().equals(receiverNickname) && chatRoom.getReceiverNickname().equals(senderNickname))) {
+            if ((chatRoom.getSenderNickname().equals(sender) && chatRoom.getReceiverNickname().equals(receiver)) ||
+                    (chatRoom.getSenderNickname().equals(receiver) && chatRoom.getReceiverNickname().equals(sender))) {
                 return chatRoom.getRoomId();
             }
         }
 
-        return createChatRoom(senderNickname, receiverNickname);
+        return createChatRoom(sender, receiver);
     }
 
     @Transactional
-    public Long createChatRoom(ClientEntity senderNickname, ClientEntity receiverNickname) {
-        ChatRoom chatRoom = ChatRoom.createChatRoom(senderNickname, receiverNickname);
+    public Long createChatRoom(ClientEntity sender, ClientEntity receiver) {
+        ChatRoom chatRoom = ChatRoom.createChatRoom(sender, receiver);
         chatRoomRepository.save(chatRoom);
+
+        ChatJoin senderJoin = new ChatJoin();
+        senderJoin.setChatRoom(chatRoom);
+        senderJoin.setClient(sender);
+        senderJoin.setExited(false);
+        chatJoinRepository.save(senderJoin);
+
+        ChatJoin receiverJoin = new ChatJoin();
+        receiverJoin.setChatRoom(chatRoom);
+        receiverJoin.setClient(receiver);
+        receiverJoin.setExited(false);
+        chatJoinRepository.save(receiverJoin);
+
         return chatRoom.getRoomId();
     }
 
@@ -53,10 +66,10 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
-        ClientEntity client = clientRepository.findById(clientId)
+        clientRepository.findById(clientId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client)
+        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, clientId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자는 채팅방에 존재하지 않습니다."));
 
         if (chatJoin.isExited()) {
@@ -72,9 +85,8 @@ public class ChatRoomService {
 
         return chatRooms.stream()
                 .filter(chatRoom -> {
-                    ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client)
-                            .orElse(null);
-                    return chatJoin == null || !chatJoin.isExited();
+                    Optional<ChatJoin> chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId());
+                    return chatJoin.isEmpty() || !chatJoin.get().isExited();
                 })
                 .map(ChatRoomResponse::fromEntity)
                 .collect(Collectors.toList());
