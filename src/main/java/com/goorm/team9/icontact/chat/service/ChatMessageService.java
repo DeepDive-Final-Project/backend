@@ -34,7 +34,7 @@ public class ChatMessageService {
         ClientEntity senderNickname = clientRepository.findByNickName(chatMessageDto.getSenderNickname())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, senderNickname)
+        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, senderNickname.getId())
                 .orElseThrow(() -> new IllegalArgumentException("채팅방에 참여한 사용자가 아닙니다."));
 
         if (chatJoin.isExited()) {
@@ -60,7 +60,7 @@ public class ChatMessageService {
         ClientEntity client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client)
+        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, clientId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자는 채팅방에 존재하지 않습니다."));
 
         if (chatJoin.isExited()) {
