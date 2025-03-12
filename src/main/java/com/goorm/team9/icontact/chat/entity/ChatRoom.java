@@ -20,11 +20,11 @@ public class ChatRoom {
     private Long roomId;
 
     @ManyToOne
-    @JoinColumn(name = "sender_nickname", referencedColumnName ="nickname", nullable = false)
+    @JoinColumn(name = "sender_nickname", referencedColumnName = "nickName", nullable = false)
     private ClientEntity senderNickname;
 
     @ManyToOne
-    @JoinColumn(name = "receiver_nickname", referencedColumnName = "nickname", nullable = false)
+    @JoinColumn(name = "receiver_nickname", referencedColumnName = "nickName", nullable = false)
     private ClientEntity receiverNickname;
 
     @Column(name = "last_message", length = 200)
@@ -39,10 +39,10 @@ public class ChatRoom {
     @Column(name = "exit_status")
     private Map<String, Boolean> exitStatus = new HashMap<>();
 
-    public static ChatRoom createChatRoom(ClientEntity senderNickname, ClientEntity receiverNickname) {
+    public static ChatRoom createChatRoom(ClientEntity sender, ClientEntity receiver) {
         ChatRoom chatRoom = new ChatRoom();
-        chatRoom.setSenderNickname(senderNickname);
-        chatRoom.setReceiverNickname(receiverNickname);
+        chatRoom.setSenderNickname(sender);
+        chatRoom.setReceiverNickname(receiver);
         chatRoom.setLastMessage(null);
         chatRoom.setLastMessageTime(null);
         return chatRoom;
