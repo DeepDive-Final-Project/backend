@@ -10,9 +10,14 @@ import java.util.List;
 
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
 
-    @Query("SELECT c FROM ChatRoom c WHERE c.senderNickname.nickName = :nickname OR c.receiverNickname.nickName = :nickname")
+    @Query("SELECT c " +
+            "FROM ChatRoom c " +
+            "WHERE c.senderNickname.nickName = :nickname OR c.receiverNickname.nickName = :nickname")
     List<ChatRoom> findBySenderNicknameOrReceiverNickname(@Param("nickname") String nickname);
 
-    @Query("SELECT COUNT(c) FROM ChatRoom c WHERE c.senderNickname = :client OR c.receiverNickname = :client")
-    int countBySenderNicknameOrReceiverNickname(@Param("client") ClientEntity client);
+    @Query("SELECT COUNT(DISTINCT c) FROM ChatRoom c " +
+            "JOIN ChatJoin j ON c = j.chatRoom " +
+            "WHERE (c.senderNickname = :client OR c.receiverNickname = :client) " +
+            "AND j.exited = false")
+    int countActiveChatRoomsByClient(@Param("client") ClientEntity client);
 }
