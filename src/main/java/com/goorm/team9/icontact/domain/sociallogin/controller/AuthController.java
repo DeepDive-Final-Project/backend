@@ -43,6 +43,11 @@ public class AuthController {
      */
     @PostMapping("/github")
     public ResponseEntity<JwtResponse> loginWithGithub(@RequestBody OAuthLoginRequest request) {
+        logger.info("🔄 GitHub OAuth 로그인 요청: 받은 코드={}", request.getCode());
+        if (request.getCode() == null || request.getCode().isEmpty()) {
+            logger.error("❌ GitHub OAuth 로그인 실패: 받은 코드가 없음!");
+            throw new RuntimeException("GitHub OAuth 인증 코드가 없습니다.");
+        }
         String jwt = authService.loginWithGithub(request.getCode());
         return ResponseEntity.ok(new JwtResponse(jwt));
     }
