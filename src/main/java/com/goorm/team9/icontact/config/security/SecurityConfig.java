@@ -14,7 +14,6 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
 
 import java.util.List;
 
@@ -32,15 +31,28 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.disable())
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowCredentials(true);
+                    config.setAllowedOrigins(List.of(
+                            "http://localhost:3000",
+                            "http://3.34.165.63:3000",
+                            "http://43.201.245.222:3000",
+                            "http://localhost:8080",
+                            "http://3.34.165.63:8080",
+                            "http://43.201.245.222:8080",
+                            "https://www.i-contacts.link"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "FETCH", "OPTIONS"));
+                    config.setAllowedHeaders(List.of("*"));
+                    return config;
+                }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/ws-chat/**",
                                 "/topic/**",
                                 "/app/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs",
+                                "/v3/api-docs/**",
                                 "/v3/api-docs.yaml",
                                 "/swagger-ui.html",
                                 "/actuator/health",
@@ -93,13 +105,5 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable);
 
         return http.build();
-    }
-
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOrigins("*")  // 또는 로컬/배포 도메인
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")  // 모든 메서드 허용
-                .allowedHeaders("*")  // 모든 헤더 허용
-                .allowCredentials(true); // 쿠키 포함 여부
     }
 }
