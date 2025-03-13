@@ -1,7 +1,7 @@
 package com.goorm.team9.icontact.chat.service;
 
 import com.goorm.team9.icontact.chat.dto.ChatMessageDto;
-import com.goorm.team9.icontact.chat.entity.ChatRoom;
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.stereotype.Service;
@@ -30,10 +30,11 @@ public class WebSocketSessionService {
 
     public void removeSession(Long roomId, String senderNickname) {
         Map<String, WebSocketSession> usersInRoom = chatRoomSessions.get(roomId);
-        if (usersInRoom != null) {
-            usersInRoom.remove(senderNickname);
-            sendLeaveMessage(roomId, senderNickname);
+        if (usersInRoom == null) {
+            return;
         }
+        usersInRoom.remove(senderNickname);
+        sendLeaveMessage(roomId, senderNickname);
     }
 
     private void sendJoinMessage(Long roomId, String senderNickname) {
@@ -55,7 +56,7 @@ public class WebSocketSessionService {
         }
     }
 
-    public Long createOrGetRoomId(String senderNickname, String receiverNickname) {
+    public Long createOrGetRoomId(ClientEntity senderNickname, ClientEntity receiverNickname) {
         return chatRoomService.createOrGetRoomId(senderNickname, receiverNickname);
     }
 }
