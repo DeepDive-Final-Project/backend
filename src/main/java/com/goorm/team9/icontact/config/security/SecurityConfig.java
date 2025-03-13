@@ -4,8 +4,6 @@ import com.goorm.team9.icontact.domain.sociallogin.security.jwt.*;
 import com.goorm.team9.icontact.domain.sociallogin.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -15,6 +13,9 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+
+import java.util.List;
 
 @Slf4j
 @Configuration
@@ -30,6 +31,21 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+                    config.setAllowCredentials(true);
+                    config.setAllowedOrigins(List.of(
+                            "http://localhost:3000", 
+                            "http://3.34.165.63:3000",
+                            "http://43.201.245.222:3000",
+                            "http://localhost:8080",
+                            "http://3.34.165.63:8080",
+                            "http://43.201.245.222:8080",
+                            "https://www.i-contacts.link"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "FETCH", "OPTIONS"));
+                    config.setAllowedHeaders(List.of("*"));
+                    return config;
+                }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/ws-chat/**",
