@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: I-Contact
 
@@ -54,28 +56,30 @@ spring:
           github:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
-            scope: user:email, read:user
-            redirect-uri: "{baseUrl}/login/oauth2/code/github"
-  #          google:
-  #            client-id: your-google-client-id
-  #            client-secret: your-google-client-secret
-  #            scope: profile, email
-  #          kakao:
-  #            client-id: your-kakao-client-id
-  #            client-secret: your-kakao-client-secret
-  #            client-authentication-method: POST
-  #            authorization-grant-type: authorization_code
-  #            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-  #            scope: profile_nickname, account_email
-  #            client-name: Kakao
-  #          naver:
-  #            client-id: your-naver-client-id
-  #            client-secret: your-naver-client-secret
-  #            client-authentication-method: POST
-  #            authorization-grant-type: authorization_code
-  #            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-  #            scope: name, email
-  #            client-name: Naver
+            scope:
+            - user:email
+            - read:user
+            redirect-uri: ${GITHUB_REDIRECT_URI}
+#          google:
+#            client-id: your-google-client-id
+#            client-secret: your-google-client-secret
+#            scope: profile, email
+#          kakao:
+#            client-id: your-kakao-client-id
+#            client-secret: your-kakao-client-secret
+#            client-authentication-method: POST
+#            authorization-grant-type: authorization_code
+#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+#            scope: profile_nickname, account_email
+#            client-name: Kakao
+#          naver:
+#            client-id: your-naver-client-id
+#            client-secret: your-naver-client-secret
+#            client-authentication-method: POST
+#            authorization-grant-type: authorization_code
+#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+#            scope: name, email
+#            client-name: Naver
 
   management:
     endpoints:

@@ -47,8 +47,11 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
         // OAuth 토큰 무효화 (필요한 경우만)
         if (authentication != null && authentication.getName() != null) {
             String email = authentication.getName();
+
+            // OAuth 로그아웃 로그 추가
+            logger.info("🔍 OAuth 로그아웃 시 accessToken 제거 요청: {}", email);
+
             oAuthService.invalidateAccessToken(email);
-            logger.info("✅ 로그아웃 완료 - accessToken 제거: {}", email);
         }
 
         // JSON 응답 반환

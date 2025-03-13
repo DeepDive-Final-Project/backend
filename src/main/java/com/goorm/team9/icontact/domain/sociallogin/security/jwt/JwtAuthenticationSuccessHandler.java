@@ -33,12 +33,19 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
             throws IOException {
 
         String email = authentication.getName(); // OAuth 로그인한 사용자 이메일
+
+        // JWT 생성 전 email 값 검증 추가
+        if (email == null || "no-email".equals(email)) {
+            logger.error("❌ JWT 발급 실패: 유효한 이메일 정보가 없습니다.");
+            throw new RuntimeException("JWT 발급 실패: 유효한 이메일 정보가 없습니다.");
+        }
+
         String jwtToken = jwtTokenProvider.createToken(email); // JWT 생성
 
         setAuthorizationHeader(response, jwtToken);
         writeJsonResponse(response, jwtToken);
 
-        logger.info("✅ 로그인 성공: {}", email);
+        logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
 
         // 필요 시 특정 페이지로 리다이렉트 가능! 지금은 일단 홈으로!
         response.sendRedirect("/auth/home");

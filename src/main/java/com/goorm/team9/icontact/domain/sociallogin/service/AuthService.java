@@ -22,11 +22,18 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
+    //전략 패턴 적용시
+    //    private final OAuthProviderFactory providerFactory;
     private final OAuthService oAuthService;
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtBlacklist jwtBlacklist;
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
+
+    //전략 패턴 적용시
+//    public OAuthService(OAuthProviderFactory providerFactory) {
+//        this.providerFactory = providerFactory;
+//    }
 
     /**
      * GitHub 로그인 처리 (OAuth2.0 인증 후 JWT 발급)
@@ -44,6 +51,15 @@ public class AuthService {
 
         return jwtToken;
     }
+
+    //전략 패턴 적용시
+//    public Map<String, Object> loginWithOAuth(String provider, String code) {
+//        OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
+//        if (oAuthProvider == null) {
+//            throw new IllegalArgumentException("지원하지 않는 OAuth 제공자입니다: " + provider);
+//        }
+//        return oAuthProvider.getUserInfo(code);
+//    }
 
     /**
      * 로그아웃 처리 (JWT 블랙리스트 추가 및 세션 무효화)
