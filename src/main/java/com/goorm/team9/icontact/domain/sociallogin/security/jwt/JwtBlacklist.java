@@ -45,11 +45,12 @@ public class JwtBlacklist {
     public synchronized boolean isBlacklisted(String token) {
         cleanExpiredTokens();
 
-        if (blacklistedTokens.containsKey(token)) {
-            logger.info("🛑 블랙리스트에 등록된 토큰 감지: {}", token);
-            return true;
+        boolean isBlacklisted = blacklistedTokens.containsKey(token);
+        if (isBlacklisted) {
+            logger.warn("🚫 블랙리스트에 등록된 토큰 감지: {}", token);
         }
-        return false;
+
+        return isBlacklisted;
     }
 
     /**

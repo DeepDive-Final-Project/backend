@@ -40,6 +40,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         OAuth2AccessToken accessToken = userRequest.getAccessToken();
         String accessTokenValue = accessToken.getTokenValue();
+
+        // OAuth 요청이 반복되는지 체크
+        if (gitHubOAuthProvider.isCodeAlreadyUsed(accessTokenValue)) { // 정상 작동
+            throw new RuntimeException("이미 사용된 OAuth 인증 코드입니다.");
+        }
+
         Map<String, Object> githubUserInfo = gitHubOAuthProvider.getUserInfo(accessToken.getTokenValue());
 
         String provider = userRequest.getClientRegistration().getRegistrationId();
@@ -47,13 +53,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String email = (String) githubUserInfo.getOrDefault("email", "no-email");
         String nickname = (String) githubUserInfo.get("login");
 
-        // ✅ OAuth 사용자 정보 저장 (OAuthService의 메서드 호출)
-        oAuthService.saveOrUpdateUser(provider, oauthUserId, email, nickname, accessTokenValue); // ✅ accessToken 추가
+        // OAuth 사용자 정보 저장 (OAuthService의 메서드 호출)
+        oAuthService.saveOrUpdateUser(provider, oauthUserId, email, nickname, accessTokenValue); // accessToken 추가
 
-        // ✅ JWT 발급
+        // JWT 발급
         String jwtToken = jwtTokenProvider.createToken(email);
 
-        // ✅ 사용자 정보 반환 (JWT 포함)
+        // 사용자 정보 반환 (JWT 포함)
         Map<String, Object> attributes = new HashMap<>(githubUserInfo);
         attributes.put("jwtToken", jwtToken);
 
