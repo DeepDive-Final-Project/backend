@@ -1,4 +1,6 @@
 spring:
+  config:
+    import: optional:file:.env[.properties]
   application:
     name: I-Contact
 
@@ -57,7 +59,7 @@ spring:
             scope:
             - user:email
             - read:user
-            redirect-uri: "{baseUrl}/login/oauth2/code/github"
+            redirect-uri: ${GITHUB_REDIRECT_URI}
 #          google:
 #            client-id: your-google-client-id
 #            client-secret: your-google-client-secret
