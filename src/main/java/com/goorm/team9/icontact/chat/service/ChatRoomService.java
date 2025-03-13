@@ -21,6 +21,8 @@ public class ChatRoomService {
     private final ChatJoinRepository chatJoinRepository;
     private final ClientRepository clientRepository;
 
+    private static final int MAX_CHAT_ROOMS = 5;
+
     public ChatRoomService(ChatRoomRepository chatRoomRepository, ChatJoinRepository chatJoinRepository, ClientRepository clientRepository) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatJoinRepository = chatJoinRepository;
@@ -43,6 +45,17 @@ public class ChatRoomService {
 
     @Transactional
     public Long createChatRoom(ClientEntity sender, ClientEntity receiver) {
+        int senderChatCount = chatRoomRepository.countBySenderNicknameOrReceiverNickname(sender);
+        int receiverChatCount = chatRoomRepository.countBySenderNicknameOrReceiverNickname(receiver);
+
+        if (senderChatCount >= MAX_CHAT_ROOMS) {
+            throw new IllegalArgumentException("사용자는 최대 " + MAX_CHAT_ROOMS + "개의 채팅방만 가질 수 있습니다.");
+        }
+
+        if (receiverChatCount >= MAX_CHAT_ROOMS) {
+            throw new IllegalArgumentException("대상 사용자는 최대 " + MAX_CHAT_ROOMS + "개의 채팅방만 가질 수 있습니다.");
+        }
+
         ChatRoom chatRoom = ChatRoom.createChatRoom(sender, receiver);
         chatRoomRepository.save(chatRoom);
 

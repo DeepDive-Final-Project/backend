@@ -30,7 +30,8 @@ public class ChatRoomController {
 
     @Operation(summary = "채팅방 생성 API", description = "새로운 1:1 채팅방을 생성합니다.")
     @PostMapping
-    public ResponseEntity<ChatRoomResponse> createChatRoom(@RequestBody ChatRoomRequest request) {
+    public ResponseEntity<Map<String, Object>> createChatRoom(@RequestBody ChatRoomRequest request) {
+        Map<String, Object> response = new HashMap<>();
         try {
             ClientEntity senderNickname = clientRepository.findByNickName(request.getSenderNickname())
                     .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
@@ -39,21 +40,22 @@ public class ChatRoomController {
 
             Long roomId = chatRoomService.createChatRoom(senderNickname, receiverNickname);
 
-            ChatRoomResponse response = new ChatRoomResponse(
-                    roomId,
-                    List.of(senderNickname.getNickName(), receiverNickname.getNickName()),
-                    null,null
-            );
-            return ResponseEntity.ok().body(response);
+            Map<String, Object> data = new HashMap<>();
+            data.put("roomId", roomId);
+            data.put("senderNickname", senderNickname.getNickName());
+            data.put("receiverNickname", receiverNickname.getNickName());
+
+            response.put("data", data);
+            response.put("message", "채팅방이 생성되었습니다.");
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(null);
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+            response.put("error", "서버 오류가 발생했습니다.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
-
     @Operation(summary = "사용자의 채팅방 조회 API", description = "특정 사용자가 참여한 채팅방 목록을 조회합니다.")
     @GetMapping("/{nickname}")
     public ResponseEntity<List<ChatRoomResponse>> getChatRoomsByUser(@PathVariable String nickname) {
