@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class ClientResponseDTO {
-
+    // client
     private Long id;
     private String nickName;
     private String email;
@@ -23,4 +23,11 @@ public class ClientResponseDTO {
     private boolean offline;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // it_topic
+    private String topic1;
+    private String topic2;
+    private String topic3;
+    private String language;
+    private String framework;
 }
