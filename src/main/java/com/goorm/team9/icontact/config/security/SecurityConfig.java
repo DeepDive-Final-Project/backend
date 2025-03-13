@@ -35,7 +35,7 @@ public class SecurityConfig {
                     CorsConfiguration config = new CorsConfiguration();
                     config.setAllowCredentials(true);
                     config.setAllowedOrigins(List.of(
-                            "http://localhost:3000", 
+                            "http://localhost:3000",
                             "http://3.34.165.63:3000",
                             "http://43.201.245.222:3000",
                             "http://localhost:8080",
@@ -60,7 +60,9 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/oauth2/**",
                                 "/login/**",
-                                "/auth/logout"
+                                "/auth/logout",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
                         .requestMatchers("/auth/home")
                         .authenticated()
