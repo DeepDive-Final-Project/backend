@@ -2,7 +2,6 @@ package com.goorm.team9.icontact.domain.client.controller;
 
 import com.goorm.team9.icontact.domain.client.enums.Career;
 import com.goorm.team9.icontact.domain.client.enums.Interest;
-import com.goorm.team9.icontact.domain.client.enums.Industry;
 import com.goorm.team9.icontact.domain.client.enums.Role;
 import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.client.enums.Language;
@@ -14,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Arrays;
@@ -29,8 +29,8 @@ public class EnumController {
 
     @GetMapping("/roles")
     @Operation(summary = "직업 형태 API", description = "직업의 종류를 출력하는 API입니다.")
-    public ResponseEntity<List<Map<String, String>>> getRoles() {
-        return ResponseEntity.ok(getEnumList(Role.values()));
+    public ResponseEntity<List<Map<String, Object>>> getRoles() {
+        return ResponseEntity.ok(getEnumListWithApiCode(Role.values()));
     }
 
     @GetMapping("/statuses")
@@ -39,17 +39,12 @@ public class EnumController {
         return ResponseEntity.ok(getEnumList(Status.values()));
     }
 
-    @GetMapping("/industries")
-    @Operation(summary = "분야 API", description = "직업 분야의 종류를 출력하는 API입니다.")
-    public ResponseEntity<List<Map<String, String>>> getIndustries() {
-        return ResponseEntity.ok(getEnumList(Industry.values()));
+    @GetMapping("/careers")
+    @Operation(summary = "경력 API", description = "선택한 직업에 따라 필터링된 경력 목록을 반환하는 API입니다.")
+    public ResponseEntity<List<Map<String, String>>> getCareers(@RequestParam Role role) {
+        return ResponseEntity.ok(getFilteredCareers(role));
     }
 
-    @GetMapping("/careers")
-    @Operation(summary = "경력 API", description = "경력의 종류를 출력하는 API입니다.")
-    public ResponseEntity<List<Map<String, String>>> getCareers() {
-        return ResponseEntity.ok(getEnumList(Career.values()));
-    }
 
     @GetMapping("/frameworks")
     @Operation(summary = "프레임워크 API", description = "프레임워크의 종류를 출력하는 API입니다.")
@@ -71,9 +66,27 @@ public class EnumController {
 
     private <E extends Enum<E> & EnumWithDescription> List<Map<String, String>> getEnumList(E[] values) {
         return Arrays.stream(values)
-                .map(e -> Map.of("key", e.name(), "description", e.getDescription()))  // 🔥 한글 설명 적용!
+                .map(e -> Map.of("key", e.name(), "description", e.getDescription()))
                 .collect(Collectors.toList());
     }
 
+    private List<Map<String, Object>> getEnumListWithApiCode(Role[] values) {
+        return Arrays.stream(values)
+                .map(e -> Map.<String, Object>of(
+                        "key", e.name(),
+                        "description", e.getDescription(),
+                        "apiCode", Integer.valueOf(e.getApiCode())
+                ))
+                .collect(Collectors.toList());
+    }
+
+    private List<Map<String, String>> getFilteredCareers(Role role) {
+        int apiCode = role.getApiCode();
+
+        return Arrays.stream(Career.values())
+                .filter(c -> c.getApiCode() == apiCode)
+                .map(c -> Map.of("key", c.name(), "description", c.getDescription()))
+                .collect(Collectors.toList());
+    }
 }
 
