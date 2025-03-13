@@ -11,11 +11,10 @@ public class ClientConverter {
         ClientResponseDTO clientResponseDTO = new ClientResponseDTO();
         clientResponseDTO.setId(clientEntity.getId());
         clientResponseDTO.setNickName(clientEntity.getNickName());
-        clientResponseDTO.setAge(clientEntity.getAge());
-        clientResponseDTO.setIndustry(clientEntity.getIndustry());
-        clientResponseDTO.setRole(clientEntity.getRole());
-        clientResponseDTO.setCareer(clientEntity.getCareer());
-        clientResponseDTO.setStatus(clientEntity.getStatus());
+        clientResponseDTO.setEmail(clientEntity.getEmail());
+        clientResponseDTO.setRole(clientEntity.getRole().getDescription()); // ENUM → description
+        clientResponseDTO.setCareer(clientEntity.getCareer() != null ? clientEntity.getCareer().getDescription() : null);
+        clientResponseDTO.setStatus(clientEntity.getStatus().getDescription());
         clientResponseDTO.setIntroduction(clientEntity.getIntroduction());
         clientResponseDTO.setLink(clientEntity.getLink());
         clientResponseDTO.setProfileImage(clientEntity.getProfileImage());
@@ -24,7 +23,15 @@ public class ClientConverter {
         clientResponseDTO.setOffline(clientEntity.isOffline());
         clientResponseDTO.setCreatedAt(clientEntity.getCreated_at());
         clientResponseDTO.setUpdatedAt(clientEntity.getUpdated_at());
+
+        if (clientEntity.getIt_topic() != null) {
+            clientResponseDTO.setTopic1(clientEntity.getIt_topic().getTopic1().getDescription());
+            clientResponseDTO.setTopic2(clientEntity.getIt_topic().getTopic2().getDescription());
+            clientResponseDTO.setTopic3(clientEntity.getIt_topic().getTopic3().getDescription());
+            clientResponseDTO.setLanguage(clientEntity.getIt_topic().getLanguage().getDescription());
+            clientResponseDTO.setFramework(clientEntity.getIt_topic().getFramework().getDescription());
+        }
+
         return clientResponseDTO;
     }
-
 }

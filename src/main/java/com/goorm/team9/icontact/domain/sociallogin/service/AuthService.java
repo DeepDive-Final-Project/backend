@@ -35,7 +35,14 @@ public class AuthService {
      * @return JWT 토큰
      */
     public String loginWithGithub(String code) {
-        return oAuthService.authenticateWithGithub(code);
+        // OAuthService에서 GitHub 인증 및 사용자 정보 저장
+        String email = oAuthService.authenticateWithGithub(code);
+
+        // JWT 발급
+        String jwtToken = jwtTokenProvider.createToken(email);
+        logger.info("🔑 발급된 JWT 토큰: {}", jwtToken);
+
+        return jwtToken;
     }
 
     /**

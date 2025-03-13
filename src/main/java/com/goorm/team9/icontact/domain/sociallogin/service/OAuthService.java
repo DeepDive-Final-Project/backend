@@ -47,7 +47,7 @@ public class OAuthService {
     public String authenticateWithGithub(String code) {
         var githubUserInfo = gitHubOAuthProvider.getUserInfo(code);
 
-        // ✅ access_token 확인 (문제 발생 가능 위치)
+        // access_token 검증
         if (!githubUserInfo.containsKey("access_token")) {
             logger.error("❌ OAuthService: access_token 없음!");
             throw new RuntimeException("GitHub 액세스 토큰 없음!");
@@ -58,10 +58,11 @@ public class OAuthService {
         String provider = "github";
         String oauthUserId = githubUserInfo.get("id").toString();
 //        String accessToken = githubUserInfo.get("access_token").toString(); // 토큰 가져오기
-        String email = (String) githubUserInfo.get("email");
+        String email = (String) githubUserInfo.getOrDefault("email", "no-email");
         String nickname = (String) githubUserInfo.get("login");
 
-        if (email == null || email.isEmpty()) {
+        // GitHub API에서 이메일이 없는 경우 fetchGitHubEmail() 호출
+        if ("no-email".equals(email) || email == null) {
             email = fetchGitHubEmail(accessToken);
         }
 

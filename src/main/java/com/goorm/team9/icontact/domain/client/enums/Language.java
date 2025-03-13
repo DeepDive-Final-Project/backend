@@ -19,7 +19,7 @@ public enum Language implements EnumWithDescription {
     HTML("HTML"),
     CSS("CSS"),
     JavaScript("자바스크립트"),
-    TypeScript("타입스크립스");
+    TypeScript("타입스크립트");
 
     private final String description;
 

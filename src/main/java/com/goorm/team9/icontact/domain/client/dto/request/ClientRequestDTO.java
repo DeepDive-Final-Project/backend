@@ -1,10 +1,8 @@
 package com.goorm.team9.icontact.domain.client.dto.request;
 
 import com.goorm.team9.icontact.domain.client.enums.Career;
-import com.goorm.team9.icontact.domain.client.enums.Industry;
 import com.goorm.team9.icontact.domain.client.enums.Role;
 import com.goorm.team9.icontact.domain.client.enums.Status;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -24,7 +22,6 @@ public class ClientRequestDTO {
     @NotNull
     private String email;
 
-    private Industry industry;
     private Role role;
     private Career career;
     private Status status;
