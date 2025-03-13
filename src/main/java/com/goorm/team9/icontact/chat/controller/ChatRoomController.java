@@ -100,4 +100,47 @@ public class ChatRoomController {
 
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "채팅 신청 API", description = "상대방에게 채팅을 신청합니다.")
+    @PostMapping("/request")
+    public ResponseEntity<Map<String, Object>> requestChat(@RequestBody ChatRoomRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            ClientEntity senderNickname = clientRepository.findByNickName(request.getSenderNickname())
+                    .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
+
+            ClientEntity receiverNickname = clientRepository.findByNickName(request.getReceiverNickname())
+                    .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
+
+            Long requestId = chatRoomService.requestChat(senderNickname, receiverNickname);
+            response.put("requestId", requestId);
+            response.put("message", "채팅이 요청되었습니다.");
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @Operation(summary = "채팅 승인 API", description = "채팅 신청을 승인하여 채팅방을 개설합니다.")
+    @PostMapping("/request/{requestId}/accept")
+    public ResponseEntity<Map<String, Object>> acceptChatRequest(@PathVariable Long requestId) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Long roomId = chatRoomService.acceptChatRequest(requestId);
+            response.put("roomId", roomId);
+            response.put("message", "채팅 요청이 승인되었습니다.");
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+    }
+
+    @Operation(summary = "채팅 거절 API", description = "채팅 신청을 거절합니다.")
+    @PostMapping("/request/{requestId}/reject")
+    public ResponseEntity<Map<String, Object>> rejectChatRequest(@PathVariable Long requestId) {
+        chatRoomService.rejectChatRequest(requestId);
+        return ResponseEntity.ok(Map.of("message", "채팅 요청이 거절되었습니다."));
+    }
 }

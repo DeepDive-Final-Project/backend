@@ -2,8 +2,11 @@ package com.goorm.team9.icontact.chat.service;
 
 import com.goorm.team9.icontact.chat.dto.ChatRoomResponse;
 import com.goorm.team9.icontact.chat.entity.ChatJoin;
+import com.goorm.team9.icontact.chat.entity.ChatRequest;
 import com.goorm.team9.icontact.chat.entity.ChatRoom;
+import com.goorm.team9.icontact.chat.entity.RequestStatus;
 import com.goorm.team9.icontact.chat.repository.ChatJoinRepository;
+import com.goorm.team9.icontact.chat.repository.ChatRequestRepository;
 import com.goorm.team9.icontact.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
@@ -22,11 +25,13 @@ public class ChatRoomService {
     private final ClientRepository clientRepository;
 
     private static final int MAX_CHAT_ROOMS = 5;
+    private final ChatRequestRepository chatRequestRepository;
 
-    public ChatRoomService(ChatRoomRepository chatRoomRepository, ChatJoinRepository chatJoinRepository, ClientRepository clientRepository) {
+    public ChatRoomService(ChatRoomRepository chatRoomRepository, ChatJoinRepository chatJoinRepository, ClientRepository clientRepository, ChatRequestRepository chatRequestRepository) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatJoinRepository = chatJoinRepository;
         this.clientRepository = clientRepository;
+        this.chatRequestRepository = chatRequestRepository;
     }
 
     @Transactional
@@ -45,8 +50,8 @@ public class ChatRoomService {
 
     @Transactional
     public Long createChatRoom(ClientEntity sender, ClientEntity receiver) {
-        int senderChatCount = chatRoomRepository.countBySenderNicknameOrReceiverNickname(sender);
-        int receiverChatCount = chatRoomRepository.countBySenderNicknameOrReceiverNickname(receiver);
+        int senderChatCount = chatRoomRepository.countActiveChatRoomsByClient(sender);
+        int receiverChatCount = chatRoomRepository.countActiveChatRoomsByClient(receiver);
 
         if (senderChatCount >= MAX_CHAT_ROOMS) {
             throw new IllegalArgumentException("사용자는 최대 " + MAX_CHAT_ROOMS + "개의 채팅방만 가질 수 있습니다.");
@@ -72,6 +77,43 @@ public class ChatRoomService {
         chatJoinRepository.save(receiverJoin);
 
         return chatRoom.getRoomId();
+    }
+
+    @Transactional
+    public Long requestChat(ClientEntity senderNickname, ClientEntity receiverNickname) {
+        ChatRequest chatRequest = new ChatRequest(senderNickname, receiverNickname);
+        chatRequestRepository.save(chatRequest);
+        return chatRequest.getId();
+    }
+
+    @Transactional
+    public Long acceptChatRequest(Long requestId) {
+        ChatRequest chatRequest = chatRequestRepository.findByIdAndStatus(requestId, RequestStatus.PENDING)
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청이 없거나 이미 처리되었습니다."));
+
+        int senderChatCount = chatRoomRepository.countActiveChatRoomsByClient(chatRequest.getSenderNickname());
+        int receiverChatCount = chatRoomRepository.countActiveChatRoomsByClient(chatRequest.getReceiverNickname());
+
+        if (senderChatCount >= MAX_CHAT_ROOMS) {
+            throw new IllegalArgumentException("사용자는 최대 " + MAX_CHAT_ROOMS + "개의 채팅방만 가질 수 있습니다.");
+        }
+
+        if (receiverChatCount >= MAX_CHAT_ROOMS) {
+            throw new IllegalArgumentException("대상 사용자는 최대 " + MAX_CHAT_ROOMS + "개의 채팅방만 가질 수 있습니다.");
+        }
+
+        chatRequest.accept();
+        chatRequestRepository.save(chatRequest);
+
+        return createChatRoom(chatRequest.getSenderNickname(), chatRequest.getReceiverNickname());
+    }
+
+    public void rejectChatRequest(Long requestId) {
+        ChatRequest chatRequest = chatRequestRepository.findByIdAndStatus(requestId, RequestStatus.PENDING)
+                .orElseThrow(() -> new IllegalArgumentException("해당 요청이 없거나 이미 처리되었습니다."));
+
+        chatRequest.reject();
+        chatRequestRepository.save(chatRequest);
     }
 
     @Transactional
