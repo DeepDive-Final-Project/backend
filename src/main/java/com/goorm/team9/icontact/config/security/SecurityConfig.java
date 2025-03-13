@@ -13,6 +13,10 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
+
+import java.util.List;
 
 @Slf4j
 @Configuration
@@ -28,13 +32,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/ws-chat/**",
                                 "/topic/**",
                                 "/app/**",
                                 "/swagger-ui/**",
-                                "/v3/api-docs/**",
+                                "/v3/api-docs",
                                 "/v3/api-docs.yaml",
                                 "/swagger-ui.html",
                                 "/actuator/health",
@@ -42,7 +48,9 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/oauth2/**",
                                 "/login/**",
-                                "/auth/logout"
+                                "/auth/logout",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
                         .requestMatchers("/auth/home")
                         .authenticated()
@@ -85,5 +93,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable);
 
         return http.build();
+    }
+
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/**")
+                .allowedOrigins("*")  // 또는 로컬/배포 도메인
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")  // 모든 메서드 허용
+                .allowedHeaders("*")  // 모든 헤더 허용
+                .allowCredentials(true); // 쿠키 포함 여부
     }
 }
