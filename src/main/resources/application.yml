@@ -54,30 +54,28 @@ spring:
           github:
             client-id: ${GITHUB_CLIENT_ID}
             client-secret: ${GITHUB_CLIENT_SECRET}
-            scope:
-            - user:email
-            - read:user
+            scope: user:email, read:user
             redirect-uri: "{baseUrl}/login/oauth2/code/github"
-#          google:
-#            client-id: your-google-client-id
-#            client-secret: your-google-client-secret
-#            scope: profile, email
-#          kakao:
-#            client-id: your-kakao-client-id
-#            client-secret: your-kakao-client-secret
-#            client-authentication-method: POST
-#            authorization-grant-type: authorization_code
-#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-#            scope: profile_nickname, account_email
-#            client-name: Kakao
-#          naver:
-#            client-id: your-naver-client-id
-#            client-secret: your-naver-client-secret
-#            client-authentication-method: POST
-#            authorization-grant-type: authorization_code
-#            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
-#            scope: name, email
-#            client-name: Naver
+  #          google:
+  #            client-id: your-google-client-id
+  #            client-secret: your-google-client-secret
+  #            scope: profile, email
+  #          kakao:
+  #            client-id: your-kakao-client-id
+  #            client-secret: your-kakao-client-secret
+  #            client-authentication-method: POST
+  #            authorization-grant-type: authorization_code
+  #            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+  #            scope: profile_nickname, account_email
+  #            client-name: Kakao
+  #          naver:
+  #            client-id: your-naver-client-id
+  #            client-secret: your-naver-client-secret
+  #            client-authentication-method: POST
+  #            authorization-grant-type: authorization_code
+  #            redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+  #            scope: name, email
+  #            client-name: Naver
 
   management:
     endpoints:
@@ -93,11 +91,19 @@ spring:
       enabled: false
 
 springdoc:
-  api-docs:
-    enabled: true
-  swagger-ui:
-    enabled: true
+  packages-to-scan: com.goorm.team9.icontact.controller
   paths-to-match: /**
-  default-consumes-media-type: application/json
-  default-produces-media-type: application/json
-
+  api-docs:
+    path: /api-docs/json
+    enabled: true
+    groups:
+      enabled: true
+  swagger-ui:
+    path: /api-docs
+    enabled: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+  default-consumes-media-type: application/json;charset=UTF-8
+  default-produces-media-type: application/json;charset=UTF-8
+  cache:
+    disabled: true
