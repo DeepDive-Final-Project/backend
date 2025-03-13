@@ -27,7 +27,7 @@ public class ChatMessageDto {
         ChatMessageDto message = new ChatMessageDto();
         message.roomId = roomId;
         message.senderNickname = senderNickname;
-        message.content = senderNickname + "님이 입장했습니다.";
+        message.content = senderNickname + "님과의 대화가 시작되었어요.";
         message.type = ChatMessageType.JOIN;
         return message;
     }
