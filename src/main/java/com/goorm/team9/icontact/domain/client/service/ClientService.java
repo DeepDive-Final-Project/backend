@@ -8,7 +8,6 @@ import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.entity.TopicEntity;
 import com.goorm.team9.icontact.domain.client.enums.*;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,8 +23,8 @@ public class ClientService {
 
     @Transactional
     public ClientResponseDTO createMyPage(
-            String nickName, Long age, String email,
-            Industry industry, Role role, Career career, Status status,
+            String nickName, String email,
+            Role role, Career career, Status status,
             String introduction, String link, MultipartFile profileImage,
             Interest topic1, Interest topic2, Interest topic3, Language language, Framework framework
     ) {
@@ -35,9 +34,7 @@ public class ClientService {
 
         ClientEntity clientEntity = new ClientEntity();
         clientEntity.setNickName(nickName);
-        clientEntity.setAge(age);
         clientEntity.setEmail(email);
-        clientEntity.setIndustry(industry);
         clientEntity.setRole(role);
         clientEntity.setCareer(career);
         clientEntity.setStatus(status);
@@ -81,8 +78,8 @@ public class ClientService {
 
     @Transactional
     public ClientResponseDTO updateUser(
-            Long clientId, String nickName, Long age,
-            Industry industry, Role role, Career career, Status status,
+            Long clientId, String nickName,
+            Role role, Career career, Status status,
             String introduction, String link, MultipartFile profileImage,
             Interest topic1, Interest topic2, Interest topic3, Language language, Framework framework
     ) {
@@ -90,8 +87,6 @@ public class ClientService {
                 .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
 
         if (nickName != null) existingClient.setNickName(nickName);
-        if (age != null) existingClient.setAge(age);
-        if (industry != null) existingClient.setIndustry(industry);
         if (role != null) existingClient.setRole(role);
         if (career != null) existingClient.setCareer(career);
         if (status != null) existingClient.setStatus(status);
@@ -107,12 +102,21 @@ public class ClientService {
             if (framework != null) topic.setFramework(framework);
         }
 
+        String currentImage = existingClient.getProfileImage();
+
         if (profileImage != null && !profileImage.isEmpty()) {
-            if (!existingClient.getProfileImage().equals("/profile-images/default_profile_image.jpg")) {
-                imageFileStorageService.deleteFile(existingClient.getProfileImage());
+            if (!imageFileStorageService.isDefaultImage(currentImage)) {
+                imageFileStorageService.deleteFile(currentImage);
             }
             String imagePath = imageFileStorageService.storeFile(profileImage);
             existingClient.setProfileImage(imagePath);
+        }
+
+        if (profileImage == null) {
+            if (!imageFileStorageService.isDefaultImage(currentImage)) {
+                imageFileStorageService.deleteFile(currentImage); // 기존 이미지 삭제
+            }
+            existingClient.setProfileImage("/profile-images/default_profile_image.jpg"); // 기본 이미지로 변경
         }
 
         ClientEntity updatedClient = clientRepository.save(existingClient);

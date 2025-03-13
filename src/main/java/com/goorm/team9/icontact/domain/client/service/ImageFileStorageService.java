@@ -19,7 +19,10 @@ public class ImageFileStorageService {
         try {
             String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
             Path uploadPath = Paths.get(UPLOAD_DIR).toAbsolutePath().normalize();
-            Files.createDirectories(uploadPath);
+
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
 
             Path targetLocation = uploadPath.resolve(fileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
@@ -41,4 +44,9 @@ public class ImageFileStorageService {
             throw new RuntimeException("파일 삭제 실패", e);
         }
     }
+
+    public boolean isDefaultImage(String filePath) {
+        return filePath.equals(DEFAULT_IMAGE);
+    }
+
 }
