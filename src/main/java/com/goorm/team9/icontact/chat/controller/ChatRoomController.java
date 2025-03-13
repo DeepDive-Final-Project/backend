@@ -11,7 +11,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Tag(name = "Chat Room API", description = "채팅방 생성 및 조회 API 입니다.")
 @RestController
@@ -85,8 +87,15 @@ public class ChatRoomController {
 
     @Operation(summary = "채팅방 퇴장 API", description = "사용자가 특정 채팅방을 나갑니다.")
     @PostMapping("/{roomId}/exit/{clientId}")
-    public ResponseEntity<Void> exitChatRoom(@PathVariable Long roomId, @PathVariable Long clientId) {
+    public ResponseEntity<Map<String, String>> exitChatRoom(@PathVariable Long roomId, @PathVariable Long clientId) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
         chatRoomService.exitChatRoom(roomId, clientId);
-        return ResponseEntity.ok().build();
+
+        Map<String, String> response = new HashMap<>();
+        response.put("message", client.getNickName() + "님이 퇴장했습니다.");
+
+        return ResponseEntity.ok(response);
     }
 }
