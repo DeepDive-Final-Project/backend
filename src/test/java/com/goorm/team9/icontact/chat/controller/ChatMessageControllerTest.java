@@ -1,8 +1,8 @@
 package com.goorm.team9.icontact.chat.controller;
 
-import com.goorm.team9.icontact.chat.dto.ChatMessageDto;
-import com.goorm.team9.icontact.chat.entity.ChatMessageType;
-import com.goorm.team9.icontact.chat.service.ChatMessageService;
+import com.goorm.team9.icontact.domain.chat.controller.ChatMessageController;
+import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
+import com.goorm.team9.icontact.domain.chat.service.ChatMessageService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

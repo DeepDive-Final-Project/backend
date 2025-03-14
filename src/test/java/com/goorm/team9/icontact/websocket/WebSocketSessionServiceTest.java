@@ -2,8 +2,8 @@ package com.goorm.team9.icontact.websocket;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import com.goorm.team9.icontact.chat.service.ChatRoomService;
-import com.goorm.team9.icontact.chat.service.WebSocketSessionService;
+import com.goorm.team9.icontact.domain.chat.service.ChatRoomService;
+import com.goorm.team9.icontact.domain.chat.service.WebSocketSessionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,9 +15,7 @@ import static org.mockito.Mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.WebSocketSession;
-import com.goorm.team9.icontact.chat.dto.ChatMessageDto;
-
-import java.io.IOException;
+import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
 
 @ExtendWith(MockitoExtension.class)
 public class WebSocketSessionServiceTest {

@@ -1,6 +1,6 @@
 package com.goorm.team9.icontact.config.websocket;
 
-import com.goorm.team9.icontact.chat.service.WebSocketSessionService;
+import com.goorm.team9.icontact.domain.chat.service.WebSocketSessionService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.WebSocketSession;
