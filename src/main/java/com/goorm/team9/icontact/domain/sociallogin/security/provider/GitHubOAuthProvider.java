@@ -49,17 +49,18 @@ public class GitHubOAuthProvider {
     public Map<String, Object> getUserInfo(String code) {
         logger.info("🔄 GitHub OAuth 인증 요청 시작. 받은 코드: {}", code);
 
-        // 여기서 로그 확인!
         if (code == null || code.isBlank()) {
             logger.error("❌ GitHub 인증 실패: code 값이 없습니다.");
             throw new RuntimeException("GitHub 인증 실패: code 값이 없습니다.");
         }
 
+        if (isCodeAlreadyUsed(code)) {
+            logger.error("❌ 이미 사용된 OAuth 코드: {}", code);
+            throw new RuntimeException("이미 사용된 OAuth 코드입니다.");
+        }
+
         // GitHub에서 액세스 토큰 요청
         String accessToken = fetchAccessTokenFromGitHub(code);
-
-        // 응답 로그 추가 (accessToken 확인)
-        logger.info("🔍 발급된 GitHub accessToken: {}", accessToken);
 
         // 액세스 토큰을 이용하여 사용자 정보 요청
         return fetchUserInfoFromGitHub(accessToken);
@@ -70,6 +71,13 @@ public class GitHubOAuthProvider {
      */
     private String fetchAccessTokenFromGitHub(String code) {
         logger.info("🔄 GitHub 액세스 토큰 요청 시작: code={}, client_id={}, redirect_uri={}", code, clientId, githubRedirectUri);
+
+        if (isCodeAlreadyUsed(code)) {
+            throw new RuntimeException("🚫 이미 사용된 OAuth code: " + code);
+        }
+
+        // 사용된 코드로 먼저 등록
+        markCodeAsUsed(code);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
@@ -89,32 +97,36 @@ public class GitHubOAuthProvider {
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(tokenRequest, headers);
 
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "https://github.com/login/oauth/access_token",
-                HttpMethod.POST,
-                requestEntity,
-                new ParameterizedTypeReference<>() {});
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    "https://github.com/login/oauth/access_token",
+                    HttpMethod.POST,
+                    requestEntity,
+                    new ParameterizedTypeReference<>() {});
 
-        Map<String, Object> responseBody = response.getBody();
+            Map<String, Object> responseBody = response.getBody();
 
-        if (responseBody == null || !responseBody.containsKey("access_token")) {
-            logger.error("❌ GitHub 액세스 토큰 발급 실패: 응답={}", responseBody);
-            throw new RuntimeException("GitHub 액세스 토큰을 가져오지 못했습니다.");
+            if (responseBody == null || !responseBody.containsKey("access_token")) {
+                logger.error("❌ GitHub 액세스 토큰 발급 실패: 응답={}", responseBody);
+                usedCodes.remove(code);
+                throw new RuntimeException("GitHub 액세스 토큰을 가져오지 못했습니다.");
+            }
+
+            if (responseBody.containsKey("error")) {
+                logger.error("❌ GitHub 액세스 토큰 발급 실패: 오류={}", responseBody);
+                usedCodes.remove(code);
+                throw new RuntimeException("GitHub 액세스 토큰 오류: " + responseBody.get("error_description"));
+            }
+
+            String accessToken = (String) responseBody.get("access_token");
+            logger.info("🔑 GitHub 액세스 토큰 발급 완료: {}", accessToken);
+            return accessToken;
+
+        } catch (RestClientException e) {
+            usedCodes.remove(code); // 요청 중 예외 발생 시 code 사용 취소
+            logger.error("❌ GitHub 액세스 토큰 요청 중 오류 발생: {}", e.getMessage(), e);
+            throw new RuntimeException("GitHub API 요청 중 오류 발생", e);
         }
-
-        // `error` 필드가 있는지 확인
-        if (responseBody.containsKey("error")) {
-            logger.error("❌ GitHub 액세스 토큰 발급 실패: 응답={}", responseBody);
-            throw new RuntimeException("GitHub 액세스 토큰을 가져오지 못했습니다. 오류: " + responseBody.get("error_description"));
-        }
-
-        String accessToken = (String) responseBody.get("access_token");
-        logger.info("🔑 GitHub 액세스 토큰 발급 완료: {}", accessToken);
-
-        // 사용된 code 저장
-        markCodeAsUsed(code);
-
-        return accessToken;
     }
 
     /**
@@ -128,11 +140,16 @@ public class GitHubOAuthProvider {
         headers.set("Authorization", "Bearer " + accessToken);
         headers.set("Accept", "application/json");
 
+        // 헤더 확인 로그 추가
+        logger.info("🔍 GitHub API 요청 헤더: {}", headers);
+
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
         try {
             ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                    "https://api.github.com/user", HttpMethod.GET, requestEntity,
+                    "https://api.github.com/user",
+                    HttpMethod.GET,
+                    requestEntity,
                     new ParameterizedTypeReference<>() {});
 
             Map<String, Object> userInfo = response.getBody();
@@ -154,6 +171,9 @@ public class GitHubOAuthProvider {
         }
     }
 
+    /**
+     * 이미 사용된 코드인지 확인
+     */
     public boolean isCodeAlreadyUsed(String code) {
         if (usedCodes.contains(code)) {
             logger.warn("🚫 이미 사용된 OAuth code: {}", code);
@@ -162,6 +182,9 @@ public class GitHubOAuthProvider {
         return false;
     }
 
+    /**
+     * 사용된 코드로 등록
+     */
     private void markCodeAsUsed(String code) {
         usedCodes.add(code);
     }

@@ -37,7 +37,16 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         // JWT 생성 전 email 값 검증 추가
         if (email == null || "no-email".equals(email)) {
             logger.error("❌ JWT 발급 실패: 유효한 이메일 정보가 없습니다.");
-            throw new RuntimeException("JWT 발급 실패: 유효한 이메일 정보가 없습니다.");
+
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 응답
+
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("error", "JWT 발급 실패: 유효한 이메일 정보가 없습니다.");
+
+            response.getWriter().write(new ObjectMapper().writeValueAsString(errorResponse));
+            return; // 예외를 던지지 않고 여기서 종료
         }
 
         String jwtToken = jwtTokenProvider.createToken(email); // JWT 생성
@@ -47,8 +56,8 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
 
-        // 필요 시 특정 페이지로 리다이렉트 가능! 지금은 일단 홈으로!
-        response.sendRedirect("/auth/home");
+        // 필요 시 특정 페이지로 리다이렉트하도록, 지금은 기본 처리 유지
+        clearAuthenticationAttributes(request);
     }
 
     /**
