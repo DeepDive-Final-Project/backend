@@ -34,7 +34,7 @@ public class ImageFileStorageService {
     }
 
     public void deleteFile(String filePath) {
-        if (filePath == null || filePath.equals(DEFAULT_IMAGE)) {
+        if (filePath == null || isDefaultImage(filePath)) {
             return;
         }
         try {
@@ -46,7 +46,7 @@ public class ImageFileStorageService {
     }
 
     public boolean isDefaultImage(String filePath) {
-        return filePath.equals(DEFAULT_IMAGE);
+        return filePath == null || filePath.endsWith("default_profile_image.jpg");
     }
-
 }
+

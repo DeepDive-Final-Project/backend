@@ -72,12 +72,12 @@ public class ClientController {
             @PathVariable Long client_Id,
             @Parameter(description = "닉네임", example = "Noah2222")
             @RequestParam(required = false) String nickName,
-            @Parameter(description = "직업 (예: '개발자')", example = "개발자")
-            @RequestParam(required = false) String roleDescription,
-            @Parameter(description = "경력 (예: '주니어')", example = "주니어")
-            @RequestParam(required = false) String careerDescription,
-            @Parameter(description = "공개 여부 (예: '공개')", example = "공개")
-            @RequestParam(required = false) String statusDescription,
+            @Parameter(description = "직업", example = "DEV")
+            @RequestParam(required = false) Role role,
+            @Parameter(description = "경력", example = "JUNIOR")
+            @RequestParam(required = false) Career career,
+            @Parameter(description = "공개 여부", example = "PUBLIC")
+            @RequestParam(required = false) Status status,
             @Parameter(description = "소개글", example = "안녕하세요. 바뀐 개발자입니다.")
             @RequestParam(required = false) String introduction,
             @Parameter(description = "접근 링크", example = "https://www.test22.com")
@@ -95,13 +95,28 @@ public class ClientController {
             @Parameter(description = "주력 프레임워크")
             @RequestParam(required = false) Framework framework
     ) {
-        Role role = (roleDescription != null) ? Role.fromDescription(roleDescription) : null;
-        Career career = (careerDescription != null) ? Career.fromDescription(careerDescription) : null;
-        Status status = (statusDescription != null) ? Status.fromDescription(statusDescription) : null;
-
         return ResponseEntity.ok(clientService.updateUser(
                 client_Id, nickName, role, career, status, introduction, link, profileImage,
                 topic1, topic2, topic3, language, framework
         ));
     }
+
+    @PatchMapping("/{client_Id}/reduce-chat-opportunity")
+    @Operation(summary = "채팅 기회 감소 API", description = "채팅방을 만들면 기회를 1 감소시킵니다.")
+    public ResponseEntity<String> reduceChatOpportunity(
+            @PathVariable Long client_Id
+    ) {
+        clientService.reduceChatOpportunity(client_Id);
+        return ResponseEntity.ok("채팅 기회가 1 감소되었습니다.");
+    }
+
+    @PatchMapping("/{client_Id}/increase-chat-opportunity")
+    @Operation(summary = "채팅 기회 증가 API", description = "특정 조건에서 채팅방 생성 기회를 1 증가시킵니다.")
+    public ResponseEntity<String> increaseChatOpportunity(
+            @PathVariable Long client_Id
+    ) {
+        clientService.increaseChatOpportunity(client_Id);
+        return ResponseEntity.ok("채팅 기회가 1 증가되었습니다.");
+    }
+
 }

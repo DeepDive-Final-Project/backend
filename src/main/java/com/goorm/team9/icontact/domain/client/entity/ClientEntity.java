@@ -52,7 +52,7 @@ public class ClientEntity extends BaseTimeEntity {
     @Column
     private String profileImage;
 
-    @Column(name = "chat_opportunity")
+    @Column(name = "chat_opportunity", nullable = false)
     private int chatOpportunity;
 
     @Column(name = "chat_message")
@@ -69,6 +69,13 @@ public class ClientEntity extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "client_id", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OAuth> oauthAccounts = new ArrayList<>(); // 한 User가 여러 OAuth 계정을 가짐
+
+    public void setChatOpportunity(int chatOpportunity) {
+        if (chatOpportunity < 0 || chatOpportunity > 5) {
+            throw new IllegalArgumentException("채팅 기회는 0~5 사이의 값이어야 합니다.");
+        }
+        this.chatOpportunity = chatOpportunity;
+    }
 
     public void setDeleted(boolean deleted) {
         this.isDeleted = deleted;
