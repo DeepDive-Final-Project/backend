@@ -41,7 +41,8 @@ public class SecurityConfig {
                             "http://localhost:8080",
                             "http://3.34.165.63:8080",
                             "http://43.201.245.222:8080",
-                            "https://www.i-contacts.link"));
+                            "https://www.i-contacts.link",
+                            "*"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "FETCH", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
                     return config;
@@ -98,8 +99,7 @@ public class SecurityConfig {
                                 request -> request.getRequestURI().startsWith("/auth/home") // 여기만 401
                         )
                 )
-
-                .csrf(csrf -> csrf.disable())
+                .csrf(AbstractHttpConfigurer::disable)
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)
