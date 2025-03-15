@@ -30,9 +30,14 @@ public class SecurityConfig {
     private final JwtBlacklist jwtBlacklist;
     private final JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
 
+
     @Bean
-    public WebSecurityCustomizer webSecurityCustomizer() { // WebSecurity에서 /actuator/** 경로 무시 (보안 필터 적용 X)
-        return (web) -> web.ignoring().requestMatchers(new AntPathRequestMatcher("/actuator/**"));
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(
+                "/actuator/**",
+                "/swagger-ui/**",
+                "/v3/api-docs/**"
+        );
     }
 
     @Bean
