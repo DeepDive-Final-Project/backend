@@ -17,6 +17,9 @@ services:
       SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
       - "8080:8080"
+    volumes:
+      - /home/ubuntu/backend/build/libs:/app
+    command: [ "java", "-jar", "/app/Backend-0.0.1-SNAPSHOT.jar" ]
     networks:
       - backend_network
 
