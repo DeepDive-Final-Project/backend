@@ -27,8 +27,14 @@ dependencies {
     // Spring Boot Setting
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-web-services'
+
+    // Jpa
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // Web-socket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    // Security
     implementation 'org.springframework.boot:spring-boot-starter-security'
 
     // Actuator
@@ -51,7 +57,7 @@ dependencies {
     developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 
     // Swagger
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.5'
 
     // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
