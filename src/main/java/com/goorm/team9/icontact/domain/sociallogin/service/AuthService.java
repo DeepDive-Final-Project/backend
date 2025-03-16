@@ -97,6 +97,9 @@ public class AuthService {
     /**
      * 회원 탈퇴 처리 (소프트 삭제 적용)
      */
+    /**
+     * 회원 탈퇴 처리 (소프트 삭제 적용)
+     */
     public ResponseEntity<String> withdraw(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null) {
@@ -104,11 +107,19 @@ public class AuthService {
         }
 
         String email = authentication.getName();
+
+        // 🔹 14일 이내 재탈퇴 불가 검증 추가
+        if (!userService.canReRegister(email)) {
+            return ResponseEntity.status(HttpServletResponse.SC_BAD_REQUEST)
+                    .body("탈퇴 후 14일 이내에는 재탈퇴할 수 없습니다.");
+        }
+
         userService.deleteUserByEmail(email);
         logout(request, response);
 
         return ResponseEntity.ok("회원 탈퇴 완료 ✅");
     }
+
 
     /**
      * 세션 무효화
