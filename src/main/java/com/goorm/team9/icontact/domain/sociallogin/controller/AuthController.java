@@ -85,8 +85,6 @@ public class AuthController {
         return ResponseEntity.ok(new JwtResponse(jwt));
     }
 
-
-
     /**
      * 로그아웃 API
      * - 블랙리스트에 토큰 추가
