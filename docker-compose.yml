@@ -16,7 +16,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - /home/ubuntu/backend/build/libs/Backend-0.0.1-SNAPSHOT.jar:/app/app.jar
+#      - /home/ubuntu/backend/build/libs/Backend-0.0.1-SNAPSHOT.jar:/app/app.jar
       - /home/ubuntu/backend/src/main/resources/application.yml:/app/application.yml
       - /home/ubuntu/backend/src/main/resources/application-prod.yml:/app/application-prod.yml
     networks:
