@@ -57,6 +57,7 @@ public class SecurityConfig {
                             "*"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "FETCH", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
+                    config.setExposedHeaders(List.of("Authorization", "Content-Type"));
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
@@ -65,18 +66,21 @@ public class SecurityConfig {
                                 "/topic/**",
                                 "/app/**",
                                 "/swagger-ui/**",
+                                "/swagger-resources/**",
+                                "/api/**",
+                                "/v3/**",
+                                "/api/v3/**",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml",
                                 "/swagger-ui.html",
+                                "/swagger-ui/index.html",
                                 "/actuator/**",
                                 "/actuator/health",
                                 "/actuator/prometheus",
-                                "/api/**",
                                 "/api/auth/**",
                                 "/oauth2/**",
                                 "/login/**",
                                 "/auth/logout",
-                                "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
                         .requestMatchers("/auth/home")

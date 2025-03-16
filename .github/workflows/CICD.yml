@@ -121,7 +121,7 @@ jobs:
             docker-compose up -d --force-recreate
           EOF
     
-      
+
       - name: ALB Health Check for Server A
         run: |
           echo "Waiting for Server A to be Healthy in ALB..."

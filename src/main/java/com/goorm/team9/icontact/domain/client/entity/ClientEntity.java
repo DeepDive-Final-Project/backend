@@ -4,7 +4,7 @@ import com.goorm.team9.icontact.domain.client.enums.Career;
 import com.goorm.team9.icontact.domain.client.enums.Role;
 import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.common.BaseTimeEntity;
-import com.goorm.team9.icontact.domain.sociallogin.domain.OAuth;
+import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
 import jakarta.persistence.*;
 import lombok.*;
 

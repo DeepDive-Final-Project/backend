@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.domain.sociallogin.domain;
+package com.goorm.team9.icontact.domain.sociallogin.entity;
 
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import jakarta.persistence.*;
