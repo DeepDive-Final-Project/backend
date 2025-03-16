@@ -1,6 +1,6 @@
 services:
   springboot:
-    build: .
+    image: dawnisproblem/i-contact-backend:latest
     container_name: springboot_container
     restart: always
     env_file:
