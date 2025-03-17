@@ -28,6 +28,10 @@ public class ChatMessageService {
 
     @Transactional
     public void sendMessage(ChatMessageDto chatMessageDto) {
+        if (chatMessageDto.getContent().length() > 1000) {
+            throw new IllegalArgumentException("채팅 메시지는 최대 1000자까지 입력할 수 있습니다.");
+        }
+
         ChatRoom chatRoom = chatRoomRepository.findById(chatMessageDto.getRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 

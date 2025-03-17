@@ -18,23 +18,32 @@ public class ChatMessageController {
 
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessageDto chatMessageDto) {
-        if (chatMessageDto.getType() == ChatMessageType.JOIN) {
-            ChatMessageDto joinMessage = ChatMessageDto.createJoinMessage(
-                    chatMessageDto.getRoomId(), chatMessageDto.getSenderNickname());
-            chatMessageService.sendMessage(joinMessage);
-            messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), joinMessage);
-        }
+        try {
+            if (chatMessageDto.getContent().length() > 1000) {
+                throw new IllegalArgumentException("채팅 메시지는 최대 1000자까지 입력할 수 있습니다.");
+            }
 
-        else if (chatMessageDto.getType() == ChatMessageType.LEAVE) {
-            ChatMessageDto leaveMessage = ChatMessageDto.createLeaveMessage(
-                    chatMessageDto.getRoomId(), chatMessageDto.getSenderNickname());
-            chatMessageService.sendMessage(leaveMessage);
-            messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), leaveMessage);
-        }
+            if (chatMessageDto.getType() == ChatMessageType.JOIN) {
+                ChatMessageDto joinMessage = ChatMessageDto.createJoinMessage(
+                        chatMessageDto.getRoomId(), chatMessageDto.getSenderNickname());
+                chatMessageService.sendMessage(joinMessage);
+                messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), joinMessage);
+            }
 
-        else {
-            chatMessageService.sendMessage(chatMessageDto);
-            messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), chatMessageDto);
+            else if (chatMessageDto.getType() == ChatMessageType.LEAVE) {
+                ChatMessageDto leaveMessage = ChatMessageDto.createLeaveMessage(
+                        chatMessageDto.getRoomId(), chatMessageDto.getSenderNickname());
+                chatMessageService.sendMessage(leaveMessage);
+                messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), leaveMessage);
+            }
+
+            else {
+                chatMessageService.sendMessage(chatMessageDto);
+                messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), chatMessageDto);
+            }
+    } catch (IllegalArgumentException e) {
+        String errorMessage = e.getMessage();
+        messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), errorMessage);
         }
     }
 }

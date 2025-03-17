@@ -24,7 +24,7 @@ public class ChatMessage {
     @JoinColumn(name = "sender_nickname", nullable = false)
     private ClientEntity senderNickname;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 1000)
     private String content;
 
     @Enumerated(EnumType.STRING)
