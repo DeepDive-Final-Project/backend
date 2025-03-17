@@ -18,9 +18,9 @@ public class ClientConverter {
         clientResponseDTO.setIntroduction(clientEntity.getIntroduction());
         clientResponseDTO.setLink(clientEntity.getLink());
         clientResponseDTO.setProfileImage(clientEntity.getProfileImage());
-        clientResponseDTO.setChatOpportunity(clientEntity.getChatOpportunity());
-        clientResponseDTO.setChatMessage(clientEntity.getChatMessage());
-        clientResponseDTO.setOffline(clientEntity.isOffline());
+//        clientResponseDTO.setChatOpportunity(clientEntity.getChatOpportunity());
+//        clientResponseDTO.setChatMessage(clientEntity.getChatMessage());
+//        clientResponseDTO.setOffline(clientEntity.isOffline());
         clientResponseDTO.setCreatedAt(clientEntity.getCreated_at());
         clientResponseDTO.setUpdatedAt(clientEntity.getUpdated_at());
 
