@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 
@@ -87,11 +88,47 @@ public class KakaoOAuthProvider implements OAuthProvider {
         headers.set("Accept", "application/json");
 
         HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                "https://kapi.kakao.com/v2/user/me", HttpMethod.GET, requestEntity,
-                new ParameterizedTypeReference<>() {});
 
-        return response.getBody();
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    "https://kapi.kakao.com/v2/user/me",
+                    HttpMethod.GET,
+                    requestEntity,
+                    new ParameterizedTypeReference<>() {
+                    }
+            );
+            return response.getBody();
+        } catch (HttpClientErrorException.Unauthorized e) { // 🔥 Access Token이 만료되었을 때
+            throw new RuntimeException("❌ Access Token이 만료되었습니다. 다시 로그인하세요!");
+        } catch (HttpClientErrorException.Forbidden e) { // 🔥 Access Token이 유효하지 않을 때
+            throw new RuntimeException("❌ Access Token이 유효하지 않습니다!");
+        }
     }
+
+    @Override
+    public long getTokenExpiry(String accessToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Accept", "application/json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    "https://kapi.kakao.com/v1/user/access_token_info",
+                    HttpMethod.GET,
+                    requestEntity,
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            // Object 타입으로 가져온 후, String -> Integer 변환
+            Object expiresInObj = response.getBody().get("expires_in");
+            int expiresIn = Integer.parseInt(expiresInObj.toString()); // 안전한 변환 처리
+            return System.currentTimeMillis() + (expiresIn * 1000L); // 밀리초 변환 후 반환
+        } catch (Exception e) {
+            throw new RuntimeException("❌ Google Access Token 만료 시간 조회 실패!", e);
+        }
+    }
+
 }
 

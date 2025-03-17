@@ -69,4 +69,30 @@ public class GitHubOAuthProvider implements OAuthProvider {
 
         return response.getBody();
     }
+
+    @Override
+    public long getTokenExpiry(String accessToken) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + accessToken);
+        headers.set("Accept", "application/json");
+
+        HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    "https://api.github.com/applications/${GITHUB_CLIENT_ID}/token",
+                    HttpMethod.GET,
+                    requestEntity,
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            // Object 타입으로 가져온 후, String -> Integer 변환
+            Object expiresInObj = response.getBody().get("expires_in");
+            int expiresIn = Integer.parseInt(expiresInObj.toString()); // 안전한 변환 처리
+            return System.currentTimeMillis() + (expiresIn * 1000L); // 밀리초 변환 후 반환
+        } catch (Exception e) {
+            throw new RuntimeException("❌ Google Access Token 만료 시간 조회 실패!", e);
+        }
+    }
+
 }
