@@ -1,5 +1,6 @@
 package com.goorm.team9.icontact.domain.chat.service;
 
+import com.goorm.team9.icontact.domain.block.repository.BlockRepository;
 import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatJoin;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessage;
@@ -25,6 +26,7 @@ public class ChatMessageService {
     private final ChatJoinRepository chatJoinRepository;
     private final ClientRepository clientRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final BlockRepository blockRepository;
 
     @Transactional
     public void sendMessage(ChatMessageDto chatMessageDto) {
@@ -43,6 +45,14 @@ public class ChatMessageService {
 
         if (chatJoin.isExited()) {
             throw new IllegalArgumentException("채팅방을 나간 사용자는 메시지를 보낼 수 없습니다.");
+        }
+
+        List<ChatJoin> participants = chatJoinRepository.findByChatRoom(chatRoom);
+        for (ChatJoin participant : participants) {
+            ClientEntity recipient = participant.getClient();
+            if (blockRepository.isUserBlocked(senderNickname, recipient) || blockRepository.isUserBlocked(recipient, senderNickname)) {
+                throw new IllegalArgumentException("차단된 사용자와 메시지를 주고받을 수 없습니다.");
+            }
         }
 
         ChatMessage chatMessage = ChatMessage.builder()
