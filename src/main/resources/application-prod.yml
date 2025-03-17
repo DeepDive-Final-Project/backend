@@ -6,10 +6,32 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
       default_batch_fetch_size: 1000
       jdbc:
         time_zone: Asia/Seoul
     defer-datasource-initialization: true
     show-sql: false
     open-in-view: false
+
+management:
+  server:
+    port: 8080
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+server:
+  forward-headers-strategy: native
+  address: 0.0.0.0
+  port: 8080
+  ssl:
+    enabled: false

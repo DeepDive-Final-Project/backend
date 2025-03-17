@@ -1,17 +1,15 @@
-version: "3.8"
-
 services:
   springboot:
-    build: .
+    image: dawnisproblem/i-contact-backend:latest
     container_name: springboot_container
     restart: always
     env_file:
       - .env
     environment:
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_DATASOURCE_URL: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true
-      SPRING_DATASOURCE_USERNAME: ${DB_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_DATASOURCE_URL: jdbc:mysql://${PROD_DB_HOST}:${DB_PORT}/${PROD_DB_NAME}?useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: ${PROD_DB_USERNAME}
+      SPRING_DATASOURCE_PASSWORD: ${PROD_DB_PASSWORD}
       SPRING_REDIS_HOST: redis_container
       SPRING_REDIS_PORT: 6378
       SPRING_REDIS_PASSWORD: ${REDIS_PASSWORD}
