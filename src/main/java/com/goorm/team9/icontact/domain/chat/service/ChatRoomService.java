@@ -51,9 +51,6 @@ public class ChatRoomService {
 
     @Transactional
     public Long createChatRoom(ClientEntity sender, ClientEntity receiver) {
-        if (sender.getChatOpportunity() <= 0 || receiver.getChatOpportunity() <= 0) {
-            throw new IllegalArgumentException("채팅방 개설 기회가 부족합니다.");
-        }
 
         ChatRoom chatRoom = ChatRoom.createChatRoom(sender, receiver);
         chatRoomRepository.save(chatRoom);
@@ -69,9 +66,6 @@ public class ChatRoomService {
         receiverJoin.setClient(receiver);
         receiverJoin.setExited(false);
         chatJoinRepository.save(receiverJoin);
-
-        clientService.reduceChatOpportunity(sender.getId());
-        clientService.reduceChatOpportunity(receiver.getId());
 
         return chatRoom.getRoomId();
     }
@@ -91,17 +85,10 @@ public class ChatRoomService {
         ClientEntity sender = chatRequest.getSenderNickname();
         ClientEntity receiver = chatRequest.getReceiverNickname();
 
-        if (sender.getChatOpportunity() <= 0 || receiver.getChatOpportunity() <= 0) {
-            throw new IllegalArgumentException("채팅방 개설 기회가 부족합니다.");
-        }
-
         chatRequest.accept();
         chatRequestRepository.save(chatRequest);
 
         Long roomId = createChatRoom(sender, receiver);
-
-        clientService.reduceChatOpportunity(sender.getId());
-        clientService.reduceChatOpportunity(receiver.getId());
 
         return roomId;
     }
@@ -131,8 +118,6 @@ public class ChatRoomService {
 
         chatJoin.exitChatRoom();
         chatJoinRepository.save(chatJoin);
-
-        clientService.increaseChatOpportunity(clientId);
 
         long remainingUsers = chatJoinRepository.countByChatRoomAndExitedFalse(chatRoom);
 
