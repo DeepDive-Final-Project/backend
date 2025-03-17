@@ -4,7 +4,8 @@ import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
 import com.goorm.team9.icontact.domain.sociallogin.repository.OAuthRepository;
-import com.goorm.team9.icontact.domain.sociallogin.security.provider.GitHubOAuthProvider;
+import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvider;
+import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProviderFactory;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,34 +35,29 @@ public class OAuthService {
 
     private final ClientRepository clientRepository;
     private final OAuthRepository oauthRepository;
-    private final GitHubOAuthProvider gitHubOAuthProvider;
+    private final OAuthProviderFactory providerFactory;
     private static final Logger logger = LoggerFactory.getLogger(OAuthService.class);
 
     /**
-     * GitHub OAuth 로그인 처리
-     * - GitHub에서 사용자 정보를 가져오고 JWT 발급을 담당
+     * OAuth 로그인 처리
+     * - 사용자 정보를 가져오고 JWT 발급을 담당
      *
-     * @param code GitHub에서 발급한 인증 코드
+     * @param code  발급한 인증 코드
      * @return JWT 토큰 (이후 AuthService에서 사용)
      */
-    public String authenticateWithGithub(String code) {
-        var githubUserInfo = gitHubOAuthProvider.getUserInfo(code);
-
-        // access_token 검증
-        if (!githubUserInfo.containsKey("access_token")) {
-            logger.error("❌ OAuthService: access_token 없음!");
-            throw new RuntimeException("GitHub 액세스 토큰 없음!");
+    public String authenticateWithGithub(String provider, String code) {
+        OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
+        if (oAuthProvider == null) {
+            throw new IllegalArgumentException("지원하지 않는 OAuth 제공자: " + provider);
         }
-        String accessToken = githubUserInfo.get("access_token").toString();
-        logger.info("🔑 OAuthService에서 받은 액세스 토큰: {}", accessToken);
 
-        String provider = "github";
-        String oauthUserId = githubUserInfo.get("id").toString();
-//        String accessToken = githubUserInfo.get("access_token").toString(); // 토큰 가져오기
-        String email = (String) githubUserInfo.getOrDefault("email", "no-email");
-        String nickname = (String) githubUserInfo.get("login");
+        String accessToken = oAuthProvider.getAccessToken(code);
+        Map<String, Object> userInfo = oAuthProvider.getUserInfo(accessToken);
 
-        // GitHub API에서 이메일이 없는 경우 fetchGitHubEmail() 호출
+        String oauthUserId = userInfo.get("id").toString();
+        String email = (String) userInfo.getOrDefault("email", "no-email");
+        String nickname = (String) userInfo.getOrDefault("login", "unknown");
+
         if ("no-email".equals(email) || email == null) {
             email = fetchGitHubEmail(accessToken);
         }
@@ -69,8 +65,8 @@ public class OAuthService {
         // 사용자 정보 저장 또는 업데이트
         saveOrUpdateUser(provider, oauthUserId, email, nickname, accessToken);
 
-        logger.info("✅ GitHub 로그인 완료: {}", email);
-        return email; // AuthService에서 JWT 생성
+        logger.info("✅ {} 로그인 완료: {}", provider, email);
+        return email;
     }
 
     /**
@@ -147,5 +143,4 @@ public class OAuthService {
             return null;
         }
     }
-
 }

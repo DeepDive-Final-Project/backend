@@ -1,20 +1,19 @@
 package com.goorm.team9.icontact.domain.sociallogin.service;
 
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
-import com.goorm.team9.icontact.domain.sociallogin.security.provider.GitHubOAuthProvider;
+import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvider;
+import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProviderFactory;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -25,49 +24,25 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final OAuthService oAuthService;
+    private final OAuthProviderFactory providerFactory;
     private final JwtTokenProvider jwtTokenProvider;
-    private final GitHubOAuthProvider gitHubOAuthProvider;
-    private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
-    /**
-     * OAuth2 로그인 후 사용자 정보를 가져오고 JWT 발급
-     *
-     * @param userRequest OAuth2 로그인 요청 정보
-     * @return OAuth2User (JWT 포함)
-     */
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-        OAuth2AccessToken accessToken = userRequest.getAccessToken();
-        String accessTokenValue = accessToken.getTokenValue();
+        String provider = userRequest.getClientRegistration().getRegistrationId(); // "github", "google", "kakao"
+        String code = userRequest.getAccessToken().getTokenValue();
 
-        // OAuth 요청이 반복되는지 체크
-        if (gitHubOAuthProvider.isCodeAlreadyUsed(accessTokenValue)) { // 정상 작동
-            throw new RuntimeException("이미 사용된 OAuth 인증 코드입니다.");
+        OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
+        if (oAuthProvider == null) {
+            throw new RuntimeException("지원하지 않는 OAuth 제공자: " + provider);
         }
 
-        Map<String, Object> githubUserInfo = gitHubOAuthProvider.getUserInfo(accessToken.getTokenValue());
+        String accessToken = oAuthProvider.getAccessToken(code);
+        Map<String, Object> userInfo = oAuthProvider.getUserInfo(accessToken);
 
-        String provider = userRequest.getClientRegistration().getRegistrationId();
-        String oauthUserId = githubUserInfo.get("id").toString();
-        String email = (String) githubUserInfo.getOrDefault("email", "no-email");
-        String nickname = (String) githubUserInfo.get("login");
+        String jwtToken = jwtTokenProvider.createToken((String) userInfo.get("email"));
+        userInfo.put("jwtToken", jwtToken);
 
-        // OAuth 사용자 정보 저장 (OAuthService의 메서드 호출)
-        oAuthService.saveOrUpdateUser(provider, oauthUserId, email, nickname, accessTokenValue); // accessToken 추가
-
-        // JWT 발급
-        String jwtToken = jwtTokenProvider.createToken(email);
-
-        // 사용자 정보 반환 (JWT 포함)
-        Map<String, Object> attributes = new HashMap<>(githubUserInfo);
-        attributes.put("jwtToken", jwtToken);
-
-        logger.info("✅ OAuth 로그인 완료: {}, JWT 발급됨", email);
-
-        return new DefaultOAuth2User(
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")),
-                attributes, "id"
-        );
+        return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), userInfo, "email");
     }
 }
