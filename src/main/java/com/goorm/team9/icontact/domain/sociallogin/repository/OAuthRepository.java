@@ -1,6 +1,6 @@
 package com.goorm.team9.icontact.domain.sociallogin.repository;
 
-import com.goorm.team9.icontact.domain.sociallogin.domain.OAuth;
+import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
