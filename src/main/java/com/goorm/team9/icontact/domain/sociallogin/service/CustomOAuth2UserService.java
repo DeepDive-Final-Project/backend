@@ -26,22 +26,33 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final OAuthProviderFactory providerFactory;
     private final JwtTokenProvider jwtTokenProvider;
+    private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
+
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         String provider = userRequest.getClientRegistration().getRegistrationId(); // "github", "google", "kakao"
-        String code = userRequest.getAccessToken().getTokenValue();
+        String accessToken = userRequest.getAccessToken().getTokenValue(); // OAuth Access Token 가져오기
+        logger.info("🛠 Access Token: {}", accessToken);
 
         OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
         if (oAuthProvider == null) {
             throw new RuntimeException("지원하지 않는 OAuth 제공자: " + provider);
         }
 
-        String accessToken = oAuthProvider.getAccessToken(code);
         Map<String, Object> userInfo = oAuthProvider.getUserInfo(accessToken);
+        long expiresAt = oAuthProvider.getTokenExpiry(accessToken); // Access Token 만료 시간 가져오기
 
-        String jwtToken = jwtTokenProvider.createToken((String) userInfo.get("email"));
+        String email = (String) userInfo.get("email");
+        if (email == null || email.isEmpty()) {
+            throw new RuntimeException("❌ 이메일 정보가 없습니다.");
+        }
+
+        // JWT 생성 (OAuth 만료 시간과 동기화)
+        String jwtToken = jwtTokenProvider.createToken(email, expiresAt);
         userInfo.put("jwtToken", jwtToken);
+
+        logger.info("✅ {} 로그인 성공 - JWT 발급 완료: {}", provider, jwtToken);
 
         return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), userInfo, "email");
     }
