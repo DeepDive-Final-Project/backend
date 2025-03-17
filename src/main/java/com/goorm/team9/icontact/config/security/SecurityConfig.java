@@ -106,16 +106,6 @@ public class SecurityConfig {
                         .clearAuthentication(true)    // 인증 정보 삭제
                         .deleteCookies("JSESSIONID", "Authorization") // 쿠키 삭제
                 )
-                // 인증되지 않은 경우, 보호된 API만 401 응답
-//                .exceptionHandling(exception -> exception
-//                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) // ✅ 모든 보호된 리소스에 대해 401 반환
-//                )
-//                .exceptionHandling(exception -> exception
-//                        .defaultAuthenticationEntryPointFor(
-//                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), // 보호된 API 접근 시 401 응답
-//                                request -> request.getRequestURI().startsWith("/auth/home") // 여기만 401
-//                        )
-//                )
                 .exceptionHandling(exception -> exception
                         .defaultAuthenticationEntryPointFor(
                                 new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), // 보호된 API 접근 시 401 응답
