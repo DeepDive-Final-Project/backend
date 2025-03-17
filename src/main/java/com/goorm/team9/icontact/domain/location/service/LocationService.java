@@ -148,7 +148,6 @@ public class LocationService {
     }
 
     public List<LocationResponse> refreshNearbyUsers(Long id, double latitude, double longitude, String interest) {
-        boolean updated = saveUserInformation(id, latitude, longitude, interest);
         return getNearbyUsers(latitude, longitude, interest);
     }
 
