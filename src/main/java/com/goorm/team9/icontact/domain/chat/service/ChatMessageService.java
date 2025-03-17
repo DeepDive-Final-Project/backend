@@ -1,5 +1,6 @@
 package com.goorm.team9.icontact.domain.chat.service;
 
+import com.goorm.team9.icontact.domain.block.repository.BlockRepository;
 import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatJoin;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessage;
@@ -25,9 +26,14 @@ public class ChatMessageService {
     private final ChatJoinRepository chatJoinRepository;
     private final ClientRepository clientRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final BlockRepository blockRepository;
 
     @Transactional
     public void sendMessage(ChatMessageDto chatMessageDto) {
+        if (chatMessageDto.getContent().length() > 1000) {
+            throw new IllegalArgumentException("채팅 메시지는 최대 1000자까지 입력할 수 있습니다.");
+        }
+
         ChatRoom chatRoom = chatRoomRepository.findById(chatMessageDto.getRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
@@ -39,6 +45,14 @@ public class ChatMessageService {
 
         if (chatJoin.isExited()) {
             throw new IllegalArgumentException("채팅방을 나간 사용자는 메시지를 보낼 수 없습니다.");
+        }
+
+        List<ChatJoin> participants = chatJoinRepository.findByChatRoom(chatRoom);
+        for (ChatJoin participant : participants) {
+            ClientEntity recipient = participant.getClient();
+            if (blockRepository.isUserBlocked(senderNickname, recipient) || blockRepository.isUserBlocked(recipient, senderNickname)) {
+                throw new IllegalArgumentException("차단된 사용자와 메시지를 주고받을 수 없습니다.");
+            }
         }
 
         ChatMessage chatMessage = ChatMessage.builder()
