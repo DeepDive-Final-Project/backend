@@ -1,5 +1,6 @@
 package com.goorm.team9.icontact.domain.sociallogin.service;
 
+import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthTokenResponse;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtBlacklist;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
@@ -42,15 +43,19 @@ public class AuthService {
      * @return JWT 토큰
      */
     public String loginWithGithub(String provider, String code) {
-        // OAuthService에서 GitHub 인증 및 사용자 정보 저장
-        String email = oAuthService.authenticateWithGithub(provider, code);
+        // OAuth Access Token + 사용자 이메일 가져오기
+        OAuthTokenResponse tokenResponse = oAuthService.authenticateWithGithub(provider, code);
 
-        // JWT 발급
-        String jwtToken = jwtTokenProvider.createToken(email);
+        String email = tokenResponse.getEmail();
+        long oauthTokenExpiryMillis = tokenResponse.getExpiresAt(); // OAuth Access Token 만료 시간 가져오기
+
+        // JWT 발급 (OAuth Access Token 만료 시간 고려)
+        String jwtToken = jwtTokenProvider.createToken(email, oauthTokenExpiryMillis);
         logger.info("🔑 발급된 JWT 토큰: {}", jwtToken);
 
         return jwtToken;
     }
+
 
     //전략 패턴 적용시
 //    public Map<String, Object> loginWithOAuth(String provider, String code) {
