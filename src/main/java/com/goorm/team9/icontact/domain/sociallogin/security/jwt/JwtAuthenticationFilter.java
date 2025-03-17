@@ -32,6 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String token = jwtTokenProvider.resolveToken(request);
+        logger.info("🔍 요청된 JWT: " + token);
 
         if (token != null) {
             if (jwtBlacklist.isBlacklisted(token)) {
@@ -46,6 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
+            logger.info("✅ SecurityContext에 저장된 사용자: " + authentication.getName()); // 추가
+        } else {
+            logger.warn("⚠️ JWT 토큰이 없음");
         }
 
         filterChain.doFilter(request, response);

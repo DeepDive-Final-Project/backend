@@ -51,10 +51,12 @@ public class JwtTokenProvider {
     /**
      * JWT 생성 : 사용자 이메일 기반
      */
-    public String createToken(String email) {
+    public String createToken(String email, long oauthTokenExpiryMillis) {
         Claims claims = Jwts.claims().setSubject(email).build();
         Date now = new Date();
-        Date validity = new Date(now.getTime() + validityInMilliseconds);
+        // JWT 만료 시간 = OAuth Access Token 만료 시간과 기존 만료 시간 중 더 짧은 값 선택
+        long jwtExpiryMillis = Math.min(now.getTime() + validityInMilliseconds, oauthTokenExpiryMillis);
+        Date validity = new Date(jwtExpiryMillis);
 
         return Jwts.builder()
                 .setClaims(claims)
