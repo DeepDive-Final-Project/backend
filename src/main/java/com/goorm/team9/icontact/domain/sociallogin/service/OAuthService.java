@@ -2,6 +2,7 @@ package com.goorm.team9.icontact.domain.sociallogin.service;
 
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
+import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthTokenResponse;
 import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
 import com.goorm.team9.icontact.domain.sociallogin.repository.OAuthRepository;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvider;
@@ -45,13 +46,14 @@ public class OAuthService {
      * @param code  발급한 인증 코드
      * @return JWT 토큰 (이후 AuthService에서 사용)
      */
-    public String authenticateWithGithub(String provider, String code) {
+    public OAuthTokenResponse authenticateWithGithub(String provider, String code) {
         OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
         if (oAuthProvider == null) {
             throw new IllegalArgumentException("지원하지 않는 OAuth 제공자: " + provider);
         }
 
         String accessToken = oAuthProvider.getAccessToken(code);
+        long expiresAt = oAuthProvider.getTokenExpiry(accessToken); // 🔥 만료 시간 가져오기
         Map<String, Object> userInfo = oAuthProvider.getUserInfo(accessToken);
 
         String oauthUserId = userInfo.get("id").toString();
@@ -66,8 +68,9 @@ public class OAuthService {
         saveOrUpdateUser(provider, oauthUserId, email, nickname, accessToken);
 
         logger.info("✅ {} 로그인 완료: {}", provider, email);
-        return email;
+        return new OAuthTokenResponse(email, expiresAt); // 🔥 OAuthTokenResponse 객체 반환
     }
+
 
     /**
      * OAuth 계정을 저장하거나 기존 정보를 업데이트
