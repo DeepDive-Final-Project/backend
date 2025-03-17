@@ -1,5 +1,8 @@
 package com.goorm.team9.icontact.domain.sociallogin.dto;
 
+import lombok.Getter;
+
+@Getter
 public class OAuthTokenResponse {
     private final String email;
     private final long expiresAt; // Access Token 만료 시간 (밀리초)
