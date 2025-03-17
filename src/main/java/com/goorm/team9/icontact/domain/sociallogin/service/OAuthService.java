@@ -2,7 +2,7 @@ package com.goorm.team9.icontact.domain.sociallogin.service;
 
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
-import com.goorm.team9.icontact.domain.sociallogin.domain.OAuth;
+import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
 import com.goorm.team9.icontact.domain.sociallogin.repository.OAuthRepository;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvider;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProviderFactory;

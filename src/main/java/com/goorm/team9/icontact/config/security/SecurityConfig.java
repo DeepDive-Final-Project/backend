@@ -6,11 +6,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 
 import java.util.List;
@@ -26,6 +30,16 @@ public class SecurityConfig {
     private final JwtBlacklist jwtBlacklist;
     private final JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
 
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring().requestMatchers(
+                "/actuator/**",
+                "/swagger-ui/**",
+                "/v3/api-docs/**"
+        );
+    }
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -39,9 +53,11 @@ public class SecurityConfig {
                             "http://localhost:8080",
                             "http://3.34.165.63:8080",
                             "http://43.201.245.222:8080",
-                            "https://www.i-contacts.link"));
+                            "https://www.i-contacts.link",
+                            "*"));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "FETCH", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
+                    config.setExposedHeaders(List.of("Authorization", "Content-Type"));
                     return config;
                 }))
                 .authorizeHttpRequests(auth -> auth
@@ -50,16 +66,21 @@ public class SecurityConfig {
                                 "/topic/**",
                                 "/app/**",
                                 "/swagger-ui/**",
+                                "/swagger-resources/**",
+                                "/api/**",
+                                "/v3/**",
+                                "/api/v3/**",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml",
                                 "/swagger-ui.html",
+                                "/swagger-ui/index.html",
+                                "/actuator/**",
                                 "/actuator/health",
-                                "/api/**",
+                                "/actuator/prometheus",
                                 "/api/auth/**",
                                 "/oauth2/**",
                                 "/login/**",
                                 "/auth/logout",
-                                "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
                         .requestMatchers("/auth/home")
@@ -87,20 +108,12 @@ public class SecurityConfig {
                         .clearAuthentication(true)    // 인증 정보 삭제
                         .deleteCookies("JSESSIONID", "Authorization") // 쿠키 삭제
                 )
-
-                // 인증되지 않은 경우, 보호된 API만 401 응답
-//                .exceptionHandling(exception -> exception
-//                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)) // ✅ 모든 보호된 리소스에 대해 401 반환
-//                )
-
-//                .exceptionHandling(exception -> exception
-//                        .defaultAuthenticationEntryPointFor(
-//                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), // 보호된 API 접근 시 401 응답
-//                                request -> request.getRequestURI().startsWith("/auth/home") // 여기만 401
-//                        )
-//                )
-
-                .csrf(csrf -> csrf.disable())
+                .exceptionHandling(exception -> exception
+                        .defaultAuthenticationEntryPointFor(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), // 보호된 API 접근 시 401 응답
+                                request -> request.getRequestURI().startsWith("/auth/home") // 여기만 401
+                        )
+                )
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                 .sessionManagement(session -> session.sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS))
                 .formLogin(AbstractHttpConfigurer::disable)

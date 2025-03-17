@@ -16,7 +16,13 @@ public class LocationResponse {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
-        this.distance = (distance != null) ? String.format("%.1fm", distance) : "0.0m";
+
+        if (distance != null) {
+            this.distance = String.format("%.1fm", distance);
+        } else {
+            this.distance = "0.0m";
+        }
+
         this.interest = interest;
     }
 }
