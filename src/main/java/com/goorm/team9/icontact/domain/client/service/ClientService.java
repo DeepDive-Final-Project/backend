@@ -40,7 +40,6 @@ public class ClientService {
         clientEntity.setStatus(status);
         clientEntity.setIntroduction(introduction);
         clientEntity.setLink(link);
-        clientEntity.setChatOpportunity(5);
 
         if (profileImage != null && !profileImage.isEmpty()) {
             String imagePath = imageFileStorageService.storeFile(profileImage);
@@ -122,31 +121,30 @@ public class ClientService {
         return clientConverter.toResponseDTO(updatedClient);
     }
 
-    @Transactional
-    public void reduceChatOpportunity(Long clientId) {
-        ClientEntity clientEntity = clientRepository.findById(clientId)
-                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+//    @Transactional
+//    public void reduceChatOpportunity(Long clientId) {
+//        ClientEntity clientEntity = clientRepository.findById(clientId)
+//                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+//
+//        if (clientEntity.getChatOpportunity() <= 0) {
+//            throw new CustomException(ClientErrorCode.NO_CHAT_OPPORTUNITY);
+//        }
+//
+//        clientEntity.setChatOpportunity(clientEntity.getChatOpportunity() - 1);
+//        clientRepository.save(clientEntity);
+//    }
 
-        if (clientEntity.getChatOpportunity() <= 0) {
-            throw new CustomException(ClientErrorCode.NO_CHAT_OPPORTUNITY);
-        }
-
-        clientEntity.setChatOpportunity(clientEntity.getChatOpportunity() - 1);
-        clientRepository.save(clientEntity);
-    }
-
-    @Transactional
-    public void increaseChatOpportunity(Long clientId) {
-        ClientEntity clientEntity = clientRepository.findById(clientId)
-                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
-
-        if (clientEntity.getChatOpportunity() >= 5) {
-            throw new CustomException(ClientErrorCode.CHAT_OPPORTUNITY_FULL);
-        }
-
-        clientEntity.setChatOpportunity(clientEntity.getChatOpportunity() + 1);
-        clientRepository.save(clientEntity);
-    }
-
+//    @Transactional
+//    public void increaseChatOpportunity(Long clientId) {
+//        ClientEntity clientEntity = clientRepository.findById(clientId)
+//                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+//
+//        if (clientEntity.getChatOpportunity() >= 5) {
+//            throw new CustomException(ClientErrorCode.CHAT_OPPORTUNITY_FULL);
+//        }
+//
+//        clientEntity.setChatOpportunity(clientEntity.getChatOpportunity() + 1);
+//        clientRepository.save(clientEntity);
+//    }
 
 }

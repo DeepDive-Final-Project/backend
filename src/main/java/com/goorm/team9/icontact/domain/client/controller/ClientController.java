@@ -101,22 +101,22 @@ public class ClientController {
         ));
     }
 
-    @PatchMapping("/{client_Id}/reduce-chat-opportunity")
-    @Operation(summary = "채팅 기회 감소 API", description = "채팅방을 만들면 기회를 1 감소시킵니다.")
-    public ResponseEntity<String> reduceChatOpportunity(
-            @PathVariable Long client_Id
-    ) {
-        clientService.reduceChatOpportunity(client_Id);
-        return ResponseEntity.ok("채팅 기회가 1 감소되었습니다.");
-    }
-
-    @PatchMapping("/{client_Id}/increase-chat-opportunity")
-    @Operation(summary = "채팅 기회 증가 API", description = "특정 조건에서 채팅방 생성 기회를 1 증가시킵니다.")
-    public ResponseEntity<String> increaseChatOpportunity(
-            @PathVariable Long client_Id
-    ) {
-        clientService.increaseChatOpportunity(client_Id);
-        return ResponseEntity.ok("채팅 기회가 1 증가되었습니다.");
-    }
+//    @PatchMapping("/{client_Id}/reduce-chat-opportunity")
+//    @Operation(summary = "채팅 기회 감소 API", description = "채팅방을 만들면 기회를 1 감소시킵니다.")
+//    public ResponseEntity<String> reduceChatOpportunity(
+//            @PathVariable Long client_Id
+//    ) {
+//        clientService.reduceChatOpportunity(client_Id);
+//        return ResponseEntity.ok("채팅 기회가 1 감소되었습니다.");
+//    }
+//
+//    @PatchMapping("/{client_Id}/increase-chat-opportunity")
+//    @Operation(summary = "채팅 기회 증가 API", description = "특정 조건에서 채팅방 생성 기회를 1 증가시킵니다.")
+//    public ResponseEntity<String> increaseChatOpportunity(
+//            @PathVariable Long client_Id
+//    ) {
+//        clientService.increaseChatOpportunity(client_Id);
+//        return ResponseEntity.ok("채팅 기회가 1 증가되었습니다.");
+//    }
 
 }
