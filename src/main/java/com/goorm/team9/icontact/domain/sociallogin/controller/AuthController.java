@@ -41,7 +41,13 @@ public class AuthController {
     @GetMapping("/home")
     @Operation(summary = "서버 상태 확인 API", description = "서버의 상태를 확인하는 API 입니다.")
     public String home() {
-        return "Hello, Home!";
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "❌ 인증되지 않음 (401)";
+        }
+
+        return "✅ 인증됨: " + authentication.getName();
     }
 
     /**
