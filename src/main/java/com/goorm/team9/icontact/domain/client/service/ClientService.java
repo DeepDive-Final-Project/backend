@@ -19,7 +19,7 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientConverter clientConverter;
-    private final ImageFileStorageService imageFileStorageService;
+    private final S3ImageStorageService imageFileStorageService;
 
     @Transactional
     public ClientResponseDTO createMyPage(
@@ -45,7 +45,7 @@ public class ClientService {
             String imagePath = imageFileStorageService.storeFile(profileImage);
             clientEntity.setProfileImage(imagePath);
         } else {
-            clientEntity.setProfileImage("/profile-images/default_profile_image.jpg");
+            clientEntity.setProfileImage(imageFileStorageService.getDefaultImage());
         }
 
         TopicEntity topicEntity = new TopicEntity();
@@ -120,31 +120,5 @@ public class ClientService {
         ClientEntity updatedClient = clientRepository.save(existingClient);
         return clientConverter.toResponseDTO(updatedClient);
     }
-
-//    @Transactional
-//    public void reduceChatOpportunity(Long clientId) {
-//        ClientEntity clientEntity = clientRepository.findById(clientId)
-//                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
-//
-//        if (clientEntity.getChatOpportunity() <= 0) {
-//            throw new CustomException(ClientErrorCode.NO_CHAT_OPPORTUNITY);
-//        }
-//
-//        clientEntity.setChatOpportunity(clientEntity.getChatOpportunity() - 1);
-//        clientRepository.save(clientEntity);
-//    }
-
-//    @Transactional
-//    public void increaseChatOpportunity(Long clientId) {
-//        ClientEntity clientEntity = clientRepository.findById(clientId)
-//                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
-//
-//        if (clientEntity.getChatOpportunity() >= 5) {
-//            throw new CustomException(ClientErrorCode.CHAT_OPPORTUNITY_FULL);
-//        }
-//
-//        clientEntity.setChatOpportunity(clientEntity.getChatOpportunity() + 1);
-//        clientRepository.save(clientEntity);
-//    }
 
 }

@@ -20,35 +20,36 @@ public class ClientController {
 
     private final ClientService clientService;
 
-    @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @Operation(summary = "마이페이지 생성 API", description = "사용자 정보를 개별 입력하여 마이페이지를 생성합니다.")
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "마이페이지 생성 API", description = "사용자 정보를 입력하여 마이페이지 생성합니다.")
     public ResponseEntity<ClientResponseDTO> createMyPage(
             @Parameter(description = "닉네임", example = "Noah")
             @RequestParam String nickName,
-            @Parameter(description = "이메일", example = "goorm@gmail.com")
+            @Parameter(description = "이메일", example = "noah@gmail.com")
             @RequestParam String email,
-            @Parameter(description = "직업", example = "DEV")
+            @Parameter(description = "직무", example = "DEV")
             @RequestParam Role role,
             @Parameter(description = "경력", example = "JUNIOR")
             @RequestParam Career career,
-            @Parameter(description = "공개여부")
+            @Parameter(description = "공개 여부", example = "PUBLIC")
             @RequestParam Status status,
-            @Parameter(description = "소개글", example = "안녕하세요. 개발자입니다!")
+            @Parameter(description = "소개글", example = "안녕하세요! 개발자입니다!")
             @RequestParam(required = false) String introduction,
-            @Parameter(description = "접근 링크", example = "https://www.test.com")
+            @Parameter(description = "링크", example = "https://www.test.com")
             @RequestParam(required = false) String link,
-            @Parameter(description = "프로필 이미지")
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-            @Parameter(description = "관심 주제 1")
+            @Parameter(description = "관심 주제 1", example = "AI_Machine_Learning")
             @RequestParam Interest topic1,
-            @Parameter(description = "관심 주제 2")
+            @Parameter(description = "관심 주제 2", example = "Server_Development")
             @RequestParam Interest topic2,
-            @Parameter(description = "관심 주제 3")
+            @Parameter(description = "관심 주제 3", example = "API_Development")
             @RequestParam Interest topic3,
-            @Parameter(description = "주력 언어")
+            @Parameter(description = "주력 언어", example = "JAVA")
             @RequestParam Language language,
-            @Parameter(description = "주력 프레임워크")
-            @RequestParam Framework framework
+            @Parameter(description = "프레임워크", example = "SPRINGBOOT")
+            @RequestParam Framework framework,
+            @Parameter(description = "프로필 이미지 파일", required = false)
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+
     ) {
         return ResponseEntity.ok(clientService.createMyPage(
                 nickName, email, role, career, status, introduction, link, profileImage,
@@ -65,58 +66,39 @@ public class ClientController {
         return ResponseEntity.ok(clientService.getUserById(client_Id));
     }
 
-    @PatchMapping(value = "/update/{client_Id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    @Operation(summary = "마이페이지 수정 API", description = "본인의 정보를 수정합니다.")
+    @PatchMapping(value = "/update/{client_Id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "마이페이지 수정 API", description = "RequestParam으로 사용자 정보를 입력하고 이미지를 첨부하여 마이페이지 수정")
     public ResponseEntity<ClientResponseDTO> updateUser(
-            @Parameter(description = "아이디 고유 번호", example = "1")
+            @Parameter(description = "사용자 ID", example = "1")
             @PathVariable Long client_Id,
-            @Parameter(description = "닉네임", example = "Noah2222")
+            @Parameter(description = "닉네임", example = "UpdatedNoah")
             @RequestParam(required = false) String nickName,
-            @Parameter(description = "직업", example = "DEV")
+            @Parameter(description = "직무", example = "DEV")
             @RequestParam(required = false) Role role,
             @Parameter(description = "경력", example = "JUNIOR")
             @RequestParam(required = false) Career career,
             @Parameter(description = "공개 여부", example = "PUBLIC")
             @RequestParam(required = false) Status status,
-            @Parameter(description = "소개글", example = "안녕하세요. 바뀐 개발자입니다.")
+            @Parameter(description = "소개글", example = "안녕하세요! 수정된 개발자입니다!")
             @RequestParam(required = false) String introduction,
-            @Parameter(description = "접근 링크", example = "https://www.test22.com")
+            @Parameter(description = "링크", example = "https://updated-link.com")
             @RequestParam(required = false) String link,
-            @Parameter(description = "프로필 이미지")
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-            @Parameter(description = "관심 주제 1")
+            @Parameter(description = "관심 주제 1", example = "AI_Machine_Learning")
             @RequestParam(required = false) Interest topic1,
-            @Parameter(description = "관심 주제 2")
+            @Parameter(description = "관심 주제 2", example = "Server_Development")
             @RequestParam(required = false) Interest topic2,
-            @Parameter(description = "관심 주제 3")
+            @Parameter(description = "관심 주제 3", example = "API_Development")
             @RequestParam(required = false) Interest topic3,
-            @Parameter(description = "주력 언어")
+            @Parameter(description = "주력 언어", example = "JAVA")
             @RequestParam(required = false) Language language,
-            @Parameter(description = "주력 프레임워크")
-            @RequestParam(required = false) Framework framework
+            @Parameter(description = "프레임워크", example = "SPRINGBOOT")
+            @RequestParam(required = false) Framework framework,
+            @Parameter(description = "프로필 이미지 파일", required = false)
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
     ) {
         return ResponseEntity.ok(clientService.updateUser(
                 client_Id, nickName, role, career, status, introduction, link, profileImage,
                 topic1, topic2, topic3, language, framework
         ));
     }
-
-//    @PatchMapping("/{client_Id}/reduce-chat-opportunity")
-//    @Operation(summary = "채팅 기회 감소 API", description = "채팅방을 만들면 기회를 1 감소시킵니다.")
-//    public ResponseEntity<String> reduceChatOpportunity(
-//            @PathVariable Long client_Id
-//    ) {
-//        clientService.reduceChatOpportunity(client_Id);
-//        return ResponseEntity.ok("채팅 기회가 1 감소되었습니다.");
-//    }
-//
-//    @PatchMapping("/{client_Id}/increase-chat-opportunity")
-//    @Operation(summary = "채팅 기회 증가 API", description = "특정 조건에서 채팅방 생성 기회를 1 증가시킵니다.")
-//    public ResponseEntity<String> increaseChatOpportunity(
-//            @PathVariable Long client_Id
-//    ) {
-//        clientService.increaseChatOpportunity(client_Id);
-//        return ResponseEntity.ok("채팅 기회가 1 증가되었습니다.");
-//    }
-
 }
