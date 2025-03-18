@@ -18,9 +18,6 @@ public class ClientResponseDTO {
     private String introduction;
     private String link;
     private String profileImage;
-//    private int chatOpportunity;
-//    private int chatMessage;
-//    private boolean offline;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

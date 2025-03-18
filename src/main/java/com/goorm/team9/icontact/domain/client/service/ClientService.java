@@ -121,30 +121,4 @@ public class ClientService {
         return clientConverter.toResponseDTO(updatedClient);
     }
 
-//    @Transactional
-//    public void reduceChatOpportunity(Long clientId) {
-//        ClientEntity clientEntity = clientRepository.findById(clientId)
-//                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
-//
-//        if (clientEntity.getChatOpportunity() <= 0) {
-//            throw new CustomException(ClientErrorCode.NO_CHAT_OPPORTUNITY);
-//        }
-//
-//        clientEntity.setChatOpportunity(clientEntity.getChatOpportunity() - 1);
-//        clientRepository.save(clientEntity);
-//    }
-
-//    @Transactional
-//    public void increaseChatOpportunity(Long clientId) {
-//        ClientEntity clientEntity = clientRepository.findById(clientId)
-//                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
-//
-//        if (clientEntity.getChatOpportunity() >= 5) {
-//            throw new CustomException(ClientErrorCode.CHAT_OPPORTUNITY_FULL);
-//        }
-//
-//        clientEntity.setChatOpportunity(clientEntity.getChatOpportunity() + 1);
-//        clientRepository.save(clientEntity);
-//    }
-
 }
