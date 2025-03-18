@@ -1,5 +1,6 @@
 package com.goorm.team9.icontact.domain.sociallogin.service;
 
+import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthTokenResponse;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtBlacklist;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
 import jakarta.servlet.http.Cookie;
@@ -42,15 +43,19 @@ public class AuthService {
      * @return JWT 토큰
      */
     public String loginWithGithub(String provider, String code) {
-        // OAuthService에서 GitHub 인증 및 사용자 정보 저장
-        String email = oAuthService.authenticateWithGithub(provider, code);
+        // OAuth Access Token + 사용자 이메일 가져오기
+        OAuthTokenResponse tokenResponse = oAuthService.authenticateWithGithub(provider, code);
 
-        // JWT 발급
-        String jwtToken = jwtTokenProvider.createToken(email);
+        String email = tokenResponse.getEmail();
+        long oauthTokenExpiryMillis = tokenResponse.getExpiresAt(); // OAuth Access Token 만료 시간 가져오기
+
+        // JWT 발급 (OAuth Access Token 만료 시간 고려)
+        String jwtToken = jwtTokenProvider.createToken(email, oauthTokenExpiryMillis);
         logger.info("🔑 발급된 JWT 토큰: {}", jwtToken);
 
         return jwtToken;
     }
+
 
     //전략 패턴 적용시
 //    public Map<String, Object> loginWithOAuth(String provider, String code) {
@@ -97,6 +102,9 @@ public class AuthService {
     /**
      * 회원 탈퇴 처리 (소프트 삭제 적용)
      */
+    /**
+     * 회원 탈퇴 처리 (소프트 삭제 적용)
+     */
     public ResponseEntity<String> withdraw(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null) {
@@ -104,11 +112,19 @@ public class AuthService {
         }
 
         String email = authentication.getName();
+
+        // 🔹 14일 이내 재탈퇴 불가 검증 추가
+        if (!userService.canReRegister(email)) {
+            return ResponseEntity.status(HttpServletResponse.SC_BAD_REQUEST)
+                    .body("탈퇴 후 14일 이내에는 재탈퇴할 수 없습니다.");
+        }
+
         userService.deleteUserByEmail(email);
         logout(request, response);
 
         return ResponseEntity.ok("회원 탈퇴 완료 ✅");
     }
+
 
     /**
      * 세션 무효화

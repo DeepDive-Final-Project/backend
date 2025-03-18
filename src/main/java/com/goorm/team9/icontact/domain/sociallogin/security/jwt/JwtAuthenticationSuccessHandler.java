@@ -49,7 +49,9 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
             return; // 예외를 던지지 않고 여기서 종료
         }
 
-        String jwtToken = jwtTokenProvider.createToken(email); // JWT 생성
+        // OAuth 인증된 사용자에게 JWT 생성 (기본 만료 시간: 1시간)
+        long expiresAt = System.currentTimeMillis() + 3600000;
+        String jwtToken = jwtTokenProvider.createToken(email, expiresAt);
 
         setAuthorizationHeader(response, jwtToken);
         writeJsonResponse(response, jwtToken);

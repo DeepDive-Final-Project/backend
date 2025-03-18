@@ -1,5 +1,6 @@
 package com.goorm.team9.icontact.domain.sociallogin.security.provider;
 
+import java.util.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
@@ -69,4 +70,49 @@ public class GitHubOAuthProvider implements OAuthProvider {
 
         return response.getBody();
     }
+
+    @Override
+    public long getTokenExpiry(String accessToken) {
+        HttpHeaders headers = new HttpHeaders();
+
+        // Basic Auth 인증 정보 생성 (client_id:client_secret Base64 인코딩)
+        String credentials = clientId + ":" + clientSecret;
+        String encodedCredentials = Base64.getEncoder().encodeToString(credentials.getBytes());
+
+        headers.set("Authorization", "Basic " + encodedCredentials);
+        headers.set("Accept", "application/vnd.github.v3+json");
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String url = "https://api.github.com/applications/" + clientId + "/token";
+
+        // 요청 Body 생성 (JSON 형태)
+        Map<String, String> body = Map.of("access_token", accessToken);
+
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    new HttpEntity<>(body, headers),
+                    new ParameterizedTypeReference<>() {}
+            );
+
+
+            // 응답 데이터 확인
+            if (response.getBody() == null) {
+                throw new RuntimeException("❌ 응답이 null임!");
+            }
+
+            // 🔥 expires_in 필드가 없을 수도 있음 → 기본값으로 Long.MAX_VALUE 반환
+            Object expiresInObj = response.getBody().get("expires_in");
+            if (expiresInObj == null) {
+                return Long.MAX_VALUE; // GitHub OAuth 토큰은 기본적으로 만료되지 않으므로 최댓값 반환
+            }
+
+            int expiresIn = Integer.parseInt(expiresInObj.toString()); // 안전한 변환 처리
+            return System.currentTimeMillis() + (expiresIn * 1000L); // 밀리초 변환 후 반환
+        } catch (Exception e) {
+            throw new RuntimeException("❌ Github Access Token 만료 시간 조회 실패!", e);
+        }
+    }
+
 }

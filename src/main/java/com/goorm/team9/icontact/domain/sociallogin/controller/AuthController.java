@@ -3,6 +3,7 @@ package com.goorm.team9.icontact.domain.sociallogin.controller;
 import com.goorm.team9.icontact.domain.sociallogin.dto.JwtResponse;
 import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthLoginRequest;
 import com.goorm.team9.icontact.domain.sociallogin.service.AuthService;
+import com.goorm.team9.icontact.domain.sociallogin.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -29,6 +32,7 @@ import java.util.Map;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     /**
@@ -37,7 +41,13 @@ public class AuthController {
     @GetMapping("/home")
     @Operation(summary = "서버 상태 확인 API", description = "서버의 상태를 확인하는 API 입니다.")
     public String home() {
-        return "Hello, Home!";
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "❌ 인증되지 않음 (401)";
+        }
+
+        return "✅ 인증됨: " + authentication.getName();
     }
 
     /**
@@ -119,4 +129,23 @@ public class AuthController {
     public ResponseEntity<String> withdraw(HttpServletRequest request, HttpServletResponse response) {
         return authService.withdraw(request, response);
     }
+
+    /**
+     * 계정 복구 API
+     * - 탈퇴한 계정을 다시 활성화
+     */
+    @PostMapping("/restore")
+    @Operation(summary = "회원 복구 API", description = "탈퇴한 사용자의 계정을 복구합니다.")
+    public ResponseEntity<String> restoreAccount(HttpServletRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || authentication.getName() == null) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("인증되지 않은 사용자입니다.");
+        }
+
+        String email = authentication.getName();
+        userService.restoreUser(email);
+
+        return ResponseEntity.ok("계정 복구 완료 ✅");
+    }
+
 }
