@@ -27,6 +27,7 @@ public class ConferenceEntity {
     @Column(nullable = false)
     private Day day;
 
+    @Builder.Default
     @OneToMany(mappedBy = "conference", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LectureEntity> lectures = new ArrayList<>();
 }

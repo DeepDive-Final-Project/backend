@@ -19,7 +19,7 @@ public class ClientService {
 
     private final ClientRepository clientRepository;
     private final ClientConverter clientConverter;
-    private final ImageFileStorageService imageFileStorageService;
+    private final S3ImageStorageService imageFileStorageService;
 
     @Transactional
     public ClientResponseDTO createMyPage(
@@ -45,7 +45,7 @@ public class ClientService {
             String imagePath = imageFileStorageService.storeFile(profileImage);
             clientEntity.setProfileImage(imagePath);
         } else {
-            clientEntity.setProfileImage("/profile-images/default_profile_image.jpg");
+            clientEntity.setProfileImage(imageFileStorageService.getDefaultImage());
         }
 
         TopicEntity topicEntity = new TopicEntity();

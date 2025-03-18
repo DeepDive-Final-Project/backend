@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -58,6 +59,7 @@ public class ClientEntity extends BaseTimeEntity {
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private TopicEntity it_topic;
 
+    @Builder.Default
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OAuth> oauthAccounts = new ArrayList<>(); // 한 User가 여러 OAuth 계정을 가짐
 
