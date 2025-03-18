@@ -1,5 +1,7 @@
 package com.goorm.team9.icontact.domain.sociallogin.service;
 
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
+import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthTokenResponse;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtBlacklist;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
@@ -29,6 +31,8 @@ public class AuthService {
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
     private final JwtBlacklist jwtBlacklist;
+    private final ClientRepository clientRepository;
+    private final LoginHistoryService loginHistoryService;
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     //전략 패턴 적용시
@@ -48,6 +52,13 @@ public class AuthService {
 
         String email = tokenResponse.getEmail();
         long oauthTokenExpiryMillis = tokenResponse.getExpiresAt(); // OAuth Access Token 만료 시간 가져오기
+
+        // 사용자 정보 조회 (없으면 예외 발생)
+        ClientEntity clientEntity = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        // 로그인 이력 저장
+        loginHistoryService.saveLoginHistory(clientEntity, provider);
 
         // JWT 발급 (OAuth Access Token 만료 시간 고려)
         String jwtToken = jwtTokenProvider.createToken(email, oauthTokenExpiryMillis);
