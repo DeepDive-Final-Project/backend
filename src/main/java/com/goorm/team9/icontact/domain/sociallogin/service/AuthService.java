@@ -44,6 +44,9 @@ public class AuthService {
         // OAuth Access Token + 사용자 이메일 가져오기
         OAuthTokenResponse tokenResponse = oAuthService.authenticateWithGithub(provider, code);
 
+        String accessToken = oAuthService.getAccessToken(provider, code);
+        oAuthService.saveOrUpdateUser(provider, tokenResponse.getEmail(), accessToken);
+
         String email = tokenResponse.getEmail();
         long oauthTokenExpiryMillis = tokenResponse.getExpiresAt(); // OAuth Access Token 만료 시간 가져오기
 

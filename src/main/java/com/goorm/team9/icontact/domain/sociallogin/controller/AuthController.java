@@ -54,44 +54,62 @@ public class AuthController {
         return "✅ 인증됨: " + authentication.getName();
     }
 
-    /**
-     * GitHub 로그인 API
-     */
     @PostMapping("/github")
     @Operation(summary = "GitHub 로그인 API", description = "GitHub OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
     public ResponseEntity<JwtResponse> loginWithGithub(@RequestBody OAuthLoginRequest request) {
-        return handleOAuthLogin("github", request);
+        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("github", request.getCode())));
     }
 
-    /**
-     * Google 로그인 API
-     */
     @PostMapping("/google")
     @Operation(summary = "Google 로그인 API", description = "Google OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
     public ResponseEntity<JwtResponse> loginWithGoogle(@RequestBody OAuthLoginRequest request) {
-        return handleOAuthLogin("google", request);
+        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("google", request.getCode())));
     }
 
-    /**
-     * Kakao 로그인 API
-     */
     @PostMapping("/kakao")
     @Operation(summary = "Kakao 로그인 API", description = "Kakao OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
     public ResponseEntity<JwtResponse> loginWithKakao(@RequestBody OAuthLoginRequest request) {
-        return handleOAuthLogin("kakao", request);
+        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("kakao", request.getCode())));
     }
 
-    /**
-     * 공통 OAuth 로그인 처리 (GitHub, Google, Kakao)
-     */
-    private ResponseEntity<JwtResponse> handleOAuthLogin(String provider, OAuthLoginRequest request) {
-        if (request.getCode() == null || request.getCode().isEmpty()) {
-            logger.error("❌ {} OAuth 로그인 실패: 인증 코드가 없음!", provider);
-            throw new RuntimeException(provider + " OAuth 인증 코드가 없습니다.");
-        }
-        String jwt = authService.loginWithGithub(provider, request.getCode());
-        return ResponseEntity.ok(new JwtResponse(jwt));
-    }
+//    /**
+//     * GitHub 로그인 API
+//     */
+//    @PostMapping("/github")
+//    @Operation(summary = "GitHub 로그인 API", description = "GitHub OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
+//    public ResponseEntity<JwtResponse> loginWithGithub(@RequestBody OAuthLoginRequest request) {
+//        return handleOAuthLogin("github", request);
+//    }
+//
+//    /**
+//     * Google 로그인 API
+//     */
+//    @PostMapping("/google")
+//    @Operation(summary = "Google 로그인 API", description = "Google OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
+//    public ResponseEntity<JwtResponse> loginWithGoogle(@RequestBody OAuthLoginRequest request) {
+//        return handleOAuthLogin("google", request);
+//    }
+//
+//    /**
+//     * Kakao 로그인 API
+//     */
+//    @PostMapping("/kakao")
+//    @Operation(summary = "Kakao 로그인 API", description = "Kakao OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
+//    public ResponseEntity<JwtResponse> loginWithKakao(@RequestBody OAuthLoginRequest request) {
+//        return handleOAuthLogin("kakao", request);
+//    }
+//
+//    /**
+//     * 공통 OAuth 로그인 처리 (GitHub, Google, Kakao)
+//     */
+//    private ResponseEntity<JwtResponse> handleOAuthLogin(String provider, OAuthLoginRequest request) {
+//        if (request.getCode() == null || request.getCode().isEmpty()) {
+//            logger.error("❌ {} OAuth 로그인 실패: 인증 코드가 없음!", provider);
+//            throw new RuntimeException(provider + " OAuth 인증 코드가 없습니다.");
+//        }
+//        String jwt = authService.loginWithGithub(provider, request.getCode());
+//        return ResponseEntity.ok(new JwtResponse(jwt));
+//    }
 
     /**
      * 로그아웃 API

@@ -18,7 +18,7 @@ public class OAuth {
 
     @ManyToOne
     @JoinColumn(name = "client_id", nullable = false)
-    private ClientEntity client_id;
+    private ClientEntity client;
 
     @Column(nullable = false)
     private String provider;
