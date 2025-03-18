@@ -28,6 +28,10 @@ public class ChatRequest {
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
 
+    public static ChatRequest create(ClientEntity senderNickname, ClientEntity receiverNickname) {
+        return new ChatRequest(senderNickname, receiverNickname);
+    }
+
     public ChatRequest(ClientEntity senderNickname, ClientEntity receiverNickname) {
         this.senderNickname = senderNickname;
         this.receiverNickname = receiverNickname;

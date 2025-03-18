@@ -91,9 +91,8 @@ public class ChatRoomService {
             throw new IllegalArgumentException("이미 채팅 요청을 보냈습니다.");
         }
 
-        ChatRequest chatRequest = new ChatRequest(senderNickname, receiverNickname);
-        chatRequestRepository.save(chatRequest);
-        return chatRequest.getId();
+        ChatRequest chatRequest = ChatRequest.create(senderNickname, receiverNickname);
+        return chatRequestRepository.save(chatRequest).getId();
     }
 
     @Transactional
