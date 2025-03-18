@@ -108,19 +108,20 @@ public class ChatRoomController {
 
     @Operation(summary = "사용자의 채팅방 조회 API", description = "특정 사용자가 참여한 채팅방 목록을 조회합니다.")
     @GetMapping("/{nickname}")
-    public ResponseEntity<List<ChatRoomResponse>> getChatRoomsByUser(
-            @RequestParam @Schema(example = "testUser") String nickname) {
+    public ResponseEntity<Object> getChatRoomsByUser(@PathVariable String nickname) {
         try {
             ClientEntity client = clientRepository.findByNickName(nickname)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
             List<ChatRoomResponse> chatRooms = chatRoomService.getChatRoomsByUser(client);
+
             if (chatRooms.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+                return ResponseEntity.ok(Map.of("message", "사용자가 속해있는 채팅방이 없습니다."));
             }
-            return ResponseEntity.ok().body(chatRooms);
+            return ResponseEntity.ok(chatRooms);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "서버 내부 오류가 발생했습니다."));
         }
     }
 
