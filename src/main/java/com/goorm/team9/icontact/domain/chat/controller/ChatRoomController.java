@@ -6,6 +6,7 @@ import com.goorm.team9.icontact.domain.chat.service.ChatRoomService;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -50,13 +51,20 @@ public class ChatRoomController {
     }
 
     @Operation(summary = "채팅 승인 API", description = "채팅 신청을 승인하여 채팅방을 개설합니다.")
-    @PostMapping("/request/{requestId}/accept")
-    public ResponseEntity<Map<String, Object>> acceptChatRequest(@PathVariable Long requestId) {
+    @PostMapping("/request/accept")
+    public ResponseEntity<Map<String, Object>> acceptChatRequest(
+            @RequestBody
+            @Schema(example = "{\"requestId\": 123}")
+            Map<String, Long> request) {
+
         Map<String, Object> response = new HashMap<>();
         try {
+            Long requestId = request.get("requestId");
             Long roomId = chatRoomService.acceptChatRequest(requestId);
+
             response.put("roomId", roomId);
             response.put("message", "채팅 요청이 승인되었습니다.");
+
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             response.put("error", e.getMessage());
@@ -65,15 +73,28 @@ public class ChatRoomController {
     }
 
     @Operation(summary = "채팅 거절 API", description = "채팅 신청을 거절합니다.")
-    @PostMapping("/request/{requestId}/reject")
-    public ResponseEntity<Map<String, Object>> rejectChatRequest(@PathVariable Long requestId) {
+    @PostMapping("/request/reject")
+    public ResponseEntity<Map<String, Object>> rejectChatRequest(
+            @RequestBody
+            @Schema(example = "{\"requestId\": 123}")
+            Map<String, Long> request) {
+
+        Long requestId = request.get("requestId");
         chatRoomService.rejectChatRequest(requestId);
+
         return ResponseEntity.ok(Map.of("message", "채팅 요청이 거절되었습니다."));
     }
 
     @Operation(summary = "채팅방 퇴장 API", description = "사용자가 특정 채팅방을 나갑니다.")
-    @PostMapping("/{roomId}/exit/{clientId}")
-    public ResponseEntity<Map<String, String>> exitChatRoom(@PathVariable Long roomId, @PathVariable Long clientId) {
+    @PostMapping("/exit")
+    public ResponseEntity<Map<String, String>> exitChatRoom(
+            @RequestBody
+            @Schema(example = "{\"roomId\": 123, \"clientId\": 456}")
+            Map<String, Long> request) {
+
+        Long roomId = request.get("roomId");
+        Long clientId = request.get("clientId");
+
         ClientEntity client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -87,7 +108,8 @@ public class ChatRoomController {
 
     @Operation(summary = "사용자의 채팅방 조회 API", description = "특정 사용자가 참여한 채팅방 목록을 조회합니다.")
     @GetMapping("/{nickname}")
-    public ResponseEntity<List<ChatRoomResponse>> getChatRoomsByUser(@PathVariable String nickname) {
+    public ResponseEntity<List<ChatRoomResponse>> getChatRoomsByUser(
+            @RequestParam @Schema(example = "testUser") String nickname) {
         try {
             ClientEntity client = clientRepository.findByNickName(nickname)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
