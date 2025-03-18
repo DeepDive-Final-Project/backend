@@ -51,6 +51,11 @@ public class ChatRoomService {
 
     @Transactional
     public Long createChatRoom(ClientEntity sender, ClientEntity receiver) {
+        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findExistingChatRoom(sender.getNickName(), receiver.getNickName());
+
+        if (existingChatRoom.isPresent()) {
+            throw new IllegalArgumentException("이미 채팅방이 존재합니다.");
+        }
 
         ChatRoom chatRoom = ChatRoom.createChatRoom(sender, receiver);
         chatRoomRepository.save(chatRoom);
@@ -72,6 +77,12 @@ public class ChatRoomService {
 
     @Transactional
     public Long requestChat(ClientEntity senderNickname, ClientEntity receiverNickname) {
+        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findExistingChatRoom(senderNickname.getNickName(), receiverNickname.getNickName());
+
+        if (existingChatRoom.isPresent()) {
+            throw new IllegalArgumentException("이미 채팅방이 존재합니다.");
+        }
+
         ChatRequest chatRequest = new ChatRequest(senderNickname, receiverNickname);
         chatRequestRepository.save(chatRequest);
         return chatRequest.getId();
