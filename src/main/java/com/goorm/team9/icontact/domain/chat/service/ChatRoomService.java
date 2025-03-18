@@ -139,6 +139,7 @@ public class ChatRoomService {
         long remainingUsers = chatJoinRepository.countByChatRoomAndExitedFalse(chatRoom);
 
         if (remainingUsers == 0) {
+            chatJoinRepository.deleteAll(chatJoinRepository.findByChatRoom(chatRoom));
             chatRoomRepository.delete(chatRoom);
         }
     }
