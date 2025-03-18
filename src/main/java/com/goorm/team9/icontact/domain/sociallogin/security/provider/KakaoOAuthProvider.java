@@ -126,7 +126,7 @@ public class KakaoOAuthProvider implements OAuthProvider {
             int expiresIn = Integer.parseInt(expiresInObj.toString()); // 안전한 변환 처리
             return System.currentTimeMillis() + (expiresIn * 1000L); // 밀리초 변환 후 반환
         } catch (Exception e) {
-            throw new RuntimeException("❌ Google Access Token 만료 시간 조회 실패!", e);
+            throw new RuntimeException("❌ Kakao Access Token 만료 시간 조회 실패!", e);
         }
     }
 
