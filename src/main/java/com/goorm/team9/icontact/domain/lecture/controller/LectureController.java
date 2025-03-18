@@ -20,19 +20,19 @@ public class LectureController {
     private final LectureService lectureService;
 
     @PostMapping
-    @Operation(summary = "강의 등록", description = "컨퍼런스에 강의를 등록합니다.")
+    @Operation(summary = "강의 등록 API", description = "컨퍼런스에 강의를 등록합니다.")
     public ResponseEntity<LectureResponseDTO> createLecture(
-            @RequestParam String title,
-            @RequestParam String lecturer,
-            @RequestParam String openTime,  // 형식: HH:mm
-            @RequestParam String closeTime, // 형식: HH:mm
-            @RequestParam Long conferenceId
+            @RequestBody LectureRequestDTO request
     ) {
-        return ResponseEntity.ok(lectureService.createLecture(title, lecturer, openTime, closeTime, conferenceId));
+        return ResponseEntity.ok(lectureService.createLecture(
+                request.getTitle(), request.getLecturer(),
+                request.getOpenTime(), request.getCloseTime(),
+                request.getConferenceId()
+        ));
     }
 
     @GetMapping("/conference")
-    @Operation(summary = "컨퍼런스 강의 목록 조회", description = "특정 컨퍼런스의 모든 강의 목록을 조회합니다.")
+    @Operation(summary = "컨퍼런스 강의 목록 조회 API", description = "특정 컨퍼런스의 모든 강의 목록을 조회합니다.")
     public ResponseEntity<List<LectureResponseDTO>> getLecturesByConference(
             @RequestParam Long conferenceId
     ) {
