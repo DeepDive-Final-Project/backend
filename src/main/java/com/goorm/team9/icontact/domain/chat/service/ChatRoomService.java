@@ -83,6 +83,12 @@ public class ChatRoomService {
             throw new IllegalArgumentException("이미 채팅방이 존재합니다.");
         }
 
+        Optional<ChatRequest> existingRequest = chatRequestRepository.findPendingRequest(senderNickname.getNickName(), receiverNickname.getNickName());
+
+        if (existingRequest.isPresent()) {
+            throw new IllegalArgumentException("이미 채팅 요청을 보냈습니다.");
+        }
+
         ChatRequest chatRequest = new ChatRequest(senderNickname, receiverNickname);
         chatRequestRepository.save(chatRequest);
         return chatRequest.getId();
