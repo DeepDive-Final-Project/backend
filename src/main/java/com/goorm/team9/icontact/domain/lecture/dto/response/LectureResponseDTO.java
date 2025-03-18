@@ -19,7 +19,6 @@ public class LectureResponseDTO {
     private String conferenceName;
     private String conferenceDay;
 
-    // LectureResponseDTO.java
     public LectureResponseDTO(LectureEntity entity) {
         this.id = entity.getId();
         this.title = entity.getTitle();

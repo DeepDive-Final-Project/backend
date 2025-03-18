@@ -11,10 +11,12 @@ import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -51,6 +53,11 @@ public class ChatRoomService {
 
     @Transactional
     public Long createChatRoom(ClientEntity sender, ClientEntity receiver) {
+        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findExistingChatRoom(sender.getNickName(), receiver.getNickName());
+
+        if (existingChatRoom.isPresent()) {
+            throw new IllegalArgumentException("이미 채팅방이 존재합니다.");
+        }
 
         ChatRoom chatRoom = ChatRoom.createChatRoom(sender, receiver);
         chatRoomRepository.save(chatRoom);
@@ -72,9 +79,20 @@ public class ChatRoomService {
 
     @Transactional
     public Long requestChat(ClientEntity senderNickname, ClientEntity receiverNickname) {
-        ChatRequest chatRequest = new ChatRequest(senderNickname, receiverNickname);
-        chatRequestRepository.save(chatRequest);
-        return chatRequest.getId();
+        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findExistingChatRoom(senderNickname.getNickName(), receiverNickname.getNickName());
+
+        if (existingChatRoom.isPresent()) {
+            throw new IllegalArgumentException("이미 채팅방이 존재합니다.");
+        }
+
+        Optional<ChatRequest> existingRequest = chatRequestRepository.findPendingRequest(senderNickname.getNickName(), receiverNickname.getNickName());
+
+        if (existingRequest.isPresent()) {
+            throw new IllegalArgumentException("이미 채팅 요청을 보냈습니다.");
+        }
+
+        ChatRequest chatRequest = ChatRequest.create(senderNickname, receiverNickname);
+        return chatRequestRepository.save(chatRequest).getId();
     }
 
     @Transactional
@@ -122,20 +140,22 @@ public class ChatRoomService {
         long remainingUsers = chatJoinRepository.countByChatRoomAndExitedFalse(chatRoom);
 
         if (remainingUsers == 0) {
+            chatJoinRepository.deleteAll(chatJoinRepository.findByChatRoom(chatRoom));
             chatRoomRepository.delete(chatRoom);
         }
     }
 
     public List<ChatRoomResponse> getChatRoomsByUser(ClientEntity client) {
-        List<ChatRoom> chatRooms = chatRoomRepository.findBySenderNicknameOrReceiverNickname(client.getNickName());
-
-        return chatRooms.stream()
+        List<ChatRoomResponse> chatRooms = chatRoomRepository.findBySenderNicknameOrReceiverNickname(client.getNickName())
+                .stream()
                 .filter(chatRoom -> {
                     Optional<ChatJoin> chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId());
                     return chatJoin.isEmpty() || !chatJoin.get().isExited();
                 })
                 .map(ChatRoomResponse::fromEntity)
                 .collect(Collectors.toList());
+
+        return chatRooms;
     }
 
     public List<ChatRoomResponse> getAllChatRooms() {
