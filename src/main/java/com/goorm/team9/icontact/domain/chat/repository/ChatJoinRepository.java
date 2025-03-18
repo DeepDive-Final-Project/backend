@@ -19,6 +19,6 @@ public interface ChatJoinRepository extends JpaRepository<ChatJoin, Long> {
             "WHERE cj.chatRoom = :chatRoom AND cj.exited = false")
     long countByChatRoomAndExitedFalse(@Param("chatRoom") ChatRoom chatRoom);
 
-    @Query("SELECT cj FROM ChatJoin cj WHERE cj.chatRoom = :chatRoom AND cj.exited = false")
+    @Query("SELECT cj FROM ChatJoin cj WHERE cj.chatRoom = :chatRoom")
     List<ChatJoin> findByChatRoom(@Param("chatRoom") ChatRoom chatRoom);
 }
