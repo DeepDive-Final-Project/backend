@@ -34,7 +34,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final JwtTokenProvider jwtTokenProvider;
     private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
-
     @Override
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
         String provider = userRequest.getClientRegistration().getRegistrationId(); // "github", "google", "kakao"
@@ -68,6 +67,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), userInfo, "email");
     }
+
     /**
      * GitHub API를 사용하여 사용자의 기본 이메일을 가져오는 메서드
      */

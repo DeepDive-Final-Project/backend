@@ -41,7 +41,6 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
             logger.info("🚫 JWT 블랙리스트 추가 완료: {}", token);
         }
 
-        // SecurityContext 클리어
         SecurityContextHolder.clearContext();
 
         // OAuth 토큰 무효화 (필요한 경우만)
@@ -50,7 +49,6 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 
             // OAuth 로그아웃 로그 추가
             logger.info("🔍 OAuth 로그아웃 시 accessToken 제거 요청: {}", email);
-
             oAuthService.invalidateAccessToken(email);
         }
 

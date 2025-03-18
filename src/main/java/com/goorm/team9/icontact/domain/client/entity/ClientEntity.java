@@ -67,7 +67,7 @@ public class ClientEntity extends BaseTimeEntity {
     @OneToOne(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private TopicEntity it_topic;
 
-    @OneToMany(mappedBy = "client_id", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OAuth> oauthAccounts = new ArrayList<>(); // 한 User가 여러 OAuth 계정을 가짐
 
 //    public void setChatOpportunity(int chatOpportunity) {

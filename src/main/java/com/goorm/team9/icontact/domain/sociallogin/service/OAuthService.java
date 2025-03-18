@@ -1,6 +1,8 @@
 package com.goorm.team9.icontact.domain.sociallogin.service;
 
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
+import com.goorm.team9.icontact.domain.client.enums.Role;
+import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthTokenResponse;
 import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
@@ -53,7 +55,7 @@ public class OAuthService {
         }
 
         String accessToken = oAuthProvider.getAccessToken(code);
-        long expiresAt = oAuthProvider.getTokenExpiry(accessToken); // 🔥 만료 시간 가져오기
+        long expiresAt = oAuthProvider.getTokenExpiry(accessToken);
         Map<String, Object> userInfo = oAuthProvider.getUserInfo(accessToken);
 
         String oauthUserId = userInfo.get("id").toString();
@@ -64,49 +66,60 @@ public class OAuthService {
             email = fetchGitHubEmail(accessToken);
         }
 
-        // 사용자 정보 저장 또는 업데이트
-        saveOrUpdateUser(provider, oauthUserId, email, nickname, accessToken);
-
         logger.info("✅ {} 로그인 완료: {}", provider, email);
-        return new OAuthTokenResponse(email, expiresAt); // 🔥 OAuthTokenResponse 객체 반환
+        return new OAuthTokenResponse(email, expiresAt); // OAuthTokenResponse 객체 반환
     }
 
+    /**
+     * Access Token을 가져오는 메서드
+     */
+    public String getAccessToken(String provider, String code) {
+        OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
+        return oAuthProvider.getAccessToken(code);
+    }
 
     /**
      * OAuth 계정을 저장하거나 기존 정보를 업데이트
      */
     @Transactional
-    public void saveOrUpdateUser(String provider, String oauthUserId, String email, String nickname, String accessToken) {
+    public void saveOrUpdateUser(String provider, String email, String accessToken) {
         // 기존 OAuth 정보 확인
-        Optional<OAuth> existingOAuth = oauthRepository.findByProviderAndOauthUserId(provider, oauthUserId);
+        Optional<OAuth> existingOAuth = oauthRepository.findByProviderAndOauthUserId(provider, email);
         if (existingOAuth.isPresent()) {
-            logger.info("🔹 기존 OAuth 계정 존재: {}", email);
+            OAuth oauth = existingOAuth.get();
+            oauth.updateAccessToken(accessToken); // ✅ 기존 계정이면 accessToken 갱신
+            oauthRepository.save(oauth);
+            logger.info("🔄 기존 OAuth 계정 accessToken 업데이트: {}", email);
             return;
         }
 
-        // 이메일 기준으로 기존 사용자 확인 (없으면 새로 생성)
-        ClientEntity clientEntity = clientRepository.findByEmail(email).orElseGet(() ->
-                clientRepository.save(ClientEntity.builder()
-                        .nickName(nickname)
-                        .email(email)
-                        .isDeleted(false)
-                        .build()));
+        ClientEntity clientEntity = clientRepository.findByEmail(email).orElse(null);
 
-        // 새로운 OAuth 정보 저장
+        if (clientEntity == null) {
+            clientEntity = clientRepository.save(ClientEntity.builder()
+                    .nickName(email.split("@")[0]) // 기본 닉네임 설정
+                    .email(email)
+                    .role(Role.DEV)
+                    .status(Status.PUBLIC)
+                    .isDeleted(false)
+                    .build());
+            logger.info("✅ 새로운 Client 저장 완료: {}", clientEntity.getId());
+        } else {
+            logger.info("🔹 기존 Client 존재: {}", clientEntity.getId());
+        }
+
         OAuth oauth = OAuth.builder()
                 .provider(provider)
-                .oauthUserId(oauthUserId)
                 .email(email)
-                .client_id(clientEntity)
+                .client(clientEntity)
                 .accessToken(accessToken)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-        oauthRepository.save(oauth);
 
+        oauthRepository.save(oauth);
         logger.info("✅ OAuth 계정 저장 완료: {}", email);
     }
-
 
     /**
      * OAuth 액세스 토큰을 무효화 (로그아웃 시 사용)

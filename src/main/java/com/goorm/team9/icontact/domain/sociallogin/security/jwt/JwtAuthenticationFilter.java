@@ -40,14 +40,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (!jwtTokenProvider.validateToken(token)) {  // 🔥 여기서 유효성 검사
+            if (!jwtTokenProvider.validateToken(token)) {  // 유효성 검사
                 handleInvalidToken(response, "🛑 유효하지 않은 토큰", token);
                 return;
             }
 
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            logger.info("✅ SecurityContext에 저장된 사용자: " + authentication.getName()); // 추가
+            logger.info("✅ SecurityContext에 저장된 사용자: " + authentication.getName());
         } else {
             logger.warn("⚠️ JWT 토큰이 없음");
         }

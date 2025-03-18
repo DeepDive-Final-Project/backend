@@ -64,7 +64,6 @@ public class KakaoOAuthProvider implements OAuthProvider {
         return fetchUserInfoFromKakao(accessToken);
     }
 
-
     private String fetchAccessTokenFromKakao(String code) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);

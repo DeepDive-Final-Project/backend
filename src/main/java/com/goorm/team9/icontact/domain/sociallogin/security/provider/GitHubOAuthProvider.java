@@ -96,13 +96,12 @@ public class GitHubOAuthProvider implements OAuthProvider {
                     new ParameterizedTypeReference<>() {}
             );
 
-
             // 응답 데이터 확인
             if (response.getBody() == null) {
                 throw new RuntimeException("❌ 응답이 null임!");
             }
 
-            // 🔥 expires_in 필드가 없을 수도 있음 → 기본값으로 Long.MAX_VALUE 반환
+            // expires_in 필드가 없을 수도 있음 → 기본값으로 Long.MAX_VALUE 반환
             Object expiresInObj = response.getBody().get("expires_in");
             if (expiresInObj == null) {
                 return Long.MAX_VALUE; // GitHub OAuth 토큰은 기본적으로 만료되지 않으므로 최댓값 반환

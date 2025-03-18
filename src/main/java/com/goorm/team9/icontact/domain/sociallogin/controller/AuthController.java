@@ -1,8 +1,11 @@
 package com.goorm.team9.icontact.domain.sociallogin.controller;
 
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
+import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.sociallogin.dto.JwtResponse;
 import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthLoginRequest;
 import com.goorm.team9.icontact.domain.sociallogin.service.AuthService;
+import com.goorm.team9.icontact.domain.sociallogin.service.LoginHistoryService;
 import com.goorm.team9.icontact.domain.sociallogin.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,6 +36,8 @@ public class AuthController {
 
     private final AuthService authService;
     private final UserService userService;
+    private final LoginHistoryService loginHistoryService;
+    private final ClientRepository clientRepository;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     /**
@@ -46,54 +51,65 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return "❌ 인증되지 않음 (401)";
         }
-
         return "✅ 인증됨: " + authentication.getName();
     }
 
-    /**
-     * GitHub 로그인 API
-     * @param request GitHub 인증 코드 요청 객체
-     * @return JWT 토큰 반환
-     */
     @PostMapping("/github")
     @Operation(summary = "GitHub 로그인 API", description = "GitHub OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
     public ResponseEntity<JwtResponse> loginWithGithub(@RequestBody OAuthLoginRequest request) {
-        logger.info("🔄 GitHub OAuth 로그인 요청: 받은 코드={}", request.getCode());
-        if (request.getCode() == null || request.getCode().isEmpty()) {
-            logger.error("❌ GitHub OAuth 로그인 실패: 받은 코드가 없음!");
-            throw new RuntimeException("GitHub OAuth 인증 코드가 없습니다.");
-        }
-        String jwt = authService.loginWithGithub("github", request.getCode());
-        return ResponseEntity.ok(new JwtResponse(jwt));
+        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("github", request.getCode())));
     }
 
     @PostMapping("/google")
     @Operation(summary = "Google 로그인 API", description = "Google OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
     public ResponseEntity<JwtResponse> loginWithGoogle(@RequestBody OAuthLoginRequest request) {
-        logger.info("🔄 Google OAuth 로그인 요청: 받은 코드={}", request.getCode());
-
-        if (request.getCode() == null || request.getCode().isEmpty()) {
-            logger.error("❌ Google OAuth 로그인 실패: 받은 코드가 없음!");
-            throw new RuntimeException("Google OAuth 인증 코드가 없습니다.");
-        }
-
-        String jwt = authService.loginWithGithub("google", request.getCode());
-        return ResponseEntity.ok(new JwtResponse(jwt));
+        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("google", request.getCode())));
     }
 
     @PostMapping("/kakao")
     @Operation(summary = "Kakao 로그인 API", description = "Kakao OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
     public ResponseEntity<JwtResponse> loginWithKakao(@RequestBody OAuthLoginRequest request) {
-        logger.info("🔄 Kakao OAuth 로그인 요청: 받은 코드={}", request.getCode());
-
-        if (request.getCode() == null || request.getCode().isEmpty()) {
-            logger.error("❌ Kakao OAuth 로그인 실패: 받은 코드가 없음!");
-            throw new RuntimeException("Kakao OAuth 인증 코드가 없습니다.");
-        }
-
-        String jwt = authService.loginWithGithub("kakao", request.getCode());
-        return ResponseEntity.ok(new JwtResponse(jwt));
+        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("kakao", request.getCode())));
     }
+
+//    /**
+//     * GitHub 로그인 API
+//     */
+//    @PostMapping("/github")
+//    @Operation(summary = "GitHub 로그인 API", description = "GitHub OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
+//    public ResponseEntity<JwtResponse> loginWithGithub(@RequestBody OAuthLoginRequest request) {
+//        return handleOAuthLogin("github", request);
+//    }
+//
+//    /**
+//     * Google 로그인 API
+//     */
+//    @PostMapping("/google")
+//    @Operation(summary = "Google 로그인 API", description = "Google OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
+//    public ResponseEntity<JwtResponse> loginWithGoogle(@RequestBody OAuthLoginRequest request) {
+//        return handleOAuthLogin("google", request);
+//    }
+//
+//    /**
+//     * Kakao 로그인 API
+//     */
+//    @PostMapping("/kakao")
+//    @Operation(summary = "Kakao 로그인 API", description = "Kakao OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
+//    public ResponseEntity<JwtResponse> loginWithKakao(@RequestBody OAuthLoginRequest request) {
+//        return handleOAuthLogin("kakao", request);
+//    }
+//
+//    /**
+//     * 공통 OAuth 로그인 처리 (GitHub, Google, Kakao)
+//     */
+//    private ResponseEntity<JwtResponse> handleOAuthLogin(String provider, OAuthLoginRequest request) {
+//        if (request.getCode() == null || request.getCode().isEmpty()) {
+//            logger.error("❌ {} OAuth 로그인 실패: 인증 코드가 없음!", provider);
+//            throw new RuntimeException(provider + " OAuth 인증 코드가 없습니다.");
+//        }
+//        String jwt = authService.loginWithGithub(provider, request.getCode());
+//        return ResponseEntity.ok(new JwtResponse(jwt));
+//    }
 
     /**
      * 로그아웃 API
@@ -106,17 +122,6 @@ public class AuthController {
     public ResponseEntity<String> logout(HttpServletRequest request, HttpServletResponse response) {
         authService.logout(request, response);
         return ResponseEntity.ok("로그아웃 완료 ✅");
-    }
-
-    /**
-     * 토큰 상태 확인 API
-     * - 토큰이 블랙리스트에 있는지 확인
-     */
-    @GetMapping("/token-status")
-    @Operation(summary = "토큰 블랙리스트 확인 API", description = "JWT 토큰이 블랙리스트에 있는지 확인하여 반환합니다.")
-    public ResponseEntity<Map<String, Boolean>> checkTokenStatus(@RequestHeader(name = "Authorization", required = false) String authHeader) {
-        boolean isBlacklisted = authHeader != null && authService.isTokenBlacklisted(authHeader);
-        return ResponseEntity.ok(Map.of("blacklisted", isBlacklisted));
     }
 
     /**
@@ -143,9 +148,39 @@ public class AuthController {
         }
 
         String email = authentication.getName();
-        userService.restoreUser(email);
+        if (!userService.canReRegister(email)) {
+            return ResponseEntity.badRequest().body("계정 복구가 불가능합니다.");
+        }
 
+        userService.restoreUser(email);
         return ResponseEntity.ok("계정 복구 완료 ✅");
     }
 
+    /**
+     * 사용자의 마지막 로그인 제공자 조회
+     */
+    @GetMapping("/last-login-provider")
+    @Operation(summary = "최근 로그인 제공자 조회 API", description = "사용자의 마지막 로그인 제공자를 반환합니다.")
+    public ResponseEntity<String> getLastLoginProvider(Authentication authentication) {
+        String email = authentication.getName();
+
+        // 이메일을 통해 ClientEntity 조회
+        ClientEntity clientEntity = clientRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        return loginHistoryService.getLastLoginProvider(clientEntity)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.ok("unknown"));
+    }
+
+    /**
+     * 토큰 상태 확인 API
+     * - 토큰이 블랙리스트에 있는지 확인
+     */
+    @GetMapping("/token-status")
+    @Operation(summary = "토큰 블랙리스트 확인 API", description = "JWT 토큰이 블랙리스트에 있는지 확인하여 반환합니다.")
+    public ResponseEntity<Map<String, Boolean>> checkTokenStatus(@RequestHeader(name = "Authorization", required = false) String authHeader) {
+        boolean isBlacklisted = authHeader != null && authService.isTokenBlacklisted(authHeader);
+        return ResponseEntity.ok(Map.of("blacklisted", isBlacklisted));
+    }
 }

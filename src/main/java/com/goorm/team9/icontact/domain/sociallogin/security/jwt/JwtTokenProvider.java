@@ -7,10 +7,12 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -32,20 +34,22 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-//    @Value("${jwt.secret}")
-//    private String secretKey;
-//
-//    @Value("${jwt.expiration}")
-//    private long validityInMilliseconds;
-//
-//    private Key key;
-//
-//    public void init() {
-//        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
-//    }
-    private final String secretKey = "ThisIsAReallyStrongSecretKeyForJwt12345"; // 🚨 256비트 이상으로 설정해야 보안 강화 가능
-    private final long validityInMilliseconds = 3600000; // 1시간 (밀리초)
-    private final Key key = Keys.hmacShaKeyFor(secretKey.getBytes()); // HMAC 키 생성
+    @Value("${jwt.secret}")
+    private String secretKey;
+
+    @Value("${jwt.expiration}")
+    private long validityInMilliseconds;
+
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        if (secretKey == null || secretKey.isEmpty()) {
+            throw new IllegalStateException("JWT_SECRET 환경 변수가 설정되지 않았습니다.");
+        }
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     /**
