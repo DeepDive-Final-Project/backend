@@ -53,7 +53,7 @@ public class OAuthService {
         }
 
         String accessToken = oAuthProvider.getAccessToken(code);
-        long expiresAt = oAuthProvider.getTokenExpiry(accessToken); // 🔥 만료 시간 가져오기
+        long expiresAt = oAuthProvider.getTokenExpiry(accessToken);
         Map<String, Object> userInfo = oAuthProvider.getUserInfo(accessToken);
 
         String oauthUserId = userInfo.get("id").toString();
@@ -68,7 +68,7 @@ public class OAuthService {
         saveOrUpdateUser(provider, oauthUserId, email, nickname, accessToken);
 
         logger.info("✅ {} 로그인 완료: {}", provider, email);
-        return new OAuthTokenResponse(email, expiresAt); // 🔥 OAuthTokenResponse 객체 반환
+        return new OAuthTokenResponse(email, expiresAt); // OAuthTokenResponse 객체 반환
     }
 
 

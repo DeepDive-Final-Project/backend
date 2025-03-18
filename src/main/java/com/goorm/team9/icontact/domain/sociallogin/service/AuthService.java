@@ -25,8 +25,6 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
-    //전략 패턴 적용시
-    //    private final OAuthProviderFactory providerFactory;
     private final OAuthService oAuthService;
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -35,15 +33,11 @@ public class AuthService {
     private final LoginHistoryService loginHistoryService;
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
-    //전략 패턴 적용시
-//    public OAuthService(OAuthProviderFactory providerFactory) {
-//        this.providerFactory = providerFactory;
-//    }
-
     /**
-     * GitHub 로그인 처리 (OAuth2.0 인증 후 JWT 발급)
+     * 로그인 처리 (OAuth2.0 인증 후 JWT 발급)
+     * 이름 바꾸기 귀찮아서 Github인데 공용입니다.
      *
-     * @param code GitHub에서 발급한 인증 코드
+     * @param code 발급한 인증 코드
      * @return JWT 토큰
      */
     public String loginWithGithub(String provider, String code) {
@@ -66,16 +60,6 @@ public class AuthService {
 
         return jwtToken;
     }
-
-
-    //전략 패턴 적용시
-//    public Map<String, Object> loginWithOAuth(String provider, String code) {
-//        OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
-//        if (oAuthProvider == null) {
-//            throw new IllegalArgumentException("지원하지 않는 OAuth 제공자입니다: " + provider);
-//        }
-//        return oAuthProvider.getUserInfo(code);
-//    }
 
     /**
      * 로그아웃 처리 (JWT 블랙리스트 추가 및 세션 무효화)
@@ -113,9 +97,6 @@ public class AuthService {
     /**
      * 회원 탈퇴 처리 (소프트 삭제 적용)
      */
-    /**
-     * 회원 탈퇴 처리 (소프트 삭제 적용)
-     */
     public ResponseEntity<String> withdraw(HttpServletRequest request, HttpServletResponse response) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || authentication.getName() == null) {
@@ -124,7 +105,7 @@ public class AuthService {
 
         String email = authentication.getName();
 
-        // 🔹 14일 이내 재탈퇴 불가 검증 추가
+        // 14일 이내 재탈퇴 불가 검증 추가
         if (!userService.canReRegister(email)) {
             return ResponseEntity.status(HttpServletResponse.SC_BAD_REQUEST)
                     .body("탈퇴 후 14일 이내에는 재탈퇴할 수 없습니다.");
@@ -135,7 +116,6 @@ public class AuthService {
 
         return ResponseEntity.ok("회원 탈퇴 완료 ✅");
     }
-
 
     /**
      * 세션 무효화

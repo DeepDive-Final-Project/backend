@@ -51,7 +51,6 @@ public class AuthController {
         if (authentication == null || !authentication.isAuthenticated()) {
             return "❌ 인증되지 않음 (401)";
         }
-
         return "✅ 인증됨: " + authentication.getName();
     }
 
@@ -93,7 +92,6 @@ public class AuthController {
         String jwt = authService.loginWithGithub(provider, request.getCode());
         return ResponseEntity.ok(new JwtResponse(jwt));
     }
-
 
     /**
      * 로그아웃 API
@@ -156,7 +154,6 @@ public class AuthController {
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.ok("unknown"));
     }
-
 
     /**
      * 토큰 상태 확인 API
