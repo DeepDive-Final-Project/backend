@@ -7,6 +7,7 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -36,10 +37,19 @@ public class JwtTokenProvider {
     @Value("${jwt.secret}")
     private String secretKey;
 
-    @Value("${jwt.expiration}") //1시간 (밀리초)
+    @Value("${jwt.expiration}")
     private long validityInMilliseconds;
 
-    private final Key key = Keys.hmacShaKeyFor(secretKey.getBytes()); // HMAC 키 생성
+    private Key key;
+
+    @PostConstruct
+    public void init() {
+        if (secretKey == null || secretKey.isEmpty()) {
+            throw new IllegalStateException("JWT_SECRET 환경 변수가 설정되지 않았습니다.");
+        }
+        this.key = Keys.hmacShaKeyFor(secretKey.getBytes());
+    }
+
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
     /**
