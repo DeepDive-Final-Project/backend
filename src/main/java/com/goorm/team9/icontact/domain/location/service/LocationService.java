@@ -37,7 +37,7 @@ public class LocationService {
         redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
         redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
 
-        updateUserInterest(id, interest);
+        updateUserInterest(id);
 
         Point savedPoint = redisTemplate.opsForGeo().position(globalKey, id.toString()).get(0);
         log.info("[REDIS 저장] client_id: {}, (위도: {}, 경도: {})", id, savedPoint.getY(), savedPoint.getX());
@@ -59,44 +59,30 @@ public class LocationService {
         }
     }
 
-    public void updateUserInterest(Long id, String interest) {
-        log.debug("updateUserInterest 호출 - client_id: {}, interest: {}", id, interest);
+    public void updateUserInterest(Long id) {
+        log.debug("updateUserInterest 검증 호출 - client_id: {}", id);
 
-        String[] topicsArray = interest.split(",");
-        List<String> topics = new ArrayList<>();
+        String sql = "SELECT topic1, topic2, topic3 FROM it_topic WHERE client_id = ?";
+        Map<String, Object> interestData;
 
-        for (int i = 0; i < topicsArray.length; i++) {
-            String trimmedTopic = topicsArray[i].trim();
-            if (!trimmedTopic.isEmpty()) {
-                topics.add(trimmedTopic);
-            }
-            if (topics.size() >= 3) {
-                break;
-            }
+        try {
+            interestData = jdbcTemplate.queryForMap(sql, id);
+        } catch (Exception e) {
+            throw new CustomException(GlobalExceptionErrorCode.MISSING_INTEREST);
         }
 
-        String topic1 = topics.size() > 0 ? topics.get(0) : "";
-        String topic2 = topics.size() > 1 ? topics.get(1) : "";
-        String topic3 = topics.size() > 2 ? topics.get(2) : "";
-
-        log.debug("최종 저장될 관심사 - topic1: {}, topic2: {}, topic3: {}", topic1, topic2, topic3);
-
-        String checkSql = "SELECT COUNT(*) FROM it_topic WHERE client_id = ?";
-        Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, id);
-
-        if (count == null || count == 0) {
-            String insertSql = "INSERT INTO it_topic (client_id, topic1, topic2, topic3) VALUES (?, ?, ?, ?)";
-            log.info("[INSERT] client_id: {}", id);
-            jdbcTemplate.update(insertSql, id, topic1, topic2, topic3);
-        } else {
-            String updateSql = "UPDATE it_topic SET topic1 = ?, topic2 = ?, topic3 = ? WHERE client_id = ?";
-            log.info("[UPDATE] client_id: {}", id);
-            jdbcTemplate.update(updateSql, topic1, topic2, topic3, id);
+        if (interestData.isEmpty() || interestData.values().stream().allMatch(value -> value == null || value.toString().isEmpty())) {
+            throw new CustomException(GlobalExceptionErrorCode.MISSING_INTEREST);
         }
+
+        String topic1 = interestData.get("topic1").toString();
+        String topic2 = interestData.get("topic2").toString();
+        String topic3 = interestData.get("topic3").toString();
 
         String redisKey = "interest:" + id;
         redisTemplate.opsForHash().putAll(redisKey, Map.of("topic1", topic1, "topic2", topic2, "topic3", topic3));
-        log.info("[REDIS 관심사 저장] client_id: {}, topic1: {}, topic2: {}, topic3: {}", id, topic1, topic2, topic3);
+
+        log.info("[REDIS 관심분야 검증 완료] client_id: {}, topic1: {}, topic2: {}, topic3: {}", id, topic1, topic2, topic3);
     }
 
     public List<LocationResponse> getNearbyUsers(Long id) {
