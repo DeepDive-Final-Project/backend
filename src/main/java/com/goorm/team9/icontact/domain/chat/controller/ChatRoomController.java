@@ -101,9 +101,22 @@ public class ChatRoomController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "채팅방 입장 API", description = "사용자가 채팅방에 입장하면 last_read_at을 업데이트합니다.")
+    @PostMapping("/enter")
+    public ResponseEntity<Map<String, String>> enterChatRoom(
+            @RequestBody @Schema(example = "{\"roomId\": 123, \"clientId\": 456}") Map<String, Long> request) {
+
+        Long roomId = request.get("roomId");
+        Long clientId = request.get("clientId");
+
+        chatRoomService.updateLastReadAt(roomId, clientId);
+
+        return ResponseEntity.ok(Map.of("message", "last_read_at이 업데이트되었습니다."));
+    }
+
     @Operation(summary = "최신 메시지 순으로 채팅방 조회", description = "특정 사용자가 참여한 채팅방을 최신 메시지 순으로 조회합니다.")
-    @GetMapping("/lastest")
-    public ResponseEntity<List<ChatRoomResponse>> getLastestChatRooms(@RequestParam String nickname) {
+    @GetMapping("/latest")
+    public ResponseEntity<List<ChatRoomResponse>> getLatestChatRooms(@RequestParam String nickname) {
         try {
             ClientEntity client = clientRepository.findByNickName(nickname)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
@@ -154,16 +167,29 @@ public class ChatRoomController {
 
     @Operation(summary = "모든 채팅방 조회 API", description = "모든 채팅방을 조회합니다.")
     @GetMapping("/all")
-    public ResponseEntity<List<ChatRoomResponse>> getAllChatRooms() {
+    public ResponseEntity<List<ChatRoomResponse>> getAllChatRooms(@RequestParam Long clientId) {
         try {
-            List<ChatRoomResponse> allChatRooms = chatRoomService.getAllChatRooms();
+            ClientEntity client = clientRepository.findById(clientId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            List<ChatRoomResponse> allChatRooms = chatRoomService.getAllChatRooms(client);
+
             if (allChatRooms.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
             return ResponseEntity.ok().body(allChatRooms);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
+    }
+
+    @Operation(summary = "안 읽은 메시지 개수 조회 API", description = "특정 채팅방에서 사용자의 안 읽은 메시지 개수를 반환합니다.")
+    @GetMapping("/{roomId}/unread-count")
+    public ResponseEntity<Map<String, Long>> getUnreadMessageCount(@PathVariable Long chatRoomId, @RequestParam Long clientId) {
+        long unreadCount = chatRoomService.countUnreadMessages(chatRoomId, clientId);
+        return ResponseEntity.ok(Map.of("unreadCount", unreadCount));
     }
 
     @Operation(summary = "채팅방 생성 API", description = "새로운 1:1 채팅방을 생성합니다.")
