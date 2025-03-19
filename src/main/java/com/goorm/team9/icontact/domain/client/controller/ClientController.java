@@ -58,19 +58,19 @@ public class ClientController {
     }
 
 
-    @GetMapping("/{client_Id}")
+    @GetMapping("/{clientId}")
     @Operation(summary = "사용자 정보 출력 API", description = "다른 사용자의 정보를 확인합니다.")
     public ResponseEntity<ClientResponseDTO> getUserById(
-            @PathVariable Long client_Id
+            @PathVariable Long clientId
     ) {
-        return ResponseEntity.ok(clientService.getUserById(client_Id));
+        return ResponseEntity.ok(clientService.getUserById(clientId));
     }
 
-    @PatchMapping(value = "/update/{client_Id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PatchMapping(value = "/update/{clientId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "마이페이지 수정 API", description = "RequestParam으로 사용자 정보를 입력하고 이미지를 첨부하여 마이페이지 수정")
     public ResponseEntity<ClientResponseDTO> updateUser(
             @Parameter(description = "사용자 ID", example = "1")
-            @PathVariable Long client_Id,
+            @PathVariable Long clientId,
             @Parameter(description = "닉네임", example = "UpdatedNoah")
             @RequestParam(required = false) String nickName,
             @Parameter(description = "직무", example = "DEV")
@@ -97,7 +97,7 @@ public class ClientController {
             @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
     ) {
         return ResponseEntity.ok(clientService.updateUser(
-                client_Id, nickName, role, career, status, introduction, link, profileImage,
+                clientId, nickName, role, career, status, introduction, link, profileImage,
                 topic1, topic2, topic3, language, framework
         ));
     }

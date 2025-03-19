@@ -1,5 +1,7 @@
 package com.goorm.team9.icontact.domain.conference.service;
 
+import com.goorm.team9.icontact.common.error.ConferenceErrorCode;
+import com.goorm.team9.icontact.common.exception.CustomException;
 import com.goorm.team9.icontact.domain.conference.dto.request.ConferenceRequestDTO;
 import com.goorm.team9.icontact.domain.conference.dto.response.ConferenceResponseDTO;
 import com.goorm.team9.icontact.domain.conference.entity.ConferenceEntity;
@@ -32,4 +34,27 @@ public class ConferenceService {
                 .map(conf -> new ConferenceResponseDTO(conf.getId(), conf.getName(), conf.getDay().getDescription()))
                 .collect(Collectors.toList());
     }
+
+    public ConferenceResponseDTO updateConference(Long id, String name, Day day) {
+        ConferenceEntity conference = conferenceRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ConferenceErrorCode.CONFERENCE_NOT_FOUND));
+
+        if (name != null && !name.isBlank()) {
+            conference.setName(name);
+        }
+
+        if (day != null) {
+            conference.setDay(day);
+        }
+
+        conferenceRepository.save(conference);
+        return new ConferenceResponseDTO(conference);
+    }
+
+    public void deleteConference(Long id) {
+        ConferenceEntity conference = conferenceRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ConferenceErrorCode.CONFERENCE_NOT_FOUND));
+        conferenceRepository.delete(conference);
+    }
+
 }
