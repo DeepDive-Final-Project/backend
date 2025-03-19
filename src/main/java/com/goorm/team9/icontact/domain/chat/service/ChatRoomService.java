@@ -145,6 +145,22 @@ public class ChatRoomService {
         }
     }
 
+    public List<ChatRoomResponse> getLatestChatRooms(ClientEntity client) {
+        List<ChatRoom> chatRooms = chatRoomRepository.findAllChatRoomsByUser(client.getNickName());
+
+        return chatRooms.stream()
+                .map(ChatRoomResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    public List<ChatRoomResponse> getUnreadChatRooms(ClientEntity client) {
+        List<ChatRoom> chatRooms = chatRoomRepository.findUnreadChatRooms(client.getNickName());
+
+        return chatRooms.stream()
+                .map(ChatRoomResponse::fromEntity)
+                .collect(Collectors.toList());
+    }
+
     public List<ChatRoomResponse> getChatRoomsByUser(ClientEntity client) {
         List<ChatRoomResponse> chatRooms = chatRoomRepository.findBySenderNicknameOrReceiverNickname(client.getNickName())
                 .stream()
