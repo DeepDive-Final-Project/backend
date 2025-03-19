@@ -48,8 +48,9 @@ public class LocationService {
     private void validateId(Long id) {
         String sql = "SELECT EXISTS (SELECT 1 FROM client WHERE id = ?)";
         Boolean exists = jdbcTemplate.queryForObject(sql, new Object[]{id}, Boolean.class);
+
         if (exists == null || !exists) {
-            throw new CustomException(GlobalExceptionErrorCode.INVALID_USER_ID);
+            throw new CustomException(GlobalExceptionErrorCode.CLIENT_NOT_FOUND);
         }
     }
 
@@ -193,7 +194,10 @@ public class LocationService {
 
             if (latitude == existingLatitude && longitude == existingLongitude) {
                 log.info("[REFRESH] client_id: {}, 위치 변경 없음 (위도: {}, 경도: {})", id, latitude, longitude);
-                return getNearbyUsers(id);
+
+                updateUserInterest(id);
+
+                throw new CustomException(GlobalExceptionErrorCode.LOCATION_NOT_UPDATED);
             }
         }
 
@@ -210,8 +214,8 @@ public class LocationService {
 
     private Map<String, String> getUserInterest(Long id) {
         String redisKey = "interest:" + id;
-
         Map<Object, Object> cachedInterest = redisTemplate.opsForHash().entries(redisKey);
+
         if (!cachedInterest.isEmpty()) {
             Map<String, String> interestMap = new HashMap<>();
             cachedInterest.forEach((key, value) -> interestMap.put(key.toString(), convertToDescription(value.toString())));
@@ -228,7 +232,7 @@ public class LocationService {
                 return map;
             });
         } catch (Exception e) {
-            return new HashMap<>();
+            throw new CustomException(GlobalExceptionErrorCode.MISSING_INTEREST);
         }
     }
 
