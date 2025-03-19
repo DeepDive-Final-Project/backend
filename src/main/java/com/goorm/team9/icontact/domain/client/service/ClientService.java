@@ -15,6 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class ClientService {
@@ -110,6 +113,14 @@ public class ClientService {
 
         ClientEntity updatedClient = clientRepository.save(existingClient);
         return clientConverter.toResponseDTO(updatedClient);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClientResponseDTO> getAllClients() {
+        List<ClientEntity> clients = clientRepository.findAllByIsDeletedFalse();
+        return clients.stream()
+                .map(clientConverter::toResponseDTO)
+                .collect(Collectors.toList());
     }
 
 }
