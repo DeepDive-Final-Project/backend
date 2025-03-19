@@ -23,7 +23,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Query("SELECT c FROM ChatRoom c " +
             "LEFT JOIN ChatMessage m ON c = m.chatRoom " +
             "WHERE c.senderNickname.nickName = :nickname OR c.receiverNickname.nickName = :nickname " +
-            "ORDER BY m.created_at DESC")
+            "GROUP BY c " +
+            "ORDER BY MAX(m.created_at) DESC")
     List<ChatRoom> findAllChatRoomsByUser(@Param("nickname") String nickname);
 
     @Query("SELECT c FROM ChatRoom c " +
