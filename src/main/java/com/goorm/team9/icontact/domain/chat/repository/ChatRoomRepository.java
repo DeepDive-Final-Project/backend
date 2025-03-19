@@ -19,4 +19,18 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "(c.senderNickname.nickName = :sender AND c.receiverNickname.nickName = :receiver) " +
             "OR (c.senderNickname.nickName = :receiver AND c.receiverNickname.nickName = :sender)")
     Optional<ChatRoom> findExistingChatRoom(@Param("sender") String sender, @Param("receiver") String receiver);
+
+    @Query("SELECT c FROM ChatRoom c " +
+            "LEFT JOIN ChatMessage m ON c = m.chatRoom " +
+            "WHERE c.senderNickname.nickName = :nickname OR c.receiverNickname.nickName = :nickname " +
+            "GROUP BY c " +
+            "ORDER BY MAX(m.created_at) DESC")
+    List<ChatRoom> findAllChatRoomsByUser(@Param("nickname") String nickname);
+
+    @Query("SELECT c FROM ChatRoom c " +
+            "LEFT JOIN ChatMessage m ON c = m.chatRoom " +
+            "WHERE (c.senderNickname.nickName = :nickname OR c.receiverNickname.nickName = :nickname) " +
+            "AND m.isRead = false " +
+            "ORDER BY m.created_at DESC")
+    List<ChatRoom> findUnreadChatRooms(@Param("nickname") String nickname);
 }

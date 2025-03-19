@@ -101,6 +101,38 @@ public class ChatRoomController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "최신 메시지 순으로 채팅방 조회", description = "특정 사용자가 참여한 채팅방을 최신 메시지 순으로 조회합니다.")
+    @GetMapping("/lastest")
+    public ResponseEntity<List<ChatRoomResponse>> getLastestChatRooms(@RequestParam String nickname) {
+        try {
+            ClientEntity client = clientRepository.findByNickName(nickname)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            List<ChatRoomResponse> chatRooms = chatRoomService.getLatestChatRooms(client);
+
+            return ResponseEntity.ok(chatRooms);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+    @Operation(summary = "읽지 않은 메시지가 있는 채팅방 조회", description = "특정 사용자가 참여한 채팅방 중 최근 메시지가 읽지 않은 순으로 정렬하여 조회합니다.")
+    @GetMapping("/unread")
+    public ResponseEntity<List<ChatRoomResponse>> getUnreadChatRooms(@RequestParam String nickname) {
+        try {
+            ClientEntity client = clientRepository.findByNickName(nickname)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+            List<ChatRoomResponse> chatRooms = chatRoomService.getUnreadChatRooms(client);
+
+            return ResponseEntity.ok(chatRooms);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
     @Operation(summary = "사용자의 채팅방 조회 API", description = "특정 사용자가 참여한 채팅방 목록을 조회합니다.")
     @GetMapping("/{nickname}")
     public ResponseEntity<Object> getChatRoomsByUser(@PathVariable String nickname) {
