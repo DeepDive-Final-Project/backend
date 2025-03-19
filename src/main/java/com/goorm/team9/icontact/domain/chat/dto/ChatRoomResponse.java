@@ -14,13 +14,15 @@ public class ChatRoomResponse {
     private List<String> participants;
     private String lastMessage;
     private LocalDateTime lastMessageTime;
+    private Long unreadCount;
 
-    public static ChatRoomResponse fromEntity(ChatRoom chatRoom) {
+    public static ChatRoomResponse fromEntity(ChatRoom chatRoom, Long unreadCount) {
         return new ChatRoomResponse(
                 chatRoom.getRoomId(),
                 List.of(chatRoom.getSenderNickname().getNickName(), chatRoom.getReceiverNickname().getNickName()),
-                chatRoom.getLastMessage(),
-                chatRoom.getLastMessageTime()
+                chatRoom.getLastMessage() != null ? chatRoom.getLastMessage() : "새 메시지가 없습니다.",
+                chatRoom.getLastMessageTime(),
+                unreadCount
         );
     }
 }
