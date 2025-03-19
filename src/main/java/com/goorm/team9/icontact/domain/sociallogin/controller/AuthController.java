@@ -57,19 +57,19 @@ public class AuthController {
     @PostMapping("/github")
     @Operation(summary = "GitHub 로그인 API", description = "GitHub OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
     public ResponseEntity<JwtResponse> loginWithGithub(@RequestBody OAuthLoginRequest request) {
-        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("github", request.getCode())));
+        return ResponseEntity.ok(new JwtResponse(authService.loginWithOAuth("github", request.getCode())));
     }
 
     @PostMapping("/google")
     @Operation(summary = "Google 로그인 API", description = "Google OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
     public ResponseEntity<JwtResponse> loginWithGoogle(@RequestBody OAuthLoginRequest request) {
-        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("google", request.getCode())));
+        return ResponseEntity.ok(new JwtResponse(authService.loginWithOAuth("google", request.getCode())));
     }
 
     @PostMapping("/kakao")
     @Operation(summary = "Kakao 로그인 API", description = "Kakao OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
     public ResponseEntity<JwtResponse> loginWithKakao(@RequestBody OAuthLoginRequest request) {
-        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("kakao", request.getCode())));
+        return ResponseEntity.ok(new JwtResponse(authService.loginWithOAuth("kakao", request.getCode())));
     }
 
 //    /**
