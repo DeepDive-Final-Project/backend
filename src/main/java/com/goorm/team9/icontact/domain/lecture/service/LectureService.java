@@ -41,20 +41,31 @@ public class LectureService {
         return new LectureResponseDTO(lecture);
     }
 
-
     public List<LectureResponseDTO> getLecturesByConference(Long conferenceId) {
-        List<LectureEntity> lectures = lectureRepository.findByConferenceId(conferenceId);
+        List<LectureEntity> lectures = lectureRepository.findByConferenceIdWithConference(conferenceId);
         return lectures.stream()
-                .map(lec -> new LectureResponseDTO(
-                        lec.getId(),
-                        lec.getTitle(),
-                        lec.getLecturer(),
-                        lec.getOpenTime().toString(),
-                        lec.getCloseTime().toString(),
-                        lec.getConference().getName(),
-                        lec.getConference().getDay().getDescription()
-                ))
+                .map(LectureResponseDTO::new)
                 .collect(Collectors.toList());
     }
+
+    public LectureResponseDTO updateLecture(Long id, String title, String lecturer, String openTime, String closeTime) {
+        LectureEntity lecture = lectureRepository.findByIdWithConference(id)
+                .orElseThrow(() -> new CustomException(LectureErrorCode.LECTURE_NOT_FOUND));
+
+        if (title != null && !title.isBlank()) lecture.setTitle(title);
+        if (lecturer != null && !lecturer.isBlank()) lecture.setLecturer(lecturer);
+        if (openTime != null && !openTime.isBlank()) lecture.setOpenTime(LocalTime.parse(openTime));
+        if (closeTime != null && !closeTime.isBlank()) lecture.setCloseTime(LocalTime.parse(closeTime));
+
+        lectureRepository.save(lecture);
+        return new LectureResponseDTO(lecture);
+    }
+
+    public void deleteLecture(Long id) {
+        LectureEntity lecture = lectureRepository.findById(id)
+                .orElseThrow(() -> new CustomException(LectureErrorCode.LECTURE_NOT_FOUND));
+        lectureRepository.delete(lecture);
+    }
+
 }
 
