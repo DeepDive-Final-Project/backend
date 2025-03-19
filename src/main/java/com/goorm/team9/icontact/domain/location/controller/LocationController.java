@@ -1,6 +1,5 @@
 package com.goorm.team9.icontact.domain.location.controller;
 
-import com.goorm.team9.icontact.common.exception.GlobalExceptionErrorCode;
 import com.goorm.team9.icontact.domain.location.dto.LocationResponse;
 import com.goorm.team9.icontact.domain.location.service.LocationService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -20,28 +19,27 @@ import java.util.Map;
 public class LocationController {
     private final LocationService locationService;
 
-    @Operation(summary = "위치 및 관심사 정보 저장", description = "참가자의 위치 및 관심 분야를 저장하는 API입니다.")
+    @Operation(summary = "위치 및 관심사 정보 저장", description = "참가자 위치 및 관심 분야를 저장하는 API입니다.")
     @PostMapping("/save")
     public ResponseEntity<String> saveLocation(
-            @RequestParam Long id,
-            @RequestParam double latitude,
-            @RequestParam double longitude,
-            @RequestParam String interest
+            @Parameter(description = "참가자 ID", required = true) @RequestParam Long id,
+            @Parameter(description = "위도(latitude)", required = true) @RequestParam double latitude,
+            @Parameter(description = "경도(longitude)", required = true) @RequestParam double longitude
     ) {
-        locationService.saveUserInformation(id, latitude, longitude, interest);
+        locationService.saveUserInformation(id, latitude, longitude);
 
         String responseMessage = String.format(
-                "위치 데이터가 저장되었습니다. (ID: %d, 위도: %.6f, 경도: %.6f, 관심분야: %s)",
-                id, latitude, longitude, interest
+                "위치 데이터가 저장되었습니다. (ID: %d, 위도: %.6f, 경도: %.6f)",
+                id, latitude, longitude
         );
 
         return ResponseEntity.ok(responseMessage);
     }
 
-    @Operation(summary = "근처 참가자 조회", description = "참가자의 ID를 기반으로 반경 내 참가자를 조회하는 API입니다.")
+    @Operation(summary = "근처 참가자 조회", description = "참가자 ID를 기반으로 반경 내 참가자를 조회하는 API입니다.")
     @GetMapping("/nearby")
     public ResponseEntity<Map<String, Object>> getNearbyUsers(
-            @Parameter(description = "사용자 ID", required = true) @RequestParam Long id
+            @Parameter(description = "참가자 ID", required = true) @RequestParam Long id
     ) {
         List<LocationResponse> nearbyUsers = locationService.getNearbyUsers(id);
 
@@ -53,10 +51,10 @@ public class LocationController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "새로고침 (주변 참가자 재조회)", description = "참가자의 위치를 확인하고, 최신 참가자 목록을 조회하는 API입니다.")
+    @Operation(summary = "새로고침 (주변 참가자 재조회)", description = "참가자 위치를 확인하고, 최신 참가자 목록을 조회하는 API입니다.")
     @GetMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refreshNearbyUsers(
-            @Parameter(description = "참가의 ID", required = true) @RequestParam Long id,
+            @Parameter(description = "참가자 ID", required = true) @RequestParam Long id,
             @Parameter(description = "현재 위도(latitude)", required = true) @RequestParam double latitude,
             @Parameter(description = "현재 경도(longitude)", required = true) @RequestParam double longitude,
             @Parameter(description = "참가자의 관심 분야", required = true) @RequestParam String interest
