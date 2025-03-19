@@ -28,12 +28,14 @@ public class LocationController {
             @RequestParam double longitude,
             @RequestParam String interest
     ) {
-        boolean isUpdated = locationService.saveUserInformation(id, latitude, longitude, interest);
+        locationService.saveUserInformation(id, latitude, longitude, interest);
 
-        if (isUpdated) {
-            return ResponseEntity.ok(GlobalExceptionErrorCode.LOCATION_UPDATED.getDescription());
-        }
-        return ResponseEntity.ok(GlobalExceptionErrorCode.LOCATION_NOT_UPDATED.getDescription());
+        String responseMessage = String.format(
+                "위치 데이터가 저장되었습니다. (ID: %d, 위도: %.6f, 경도: %.6f, 관심분야: %s)",
+                id, latitude, longitude, interest
+        );
+
+        return ResponseEntity.ok(responseMessage);
     }
 
     @Operation(summary = "근처 참가자 조회", description = "참가자의 ID를 기반으로 반경 내 참가자를 조회하는 API입니다.")
