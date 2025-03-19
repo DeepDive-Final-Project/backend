@@ -51,15 +51,13 @@ public class LocationController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "새로고침 (주변 참가자 재조회)", description = "참가자 위치를 확인하고, 최신 참가자 목록을 조회하는 API입니다.")
     @GetMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refreshNearbyUsers(
             @Parameter(description = "참가자 ID", required = true) @RequestParam Long id,
             @Parameter(description = "현재 위도(latitude)", required = true) @RequestParam double latitude,
-            @Parameter(description = "현재 경도(longitude)", required = true) @RequestParam double longitude,
-            @Parameter(description = "참가자의 관심 분야", required = true) @RequestParam String interest
+            @Parameter(description = "현재 경도(longitude)", required = true) @RequestParam double longitude
     ) {
-        List<LocationResponse> nearbyUsers = locationService.refreshNearbyUsers(id, latitude, longitude, interest);
+        List<LocationResponse> nearbyUsers = locationService.refreshNearbyUsers(id, latitude, longitude);
 
         Map<String, Object> response = Map.of(
                 "message", "주변 참가자 새로고침 완료",

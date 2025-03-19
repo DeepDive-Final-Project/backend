@@ -12,6 +12,8 @@ import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.Duration;
 import java.util.*;
 
 @Service
@@ -24,7 +26,7 @@ public class LocationService {
     @Value("${app.geo.search-radius:10}")
     private double searchRadius;
 
-    public boolean saveUserInformation(Long id, double latitude, double longitude, String interest) {
+    public boolean saveUserInformation(Long id, double latitude, double longitude) {
         validateId(id);
         validateLocationData(latitude, longitude);
 
@@ -181,12 +183,35 @@ public class LocationService {
         return finalList;
     }
 
-    public List<LocationResponse> refreshNearbyUsers(Long id, double latitude, double longitude, String interest) {
+    public List<LocationResponse> refreshNearbyUsers(Long id, double latitude, double longitude) {
         String userKey = "client:" + id;
         String globalKey = "location_data";
 
-        List<Point> existingPoints = redisTemplate.opsForGeo().position(globalKey, id.toString());
+        Map<Object, Object> rawCachedInterest = redisTemplate.opsForHash().entries("interest:" + id);
+        Map<String, Object> cachedInterest = new HashMap<>();
 
+        for (Map.Entry<Object, Object> entry : rawCachedInterest.entrySet()) {
+            cachedInterest.put(entry.getKey().toString(), entry.getValue());
+        }
+
+        String sql = "SELECT topic1, topic2, topic3 FROM it_topic WHERE client_id = ?";
+        Map<String, Object> dbInterest;
+        try {
+            dbInterest = jdbcTemplate.queryForMap(sql, id);
+        } catch (Exception e) {
+            throw new CustomException(GlobalExceptionErrorCode.MISSING_INTEREST);
+        }
+
+        boolean isInterestUpdated = !cachedInterest.equals(dbInterest);
+
+        if (isInterestUpdated) {
+            log.info("[REDIS 관심분야 업데이트] MySQL 기준으로 Redis 갱신. client_id: {} -> 변경 내용: 기존 {} -> 최신 {}",
+                    id, cachedInterest, dbInterest);
+
+            redisTemplate.opsForHash().putAll("interest:" + id, dbInterest);
+        }
+
+        List<Point> existingPoints = redisTemplate.opsForGeo().position(globalKey, id.toString());
         if (existingPoints != null && !existingPoints.isEmpty()) {
             Point existingPoint = existingPoints.get(0);
             double existingLatitude = existingPoint.getY();
@@ -194,10 +219,7 @@ public class LocationService {
 
             if (latitude == existingLatitude && longitude == existingLongitude) {
                 log.info("[REFRESH] client_id: {}, 위치 변경 없음 (위도: {}, 경도: {})", id, latitude, longitude);
-
-                updateUserInterest(id);
-
-                throw new CustomException(GlobalExceptionErrorCode.LOCATION_NOT_UPDATED);
+                return getNearbyUsers(id);
             }
         }
 
@@ -206,6 +228,9 @@ public class LocationService {
 
         redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
         redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
+
+        redisTemplate.expire(userKey, Duration.ofSeconds(30));
+        redisTemplate.expire(globalKey, Duration.ofSeconds(30));
 
         log.info("[REFRESH] client_id: {}, 위치 업데이트 완료 (위도: {}, 경도: {})", id, latitude, longitude);
 
