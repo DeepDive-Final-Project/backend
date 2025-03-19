@@ -4,6 +4,8 @@ import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 
 @Entity
 @Getter
@@ -30,12 +32,29 @@ public class ChatMessage {
     @Enumerated(EnumType.STRING)
     private ChatMessageType type;
 
+    @Column(nullable = false)
+    private boolean isRead = false;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+    }
+
     public static ChatMessage createChatMessage(ChatRoom chatRoom, ClientEntity senderNickname, String content, ChatMessageType type) {
         return ChatMessage.builder()
                 .chatRoom(chatRoom)
                 .senderNickname(senderNickname)
                 .content(content)
                 .type(type)
+                .isRead(false)
+                .createdAt(LocalDateTime.now())
                 .build();
+    }
+
+    public void markRead() {
+        this.isRead = true;
     }
 }
