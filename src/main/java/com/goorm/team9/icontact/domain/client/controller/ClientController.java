@@ -58,11 +58,11 @@ public class ClientController {
         }
     }
 
-    @GetMapping("/{client_Id}")
+    @GetMapping("/{clientId}")
     @Operation(summary = "사용자 정보 출력 API", description = "다른 사용자의 정보를 확인합니다.")
     public ResponseEntity<ClientResponseDTO> getUserById(
-            @PathVariable Long client_Id
+            @PathVariable Long clientId
     ) {
-        return ResponseEntity.ok(clientService.getUserById(client_Id));
+        return ResponseEntity.ok(clientService.getUserById(clientId));
     }
 }
