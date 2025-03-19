@@ -9,7 +9,7 @@ public class LocationResponse {
     private Long id;
     private double latitude;
     private double longitude;
-    private String distance;
+    private double distance;
     private String interest;
 
     public LocationResponse(Long id, double latitude, double longitude, Double distance, String interest) {
@@ -18,11 +18,19 @@ public class LocationResponse {
         this.longitude = longitude;
 
         if (distance != null) {
-            this.distance = String.format("%.1fm", distance);
+            this.distance = distance;
         } else {
-            this.distance = "0.0m";
+            this.distance = 0.0;
         }
 
         this.interest = interest;
+    }
+
+    public double getDistanceValue() {
+        return this.distance;
+    }
+
+    public String getFormattedDistance() {
+        return String.format("%.1fm", this.distance);
     }
 }
