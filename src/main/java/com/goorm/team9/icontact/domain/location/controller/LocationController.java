@@ -51,7 +51,7 @@ public class LocationController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "새로고침(주변 참가자 재조회)", description = "참가의 위치를 확인하고, 최신 참가자 목록을 조회하는 API입니다.")
+    @Operation(summary = "새로고침(주변 참가자 재조회)", description = "참가자의 위치를 확인하고, 최신 참가자 목록을 조회하는 API입니다.")
     @GetMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refreshNearbyUsers(
             @Parameter(description = "참가의 ID", required = true) @RequestParam Long id,
