@@ -14,10 +14,14 @@ public enum GlobalExceptionErrorCode implements ErrorCodeInterface {
     CLIENT_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 참가자를 찾을 수 없습니다.", 40402),
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "반경 내 일치하는 참가자가 없습니다.", 40403),
     DUPLICATE_CLIENT(HttpStatus.CONFLICT, "중복된 참가자의 정보가 존재합니다.", 40901),
-    INVALID_LOCATION_DATA(HttpStatus.BAD_REQUEST, "유효하지 않은 위도/경도 값입니다.", 40002),
-    GPS_ERROR(HttpStatus.BAD_REQUEST, "GPS 데이터가 올바르지 않습니다.", 40003),
-    INVALID_USER_ID(HttpStatus.BAD_REQUEST, "유효하지 않은 사용자 ID입니다.", 40004),
-    LOCATION_NOT_UPDATED(HttpStatus.BAD_REQUEST, "위치 정보가 변경되지 않았습니다.", 40005);
+    INVALID_LOCATION_DATA(HttpStatus.BAD_REQUEST, "유효하지 않은 위도/경도 값입니다. 다시 확인해 주세요.", 40002),
+    INVALID_USER_ID(HttpStatus.BAD_REQUEST, "가입된 참가자가 아닙니다. 다시 확인해 주세요.", 40004),
+    LOCATION_NOT_UPDATED(HttpStatus.BAD_REQUEST, "위치 정보가 변경되지 않았습니다.", 40005),
+    INVALID_INTEREST(HttpStatus.BAD_REQUEST, "지정한 관심분야와 참가자가 입력한 관심분야가 일치하지 않습니다. 다시 확인해 주세요.", 40006),
+    UNKNOWN_INTEREST(HttpStatus.NOT_FOUND, "해당 관심분야 찾을 수 없습니다: %s", 40404),
+    MISSING_INTEREST(HttpStatus.BAD_REQUEST, "해당 참가자는 선택한 관심분야가 없으므로 더 이상 진행이 어렵습니다. 관리자에게 문의하세요.", 40007),
+    LOCATION_UPDATED(HttpStatus.OK, "위치 데이터가 갱신되었습니다.", 20001);
+
 
     private final HttpStatus httpStatus;
     private final String message;
@@ -42,5 +46,9 @@ public enum GlobalExceptionErrorCode implements ErrorCodeInterface {
     @Override
     public String getDescription() {
         return message;
+    }
+
+    public String getFormattedMessage(Object... args) {
+        return String.format(message, args);
     }
 }
