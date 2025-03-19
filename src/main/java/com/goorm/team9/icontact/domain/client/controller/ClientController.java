@@ -7,19 +7,19 @@ import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/client/profile")
 @RequiredArgsConstructor
 @Tag(name = "MyPage API", description = "마이페이지 생성 및 수정 API")
-@Slf4j  // 로그 추가
+@Slf4j
 public class ClientController {
 
     private final ClientService clientService;
@@ -65,4 +65,11 @@ public class ClientController {
     ) {
         return ResponseEntity.ok(clientService.getUserById(clientId));
     }
+
+    @GetMapping("/all")
+    @Operation(summary = "전체 사용자 조회 API", description = "삭제되지 않은 모든 사용자의 정보를 반환합니다.")
+    public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
+        return ResponseEntity.ok(clientService.getAllClients());
+    }
+
 }
