@@ -136,7 +136,12 @@ public class LocationService {
             }
 
             int matchScore = calculateInterestMatch(interest, targetInterest);
-            Double distanceValue = result.getDistance() != null ? result.getDistance().getValue() : 0.0;
+            Double distanceValue;
+            if (result.getDistance() != null) {
+                distanceValue = result.getDistance().getValue();
+            } else {
+                distanceValue = 0.0;
+            }
 
             LocationResponse response = new LocationResponse(
                     targetId,
