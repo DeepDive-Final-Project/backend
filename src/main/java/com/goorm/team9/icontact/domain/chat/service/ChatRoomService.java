@@ -197,10 +197,10 @@ public class ChatRoomService {
     @Transactional
     public void updateLastReadAt(Long roomId, Long clientId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-                        .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
         ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, clientId)
-                        .orElseThrow(() -> new IllegalArgumentException("사용자가 채팅방에 존재하지 않습니다."));
+                .orElseThrow(() -> new IllegalArgumentException("사용자가 채팅방에 존재하지 않습니다."));
 
         chatJoin.updateLastReadAt();
         chatJoinRepository.save(chatJoin);
