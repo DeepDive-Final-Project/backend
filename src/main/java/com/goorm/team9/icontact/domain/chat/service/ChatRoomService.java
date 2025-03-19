@@ -6,17 +6,16 @@ import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
 import com.goorm.team9.icontact.domain.chat.entity.RequestStatus;
 import com.goorm.team9.icontact.domain.chat.repository.ChatJoinRepository;
+import com.goorm.team9.icontact.domain.chat.repository.ChatMessageRepository;
 import com.goorm.team9.icontact.domain.chat.repository.ChatRequestRepository;
 import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -28,13 +27,15 @@ public class ChatRoomService {
     private final ClientRepository clientRepository;
     private final ClientService clientService;
     private final ChatRequestRepository chatRequestRepository;
+    private final ChatMessageRepository chatMessageRepository;
 
-    public ChatRoomService(ChatRoomRepository chatRoomRepository, ChatJoinRepository chatJoinRepository, ClientRepository clientRepository, ChatRequestRepository chatRequestRepository, ClientService clientService) {
+    public ChatRoomService(ChatRoomRepository chatRoomRepository, ChatJoinRepository chatJoinRepository, ClientRepository clientRepository, ChatRequestRepository chatRequestRepository, ClientService clientService, ChatMessageRepository chatMessageRepository) {
         this.chatRoomRepository = chatRoomRepository;
         this.chatJoinRepository = chatJoinRepository;
         this.clientRepository = clientRepository;
         this.chatRequestRepository = chatRequestRepository;
         this.clientService = clientService;
+        this.chatMessageRepository = chatMessageRepository;
     }
 
     @Transactional
@@ -146,38 +147,67 @@ public class ChatRoomService {
     }
 
     public List<ChatRoomResponse> getLatestChatRooms(ClientEntity client) {
-        List<ChatRoom> chatRooms = chatRoomRepository.findAllChatRoomsByUser(client.getNickName());
+        List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
-        return chatRooms.stream()
-                .map(ChatRoomResponse::fromEntity)
+        return results.stream()
+                .map(result -> {
+                    ChatRoom chatRoom = (ChatRoom) result[0];
+                    Long unreadCount = (Long) result[1];
+                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount);
+                })
                 .collect(Collectors.toList());
     }
 
     public List<ChatRoomResponse> getUnreadChatRooms(ClientEntity client) {
-        List<ChatRoom> chatRooms = chatRoomRepository.findUnreadChatRooms(client.getNickName());
+        List<Object[]> results = chatRoomRepository.findUnreadChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
-        return chatRooms.stream()
-                .map(ChatRoomResponse::fromEntity)
+        return results.stream()
+                .map(result -> {
+                    ChatRoom chatRoom = (ChatRoom) result[0];
+                    Long unreadCount = (Long) result[1];
+                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount);
+                })
                 .collect(Collectors.toList());
     }
 
     public List<ChatRoomResponse> getChatRoomsByUser(ClientEntity client) {
-        List<ChatRoomResponse> chatRooms = chatRoomRepository.findBySenderNicknameOrReceiverNickname(client.getNickName())
-                .stream()
-                .filter(chatRoom -> {
-                    Optional<ChatJoin> chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId());
-                    return chatJoin.isEmpty() || !chatJoin.get().isExited();
-                })
-                .map(ChatRoomResponse::fromEntity)
-                .collect(Collectors.toList());
+        List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
-        return chatRooms;
+        return results.stream()
+                .map(result -> {
+                    ChatRoom chatRoom = (ChatRoom) result[0];
+                    Long unreadCount = (Long) result[1];
+                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount);
+                })
+                .collect(Collectors.toList());
     }
 
-    public List<ChatRoomResponse> getAllChatRooms() {
-        return chatRoomRepository.findAll()
-                .stream()
-                .map(ChatRoomResponse::fromEntity)
+    public List<ChatRoomResponse> getAllChatRooms(ClientEntity client) {
+        List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
+
+        return results.stream()
+                .map(result -> {
+                    ChatRoom chatRoom = (ChatRoom) result[0];
+                    Long unreadCount = (Long) result[1];
+                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount);
+                })
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void updateLastReadAt(Long roomId, Long clientId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                        .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, clientId)
+                        .orElseThrow(() -> new IllegalArgumentException("사용자가 채팅방에 존재하지 않습니다."));
+
+        chatJoin.updateLastReadAt();
+        chatJoinRepository.save(chatJoin);
+    }
+
+    @Transactional(readOnly = true)
+    public long countUnreadMessages(Long roomId, Long clientId) {
+        return chatMessageRepository.countUnreadMessages(roomId, clientId);
     }
 }
