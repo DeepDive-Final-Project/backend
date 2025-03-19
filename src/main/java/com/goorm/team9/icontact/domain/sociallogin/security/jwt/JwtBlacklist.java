@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
@@ -68,24 +69,10 @@ public class JwtBlacklist {
             }
         }
     }
-
-//    /**
-//     * 10분마다 블랙리스트에서 만료된 토큰을 제거하는 스케줄러.
-//     */
-//    @Scheduled(fixedRate = 600_000) // 10분마다 실행
-//    public void cleanExpiredTokens() {
-//        Instant now = Instant.now();
-//        Iterator<Instant> iterator = blacklistedTokens.keySet().iterator();
-//
-//        while (iterator.hasNext()) {
-//            Instant expiryTime = iterator.next();
-//            if (expiryTime.isBefore(now)) {
-//                iterator.remove();
-//            } else {
-//                break; // 이후 토큰들은 아직 유효하므로 종료
-//            }
-//        }
-//
-//        logger.info("♻️ 만료된 JWT 블랙리스트 정리 완료");
-//    }
+    @Scheduled(cron = "0 0 * * * ?") // 매 정각 실행하여 만료된 토큰 정리
+    public void removeExpiredTokens() {
+        Instant now = Instant.now();
+        blacklistedTokens.entrySet().removeIf(entry -> entry.getValue().isBefore(now));
+        logger.info("✅ 블랙리스트에서 만료된 토큰 정리 완료");
+    }
 }
