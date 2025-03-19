@@ -1,18 +1,16 @@
 package com.goorm.team9.icontact.domain.chat.entity;
 
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
+import com.goorm.team9.icontact.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
-
-import java.time.LocalDateTime;
-
 
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 @Builder
-public class ChatMessage {
+public class ChatMessage extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,14 +33,6 @@ public class ChatMessage {
     @Column(nullable = false)
     private boolean isRead = false;
 
-    @Column(nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @PrePersist
-    protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-    }
-
     public static ChatMessage createChatMessage(ChatRoom chatRoom, ClientEntity senderNickname, String content, ChatMessageType type) {
         return ChatMessage.builder()
                 .chatRoom(chatRoom)
@@ -50,11 +40,6 @@ public class ChatMessage {
                 .content(content)
                 .type(type)
                 .isRead(false)
-                .createdAt(LocalDateTime.now())
                 .build();
-    }
-
-    public void markRead() {
-        this.isRead = true;
     }
 }
