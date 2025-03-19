@@ -20,17 +20,27 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "OR (c.senderNickname.nickName = :receiver AND c.receiverNickname.nickName = :sender)")
     Optional<ChatRoom> findExistingChatRoom(@Param("sender") String sender, @Param("receiver") String receiver);
 
-    @Query("SELECT c FROM ChatRoom c " +
-            "LEFT JOIN ChatMessage m ON c = m.chatRoom " +
+    @Query("SELECT c, " +
+            "(SELECT COUNT(m) FROM ChatMessage m WHERE m.chatRoom = c AND m.created_at > " +
+            "(SELECT cj.lastReadAt FROM ChatJoin cj WHERE cj.chatRoom = c AND cj.client.id = :clientId)) " +
+            "FROM ChatRoom c " +
             "WHERE c.senderNickname.nickName = :nickname OR c.receiverNickname.nickName = :nickname " +
-            "GROUP BY c " +
-            "ORDER BY MAX(m.created_at) DESC")
-    List<ChatRoom> findAllChatRoomsByUser(@Param("nickname") String nickname);
+            "ORDER BY (SELECT MAX(m.created_at) FROM ChatMessage m WHERE m.chatRoom = c) DESC")
+    List<Object[]> findUnreadChatRoomsWithUnreadCount(@Param("nickname") String nickname, @Param("clientId") Long clientId);
 
-    @Query("SELECT c FROM ChatRoom c " +
-            "LEFT JOIN ChatMessage m ON c = m.chatRoom " +
-            "WHERE (c.senderNickname.nickName = :nickname OR c.receiverNickname.nickName = :nickname) " +
-            "AND m.isRead = false " +
-            "ORDER BY m.created_at DESC")
-    List<ChatRoom> findUnreadChatRooms(@Param("nickname") String nickname);
+    @Query("SELECT c, " +
+            "(SELECT COUNT(m) FROM ChatMessage m " +
+            "WHERE m.chatRoom = c AND m.created_at > " +
+            "(SELECT cj.lastReadAt FROM ChatJoin cj WHERE cj.chatRoom = c AND cj.client.id = :clientId)) " +
+            "FROM ChatRoom c " +
+            "WHERE c.senderNickname.nickName = :nickname OR c.receiverNickname.nickName = :nickname " +
+            "ORDER BY (SELECT MAX(m.created_at) FROM ChatMessage m WHERE m.chatRoom = c) DESC")
+    List<Object[]> findAllChatRoomsWithUnreadCount(@Param("nickname") String nickname, @Param("clientId") Long clientId);
+
+    @Query("SELECT c, " +
+            "(SELECT COUNT(m) FROM ChatMessage m WHERE m.chatRoom = c AND m.created_at > " +
+            "(SELECT cj.lastReadAt FROM ChatJoin cj WHERE cj.chatRoom = c AND cj.client.id = :clientId)) " +
+            "FROM ChatRoom c " +
+            "ORDER BY (SELECT MAX(m.created_at) FROM ChatMessage m WHERE m.chatRoom = c) DESC")
+    List<Object[]> findAllChatRoomsWithUnreadCount(@Param("clientId") Long clientId);
 }
