@@ -7,14 +7,10 @@ import com.goorm.team9.icontact.domain.chat.service.ChatRoomService;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 @Tag(name = "Chat Request API", description = "채팅 요청 API")
@@ -38,8 +34,7 @@ public class ChatRequestController {
         ClientEntity receiver = clientRepository.findByNickName(requestDto.getReceiverNickname())
                 .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
 
-        Long requestId = chatRoomService.requestChat(sender, receiver);
-        return ResponseEntity.ok(new ChatResponseDto(requestId, "채팅이 요청되었습니다."));
+        return chatRoomService.requestChat(sender, receiver);
     }
 
     @Operation(summary = "채팅 요청 상태 확인", description = "요청 상태를 확인합니다.")
