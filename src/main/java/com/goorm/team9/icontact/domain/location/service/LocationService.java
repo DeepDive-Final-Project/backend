@@ -33,8 +33,10 @@ public class LocationService {
         String userKey = "client:" + id;
         String globalKey = "location_data";
 
-        redisTemplate.delete(userKey);
-        redisTemplate.opsForZSet().remove(globalKey, id.toString());
+        List<Point> existingPoints = redisTemplate.opsForGeo().position(globalKey, id.toString());
+        if (existingPoints != null && !existingPoints.isEmpty()) {
+            throw new CustomException(GlobalExceptionErrorCode.ALREADY_SAVED_LOCATION);
+        }
 
         redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
         redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
@@ -42,7 +44,7 @@ public class LocationService {
         updateUserInterest(id);
 
         Point savedPoint = redisTemplate.opsForGeo().position(globalKey, id.toString()).get(0);
-        log.info("[REDIS 저장] client_id: {}, (위도: {}, 경도: {})", id, savedPoint.getY(), savedPoint.getX());
+        log.info("[최초 위치 저장 완료] client_id: {}, (위도: {}, 경도: {})", id, savedPoint.getY(), savedPoint.getX());
 
         return true;
     }
@@ -63,7 +65,7 @@ public class LocationService {
     }
 
     public void updateUserInterest(Long id) {
-        log.debug("updateUserInterest 검증 호출 - client_id: {}", id);
+        log.debug("관심분야(updateUserInterest) 검증 - client_id: {}", id);
 
         String sql = "SELECT topic1, topic2, topic3 FROM it_topic WHERE client_id = ?";
         Map<String, Object> interestData;
@@ -187,9 +189,13 @@ public class LocationService {
         String userKey = "client:" + id;
         String globalKey = "location_data";
 
+        List<Point> existingPoints = redisTemplate.opsForGeo().position(globalKey, id.toString());
+        if (existingPoints == null || existingPoints.isEmpty()) {
+            throw new CustomException(GlobalExceptionErrorCode.NO_SAVED_LOCATION);
+        }
+
         Map<Object, Object> rawCachedInterest = redisTemplate.opsForHash().entries("interest:" + id);
         Map<String, Object> cachedInterest = new HashMap<>();
-
         for (Map.Entry<Object, Object> entry : rawCachedInterest.entrySet()) {
             cachedInterest.put(entry.getKey().toString(), entry.getValue());
         }
@@ -202,25 +208,20 @@ public class LocationService {
             throw new CustomException(GlobalExceptionErrorCode.MISSING_INTEREST);
         }
 
-        boolean isInterestUpdated = !cachedInterest.equals(dbInterest);
-
+        boolean isInterestUpdated = isInterestUpdated(cachedInterest, dbInterest);
         if (isInterestUpdated) {
-            log.info("[REDIS 관심분야 업데이트] MySQL 기준으로 Redis 갱신. client_id: {} -> 변경 내용: 기존 {} -> 최신 {}",
+            log.info("[REDIS 관심분야 업데이트 _ MySQL 기준으로 Redis 갱신] client_id: {} -> 변경 내용: 기존 {} -> 최신 {}",
                     id, cachedInterest, dbInterest);
-
             redisTemplate.opsForHash().putAll("interest:" + id, dbInterest);
         }
 
-        List<Point> existingPoints = redisTemplate.opsForGeo().position(globalKey, id.toString());
-        if (existingPoints != null && !existingPoints.isEmpty()) {
-            Point existingPoint = existingPoints.get(0);
-            double existingLatitude = existingPoint.getY();
-            double existingLongitude = existingPoint.getX();
+        Point existingPoint = existingPoints.get(0);
+        double existingLatitude = existingPoint.getY();
+        double existingLongitude = existingPoint.getX();
 
-            if (latitude == existingLatitude && longitude == existingLongitude) {
-                log.info("[REFRESH] client_id: {}, 위치 변경 없음 (위도: {}, 경도: {})", id, latitude, longitude);
-                return getNearbyUsers(id);
-            }
+        if (Math.abs(latitude - existingLatitude) < 0.000001 && Math.abs(longitude - existingLongitude) < 0.000001) {
+            log.info("[새로고침] client_id: {}, 위치 변경 없음 (위도: {}, 경도: {})", id, latitude, longitude);
+            return getNearbyUsers(id);
         }
 
         redisTemplate.delete(userKey);
@@ -232,9 +233,26 @@ public class LocationService {
         redisTemplate.expire(userKey, Duration.ofSeconds(30));
         redisTemplate.expire(globalKey, Duration.ofSeconds(30));
 
-        log.info("[REFRESH] client_id: {}, 위치 업데이트 완료 (위도: {}, 경도: {})", id, latitude, longitude);
+        log.info("[새로고침] client_id: {}, 위치 업데이트 완료 (위도: {}, 경도: {})", id, latitude, longitude);
 
         return getNearbyUsers(id);
+    }
+
+    private boolean isInterestUpdated(Map<String, Object> cachedInterest, Map<String, Object> dbInterest) {
+        if (cachedInterest == null || dbInterest == null) {
+            return false;
+        }
+
+        if (cachedInterest.size() != dbInterest.size()) {
+            return true;
+        }
+
+        for (String key : dbInterest.keySet()) {
+            if (!dbInterest.get(key).equals(cachedInterest.getOrDefault(key, ""))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private Map<String, String> getUserInterest(Long id) {
