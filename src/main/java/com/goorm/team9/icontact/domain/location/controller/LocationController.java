@@ -19,7 +19,7 @@ import java.util.Map;
 public class LocationController {
     private final LocationService locationService;
 
-    @Operation(summary = "위치 및 관심사 정보 저장", description = "참가자 위치 및 관심 분야를 저장하는 API입니다.")
+    @Operation(summary = "최초 위치 데이터 저장", description = "각 참가자는 최초 1회만 이 API를 사용하여 위치 데이터를 저장할 수 있습니다.")
     @PostMapping("/save")
     public ResponseEntity<String> saveLocation(
             @Parameter(description = "참가자 ID", required = true) @RequestParam Long id,
@@ -51,6 +51,7 @@ public class LocationController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "근처 참가자 재조회(새로고침)", description = "참가자 ID를 기반으로 반경 내 참가자를 재조회(새로고침)하는 API입니다.")
     @GetMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refreshNearbyUsers(
             @Parameter(description = "참가자 ID", required = true) @RequestParam Long id,
