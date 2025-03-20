@@ -49,6 +49,11 @@ public class OAuth {
         this.updatedAt = LocalDateTime.now();
     }
 
+    public void updateRefreshToken(String newRefreshToken) {
+        this.refreshToken = newRefreshToken;
+        this.updatedAt = LocalDateTime.now();
+    }
+
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -58,6 +63,14 @@ public class OAuth {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public OAuth(String oauthUserId, String provider, String accessToken, String refreshToken, String email) {
+        this.oauthUserId = oauthUserId;
+        this.provider = provider;
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.email = email;
     }
 
 }
