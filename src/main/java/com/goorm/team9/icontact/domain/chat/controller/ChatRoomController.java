@@ -1,7 +1,5 @@
 package com.goorm.team9.icontact.domain.chat.controller;
 
-import com.goorm.team9.icontact.domain.chat.dto.ChatRequestDto;
-import com.goorm.team9.icontact.domain.chat.dto.ChatResponseDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatRoomRequest;
 import com.goorm.team9.icontact.domain.chat.dto.ChatRoomResponse;
 import com.goorm.team9.icontact.domain.chat.service.ChatRoomService;
@@ -29,55 +27,6 @@ public class ChatRoomController {
     public ChatRoomController(ChatRoomService chatRoomService, ClientRepository clientRepository) {
         this.chatRoomService = chatRoomService;
         this.clientRepository = clientRepository;
-    }
-
-    @Operation(summary = "채팅 신청 API", description = "상대방에게 채팅을 신청합니다.")
-    @PostMapping("/request")
-    public ResponseEntity<ChatResponseDto> requestChat(@RequestBody ChatRequestDto requestDto) {
-        ClientEntity sender = clientRepository.findByNickName(requestDto.getSenderNickname())
-                .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
-        ClientEntity receiver = clientRepository.findByNickName(requestDto.getReceiverNickname())
-                .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
-
-        Long requestId = chatRoomService.requestChat(sender, receiver);
-        ChatResponseDto responseDto = new ChatResponseDto(requestId, "채팅이 요청되었습니다.");
-
-        return ResponseEntity.ok(responseDto);
-    }
-
-    @Operation(summary = "채팅 승인 API", description = "채팅 신청을 승인하여 채팅방을 개설합니다.")
-    @PostMapping("/request/accept")
-    public ResponseEntity<Map<String, Object>> acceptChatRequest(
-            @RequestBody
-            @Schema(example = "{\"requestId\": 123}")
-            Map<String, Long> request) {
-
-        Map<String, Object> response = new HashMap<>();
-        try {
-            Long requestId = request.get("requestId");
-            Long roomId = chatRoomService.acceptChatRequest(requestId);
-
-            response.put("roomId", roomId);
-            response.put("message", "채팅 요청이 승인되었습니다.");
-
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            response.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }
-    }
-
-    @Operation(summary = "채팅 거절 API", description = "채팅 신청을 거절합니다.")
-    @PostMapping("/request/reject")
-    public ResponseEntity<Map<String, Object>> rejectChatRequest(
-            @RequestBody
-            @Schema(example = "{\"requestId\": 123}")
-            Map<String, Long> request) {
-
-        Long requestId = request.get("requestId");
-        chatRoomService.rejectChatRequest(requestId);
-
-        return ResponseEntity.ok(Map.of("message", "채팅 요청이 거절되었습니다."));
     }
 
     @Operation(summary = "채팅방 퇴장 API", description = "사용자가 특정 채팅방을 나갑니다.")
