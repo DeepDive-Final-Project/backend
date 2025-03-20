@@ -96,6 +96,11 @@ public class ChatRoomService {
         return chatRequestRepository.save(chatRequest).getId();
     }
 
+    @Transactional(readOnly = true)
+    public Optional<ChatRequest> getChatRequestById(Long requestId) {
+        return chatRequestRepository.findById(requestId);
+    }
+
     @Transactional
     public Long acceptChatRequest(Long requestId) {
         ChatRequest chatRequest = chatRequestRepository.findByIdAndStatus(requestId, RequestStatus.PENDING)
