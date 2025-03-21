@@ -81,55 +81,6 @@ public class ChatRoomService {
     }
 
     @Transactional
-    public ResponseEntity<ChatResponseDto> requestChat(ClientEntity senderNickname, ClientEntity receiverNickname) {
-        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findExistingChatRoom(senderNickname.getNickName(), receiverNickname.getNickName());
-
-        if (existingChatRoom.isPresent()) {
-            return ResponseEntity.ok(new ChatResponseDto(null, "이미 채팅방이 존재합니다."));
-        }
-
-        Optional<ChatRequest> existingRequest = chatRequestRepository.findPendingRequest(senderNickname.getNickName(), receiverNickname.getNickName());
-
-        if (existingRequest.isPresent()) {
-            return ResponseEntity.ok(new ChatResponseDto(existingRequest.get().getId(), "이미 채팅 요청을 보냈습니다."));
-        }
-
-        ChatRequest chatRequest = ChatRequest.create(senderNickname, receiverNickname);
-        Long requestId = chatRequestRepository.save(chatRequest).getId();
-
-        return ResponseEntity.ok(new ChatResponseDto(requestId, "채팅 요청이 정상적으로 전송되었습니다."));
-    }
-
-    @Transactional(readOnly = true)
-    public Optional<ChatRequest> getChatRequestById(Long requestId) {
-        return chatRequestRepository.findById(requestId);
-    }
-
-    @Transactional
-    public Long acceptChatRequest(Long requestId) {
-        ChatRequest chatRequest = chatRequestRepository.findByIdAndStatus(requestId, RequestStatus.PENDING)
-                .orElseThrow(() -> new IllegalArgumentException("해당 요청이 없거나 이미 처리되었습니다."));
-
-        ClientEntity sender = chatRequest.getSenderNickname();
-        ClientEntity receiver = chatRequest.getReceiverNickname();
-
-        chatRequest.accept();
-        chatRequestRepository.save(chatRequest);
-
-        Long roomId = createChatRoom(sender, receiver);
-
-        return roomId;
-    }
-
-    public void rejectChatRequest(Long requestId) {
-        ChatRequest chatRequest = chatRequestRepository.findByIdAndStatus(requestId, RequestStatus.PENDING)
-                .orElseThrow(() -> new IllegalArgumentException("해당 요청이 없거나 이미 처리되었습니다."));
-
-        chatRequest.reject();
-        chatRequestRepository.save(chatRequest);
-    }
-
-    @Transactional
     public void exitChatRoom(Long roomId, Long clientId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
