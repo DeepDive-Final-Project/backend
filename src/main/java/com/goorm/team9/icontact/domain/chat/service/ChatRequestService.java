@@ -35,20 +35,20 @@ public class ChatRequestService {
 
 
     @Transactional
-    public ResponseEntity<ChatResponseDto> requestChat(ClientEntity senderNickname, ClientEntity receiverNickname) {
-        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findExistingChatRoom(senderNickname.getNickName(), receiverNickname.getNickName());
+    public ResponseEntity<ChatResponseDto> requestChat(ClientEntity sender, ClientEntity receiver) {
+        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findExistingChatRoom(sender.getNickName(), receiver.getNickName());
 
         if (existingChatRoom.isPresent()) {
             return ResponseEntity.ok(new ChatResponseDto(null, "이미 채팅방이 존재합니다.", null));
         }
 
-        Optional<ChatRequest> existingRequest = chatRequestRepository.findPendingRequest(senderNickname.getNickName(), receiverNickname.getNickName());
+        Optional<ChatRequest> existingRequest = chatRequestRepository.findPendingRequest(sender.getNickName(), receiver.getNickName());
 
         if (existingRequest.isPresent()) {
             return ResponseEntity.ok(new ChatResponseDto(existingRequest.get().getId(), "이미 채팅 요청을 보냈습니다.", null));
         }
 
-        ChatRequest chatRequest = ChatRequest.create(senderNickname, receiverNickname);
+        ChatRequest chatRequest = ChatRequest.create(sender, receiver);
         Long requestId = chatRequestRepository.save(chatRequest).getId();
 
         return ResponseEntity.ok(new ChatResponseDto(requestId, "채팅 요청이 정상적으로 전송되었습니다.", null));
@@ -64,8 +64,10 @@ public class ChatRequestService {
         ChatRequest chatRequest = chatRequestRepository.findByIdAndStatus(requestId, RequestStatus.PENDING)
                 .orElseThrow(() -> new IllegalArgumentException("해당 요청이 없거나 이미 처리되었습니다."));
 
-        ClientEntity sender = chatRequest.getSenderNickname();
-        ClientEntity receiver = chatRequest.getReceiverNickname();
+        ClientEntity sender = clientRepository.findByNickName(chatRequest.getSenderNickname())
+                        .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
+        ClientEntity receiver = clientRepository.findByNickName(chatRequest.getReceiverNickname())
+                        .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
 
         chatRequest.accept();
         chatRequestRepository.save(chatRequest);
@@ -89,7 +91,7 @@ public class ChatRequestService {
         ClientEntity receiver = clientRepository.findByNickName(receiverNickname)
                 .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
 
-        return chatRequestRepository.findByReceiverNicknameAndStatus(receiver, status)
+        return chatRequestRepository.findByReceiverNicknameAndStatus(receiverNickname, status)
                 .stream()
                 .map(ChatRequestDto::fromEntity)
                 .collect(Collectors.toList());
@@ -100,7 +102,7 @@ public class ChatRequestService {
         ClientEntity sender = clientRepository.findByNickName(senderNickname)
                 .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
 
-        return chatRequestRepository.findBySenderNicknameAndStatus(sender, status)
+        return chatRequestRepository.findBySenderNicknameAndStatus(senderNickname, status)
                 .stream()
                 .map(ChatRequestDto::fromEntity)
                 .collect(Collectors.toList());
@@ -111,10 +113,9 @@ public class ChatRequestService {
         ClientEntity client = clientRepository.findByNickName(nickname)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        long receivedCount = chatRequestRepository.countReceivedRequests(client, RequestStatus.PENDING);
-        long sentCount = chatRequestRepository.countSentRequests(client, RequestStatus.PENDING);
+        long receivedCount = chatRequestRepository.countReceivedRequests(nickname, RequestStatus.PENDING);
+        long sentCount = chatRequestRepository.countSentRequests(nickname, RequestStatus.PENDING);
 
         return new ChatRequestCountDto(receivedCount, sentCount);
     }
-
 }

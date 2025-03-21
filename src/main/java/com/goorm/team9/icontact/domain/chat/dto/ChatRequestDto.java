@@ -26,8 +26,8 @@ public class ChatRequestDto {
     public static ChatRequestDto fromEntity(ChatRequest chatRequest) {
         return ChatRequestDto.builder()
                 .id(chatRequest.getId())
-                .senderNickname(chatRequest.getSenderNickname().getNickName())
-                .receiverNickname(chatRequest.getReceiverNickname().getNickName())
+                .senderNickname(chatRequest.getSenderNickname())
+                .receiverNickname(chatRequest.getReceiverNickname())
                 .status(chatRequest.getStatus().toString())
                 .build();
     }
