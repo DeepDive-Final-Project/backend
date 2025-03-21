@@ -19,4 +19,9 @@ public interface ChatJoinRepository extends JpaRepository<ChatJoin, Long> {
 
     @Query("SELECT cj FROM ChatJoin cj WHERE cj.chatRoom = :chatRoom")
     List<ChatJoin> findByChatRoom(@Param("chatRoom") ChatRoom chatRoom);
+
+    @Query("SELECT COUNT(cj) > 0 " +
+            "FROM ChatJoin cj " +
+            "WHERE cj.chatRoom = :chatRoom AND cj.client.id = :clientId")
+    boolean existsByChatRoomAndClientId(@Param("chatRoom") ChatRoom chatRoom, @Param("clientId") Long clientId);
 }
