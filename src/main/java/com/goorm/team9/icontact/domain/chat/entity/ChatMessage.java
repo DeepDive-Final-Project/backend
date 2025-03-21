@@ -42,4 +42,8 @@ public class ChatMessage extends BaseTimeEntity {
                 .isRead(false)
                 .build();
     }
+
+    public void markAsRead() {
+        this.isRead = true;
+    }
 }

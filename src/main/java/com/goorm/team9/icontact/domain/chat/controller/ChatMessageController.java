@@ -9,10 +9,7 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -61,5 +58,11 @@ public class ChatMessageController {
 
         List<ChatMessageDto> messages = chatMessageService.getMessagesByRoomId(roomId, clientId);
         return ResponseEntity.ok(messages);
+    }
+
+    @PatchMapping("/{roomId}/read")
+    public ResponseEntity<Void> markMessagesRead(@PathVariable Long roomId, @RequestParam Long clientId) {
+        chatMessageService.markMessagesAsRead(roomId, clientId);
+        return ResponseEntity.noContent().build();
     }
 }
