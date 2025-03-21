@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -82,5 +83,24 @@ public class ChatMessageService {
         }
 
         return chatMessageRepository.findByChatRoom(chatRoom);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ChatMessageDto> getMessagesByRoomId(Long roomId, Long clientId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 채팅방을 찾을 수 없습니다."));
+
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        boolean isMember = chatJoinRepository.existsByChatRoomAndClientId(chatRoom, clientId);
+        if (!isMember) {
+            throw new IllegalArgumentException("해당 채팅방에 속해있지 않습니다.");
+        }
+
+        return chatMessageRepository.findByChatRoomId(roomId)
+                .stream()
+                .map(ChatMessageDto::fromEntity)
+                .collect(Collectors.toList());
     }
 }

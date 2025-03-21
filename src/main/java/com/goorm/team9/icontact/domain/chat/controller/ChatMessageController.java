@@ -4,11 +4,17 @@ import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessageType;
 import com.goorm.team9.icontact.domain.chat.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,5 +52,14 @@ public class ChatMessageController {
         String errorMessage = e.getMessage();
         messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), errorMessage);
         }
+    }
+
+    @GetMapping("/{roomId}/messages")
+    public ResponseEntity<List<ChatMessageDto>> getMessagesByRoomId(
+            @PathVariable Long roomId,
+            @RequestParam Long clientId) {
+
+        List<ChatMessageDto> messages = chatMessageService.getMessagesByRoomId(roomId, clientId);
+        return ResponseEntity.ok(messages);
     }
 }

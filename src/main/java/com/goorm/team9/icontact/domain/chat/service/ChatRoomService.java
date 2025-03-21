@@ -1,5 +1,6 @@
 package com.goorm.team9.icontact.domain.chat.service;
 
+import com.goorm.team9.icontact.domain.chat.dto.ChatResponseDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatRoomResponse;
 import com.goorm.team9.icontact.domain.chat.entity.ChatJoin;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
@@ -12,6 +13,7 @@ import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -76,48 +78,6 @@ public class ChatRoomService {
         chatJoinRepository.save(receiverJoin);
 
         return chatRoom.getRoomId();
-    }
-
-    @Transactional
-    public Long requestChat(ClientEntity senderNickname, ClientEntity receiverNickname) {
-        Optional<ChatRoom> existingChatRoom = chatRoomRepository.findExistingChatRoom(senderNickname.getNickName(), receiverNickname.getNickName());
-
-        if (existingChatRoom.isPresent()) {
-            throw new IllegalArgumentException("이미 채팅방이 존재합니다.");
-        }
-
-        Optional<ChatRequest> existingRequest = chatRequestRepository.findPendingRequest(senderNickname.getNickName(), receiverNickname.getNickName());
-
-        if (existingRequest.isPresent()) {
-            throw new IllegalArgumentException("이미 채팅 요청을 보냈습니다.");
-        }
-
-        ChatRequest chatRequest = ChatRequest.create(senderNickname, receiverNickname);
-        return chatRequestRepository.save(chatRequest).getId();
-    }
-
-    @Transactional
-    public Long acceptChatRequest(Long requestId) {
-        ChatRequest chatRequest = chatRequestRepository.findByIdAndStatus(requestId, RequestStatus.PENDING)
-                .orElseThrow(() -> new IllegalArgumentException("해당 요청이 없거나 이미 처리되었습니다."));
-
-        ClientEntity sender = chatRequest.getSenderNickname();
-        ClientEntity receiver = chatRequest.getReceiverNickname();
-
-        chatRequest.accept();
-        chatRequestRepository.save(chatRequest);
-
-        Long roomId = createChatRoom(sender, receiver);
-
-        return roomId;
-    }
-
-    public void rejectChatRequest(Long requestId) {
-        ChatRequest chatRequest = chatRequestRepository.findByIdAndStatus(requestId, RequestStatus.PENDING)
-                .orElseThrow(() -> new IllegalArgumentException("해당 요청이 없거나 이미 처리되었습니다."));
-
-        chatRequest.reject();
-        chatRequestRepository.save(chatRequest);
     }
 
     @Transactional
