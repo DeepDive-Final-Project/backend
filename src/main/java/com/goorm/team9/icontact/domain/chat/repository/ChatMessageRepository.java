@@ -15,4 +15,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
             "WHERE m.chatRoom.roomId = :chatRoomId " +
             "AND m.created_at > (SELECT cj.lastReadAt FROM ChatJoin cj WHERE cj.chatRoom.roomId = :chatRoomId AND cj.client.id = :clientId)")
     long countUnreadMessages(@Param("chatRoomId") Long chatRoomId, @Param("clientId") Long clientId);
+
+    @Query("SELECT m FROM ChatMessage m WHERE m.chatRoom.roomId = :roomId ORDER BY m.created_at ASC")
+    List<ChatMessage> findByChatRoomId(@Param("roomId") Long roomId);
 }
