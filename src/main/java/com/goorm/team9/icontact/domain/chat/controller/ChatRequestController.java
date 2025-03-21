@@ -48,7 +48,7 @@ public class ChatRequestController {
     public ResponseEntity<ChatResponseDto> getChatRequest(@PathVariable Long id) {
         Optional<ChatRequest> chatRequest = chatRequestService.getChatRequestById(id);
         if (chatRequest.isPresent()) {
-            return ResponseEntity.ok(new ChatResponseDto(chatRequest.get().getId(), chatRequest.get().getStatus().toString()));
+            return ResponseEntity.ok(new ChatResponseDto(chatRequest.get().getId(), chatRequest.get().getStatus().toString(), null));
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -58,14 +58,14 @@ public class ChatRequestController {
     @PatchMapping("/accept")
     public ResponseEntity<ChatResponseDto> acceptChatRequest(@PathVariable Long id) {
         Long roomId = chatRequestService.acceptChatRequest(id);
-        return ResponseEntity.ok(new ChatResponseDto(roomId, "채팅 요청이 수락되었습니다."));
+        return ResponseEntity.ok(new ChatResponseDto(id, "채팅 요청이 수락되었습니다.", roomId));
     }
 
     @Operation(summary = "채팅 거절 API", description = "채팅 신청을 거절합니다.")
     @PatchMapping("/reject")
     public ResponseEntity<ChatResponseDto> rejectChatRequest(@PathVariable Long id) {
         chatRequestService.rejectChatRequest(id);
-        return ResponseEntity.ok(new ChatResponseDto(id, "채팅 요청이 거절되었습니다."));
+        return ResponseEntity.ok(new ChatResponseDto(id, "채팅 요청이 거절되었습니다.", null));
     }
 
     @Operation(summary = "받은 채팅 요청 조회 API", description = "사용자가 받은 채팅 요청을 조회합니다.")

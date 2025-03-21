@@ -39,19 +39,19 @@ public class ChatRequestService {
         Optional<ChatRoom> existingChatRoom = chatRoomRepository.findExistingChatRoom(senderNickname.getNickName(), receiverNickname.getNickName());
 
         if (existingChatRoom.isPresent()) {
-            return ResponseEntity.ok(new ChatResponseDto(null, "이미 채팅방이 존재합니다."));
+            return ResponseEntity.ok(new ChatResponseDto(null, "이미 채팅방이 존재합니다.", null));
         }
 
         Optional<ChatRequest> existingRequest = chatRequestRepository.findPendingRequest(senderNickname.getNickName(), receiverNickname.getNickName());
 
         if (existingRequest.isPresent()) {
-            return ResponseEntity.ok(new ChatResponseDto(existingRequest.get().getId(), "이미 채팅 요청을 보냈습니다."));
+            return ResponseEntity.ok(new ChatResponseDto(existingRequest.get().getId(), "이미 채팅 요청을 보냈습니다.", null));
         }
 
         ChatRequest chatRequest = ChatRequest.create(senderNickname, receiverNickname);
         Long requestId = chatRequestRepository.save(chatRequest).getId();
 
-        return ResponseEntity.ok(new ChatResponseDto(requestId, "채팅 요청이 정상적으로 전송되었습니다."));
+        return ResponseEntity.ok(new ChatResponseDto(requestId, "채팅 요청이 정상적으로 전송되었습니다.", null));
     }
 
     @Transactional(readOnly = true)
