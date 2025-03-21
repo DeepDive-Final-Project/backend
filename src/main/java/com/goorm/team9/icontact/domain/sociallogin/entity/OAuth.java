@@ -32,7 +32,7 @@ public class OAuth {
     @Column(nullable = false)
     private String accessToken;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String refreshToken;
 
     @Column(nullable = false)
@@ -48,4 +48,29 @@ public class OAuth {
         this.accessToken = newAccessToken;
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void updateRefreshToken(String newRefreshToken) {
+        this.refreshToken = newRefreshToken;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public OAuth(String oauthUserId, String provider, String accessToken, String refreshToken, String email) {
+        this.oauthUserId = oauthUserId;
+        this.provider = provider;
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+        this.email = email;
+    }
+
 }

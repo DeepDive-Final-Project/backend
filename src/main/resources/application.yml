@@ -47,8 +47,8 @@ spring:
       org.springframework.security: DEBUG
 
   jwt:
-    secret: ${JWT_SECRET}
-    expiration: ${JWT_EXPIRATION}
+    secret: ${JWT_SECRET:ThisIsAReallyStrongSecretKeyForJwt12345}
+    expiration: ${JWT_EXPIRATION:3600000}
 
   security:
     user:

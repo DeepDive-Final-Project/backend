@@ -34,22 +34,25 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String token = jwtTokenProvider.resolveToken(request);
         logger.info("🔍 요청된 JWT: " + token);
 
-        if (token != null) {
+        if (token == null) {
+            logger.warn("⚠️ JWT 토큰이 없음");
+        } else {
+            logger.info("🔍 요청된 JWT: " + token);
             if (jwtBlacklist.isBlacklisted(token)) {
+                logger.warn("🚨 차단된 JWT 토큰: " + token);
                 handleInvalidToken(response, "🚨 차단된 토큰", token);
                 return;
             }
-
-            if (!jwtTokenProvider.validateToken(token)) {  // 유효성 검사
+            if (!jwtTokenProvider.validateToken(token)) {
+                logger.warn("🛑 유효하지 않은 JWT 토큰: " + token);
                 handleInvalidToken(response, "🛑 유효하지 않은 토큰", token);
                 return;
             }
 
+            // ecurityContextHolder에 Authentication 설정 추가
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             logger.info("✅ SecurityContext에 저장된 사용자: " + authentication.getName());
-        } else {
-            logger.warn("⚠️ JWT 토큰이 없음");
         }
 
         filterChain.doFilter(request, response);

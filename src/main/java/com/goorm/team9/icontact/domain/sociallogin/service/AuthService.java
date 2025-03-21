@@ -2,13 +2,17 @@ package com.goorm.team9.icontact.domain.sociallogin.service;
 
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
+import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthLoginResponseDTO;
 import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthTokenResponse;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtBlacklist;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
+import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvider;
+import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProviderFactory;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +29,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthService {
 
+    private final OAuthProviderFactory providerFactory;
     private final OAuthService oAuthService;
     private final UserService userService;
     private final JwtTokenProvider jwtTokenProvider;
@@ -40,28 +45,46 @@ public class AuthService {
      * @param code 발급한 인증 코드
      * @return JWT 토큰
      */
-    public String loginWithGithub(String provider, String code) {
-        // OAuth Access Token + 사용자 이메일 가져오기
-        OAuthTokenResponse tokenResponse = oAuthService.authenticateWithGithub(provider, code);
-
-        String accessToken = oAuthService.getAccessToken(provider, code);
-        oAuthService.saveOrUpdateUser(provider, tokenResponse.getEmail(), accessToken);
-
+//    public String loginWithOAuth(String provider, String code) {
+//        // OAuth Access Token + 사용자 이메일 가져오기
+//        OAuthTokenResponse tokenResponse = oAuthService.authenticateWithOAuth(provider, code);
+//        OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
+//
+//        String accessToken = oAuthService.getAccessToken(provider, code);
+//
+//        Map<String, Object> userInfo = oAuthProvider.getUserInfo(accessToken);
+//        String oauthUserId = userInfo.get("id").toString();
+//
+//        oAuthService.saveOrUpdateUser(provider, tokenResponse.getEmail(), accessToken, oauthUserId);
+//
+//        String email = tokenResponse.getEmail();
+//        long oauthTokenExpiryMillis = tokenResponse.getExpiresAt(); // OAuth Access Token 만료 시간 가져오기
+//
+//        // 사용자 정보 조회 (없으면 예외 발생)
+//        ClientEntity clientEntity = clientRepository.findByEmail(email)
+//                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+//
+//        // 로그인 이력 저장
+//        loginHistoryService.saveLoginHistory(clientEntity, provider);
+//
+//        // JWT 발급 (OAuth Access Token 만료 시간 고려)
+//        String jwtToken = jwtTokenProvider.createToken(email, oauthTokenExpiryMillis);
+//        logger.info("🔑 발급된 JWT 토큰: {}", jwtToken);
+//
+//        return jwtToken;
+//    }
+    public OAuthLoginResponseDTO loginWithOAuth(String provider, String code) {
+        OAuthTokenResponse tokenResponse = oAuthService.authenticateWithOAuth(provider, code);
         String email = tokenResponse.getEmail();
-        long oauthTokenExpiryMillis = tokenResponse.getExpiresAt(); // OAuth Access Token 만료 시간 가져오기
+        long expiresAt = tokenResponse.getExpiresAt();
 
-        // 사용자 정보 조회 (없으면 예외 발생)
         ClientEntity clientEntity = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        // 로그인 이력 저장
+        String accessToken = jwtTokenProvider.createToken(email, expiresAt);
         loginHistoryService.saveLoginHistory(clientEntity, provider);
 
-        // JWT 발급 (OAuth Access Token 만료 시간 고려)
-        String jwtToken = jwtTokenProvider.createToken(email, oauthTokenExpiryMillis);
-        logger.info("🔑 발급된 JWT 토큰: {}", jwtToken);
-
-        return jwtToken;
+        return new OAuthLoginResponseDTO(email, provider, accessToken, null, clientEntity.getRole().toString());
     }
 
     /**

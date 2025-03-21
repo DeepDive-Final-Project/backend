@@ -3,7 +3,14 @@ package com.goorm.team9.icontact.domain.sociallogin.controller;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.sociallogin.dto.JwtResponse;
+import com.goorm.team9.icontact.domain.sociallogin.dto.LoginUserResponseDTO;
 import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthLoginRequest;
+import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthLoginResponseDTO;
+import com.goorm.team9.icontact.domain.sociallogin.entity.LoginHistory;
+import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
+import com.goorm.team9.icontact.domain.sociallogin.repository.LoginHistoryRepository;
+import com.goorm.team9.icontact.domain.sociallogin.repository.OAuthRepository;
+import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
 import com.goorm.team9.icontact.domain.sociallogin.service.AuthService;
 import com.goorm.team9.icontact.domain.sociallogin.service.LoginHistoryService;
 import com.goorm.team9.icontact.domain.sociallogin.service.UserService;
@@ -11,12 +18,16 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -38,6 +49,9 @@ public class AuthController {
     private final UserService userService;
     private final LoginHistoryService loginHistoryService;
     private final ClientRepository clientRepository;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final OAuthRepository oAuthRepository;
+    private final LoginHistoryRepository loginHistoryRepository;
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     /**
@@ -55,61 +69,25 @@ public class AuthController {
     }
 
     @PostMapping("/github")
-    @Operation(summary = "GitHub 로그인 API", description = "GitHub OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
-    public ResponseEntity<JwtResponse> loginWithGithub(@RequestBody OAuthLoginRequest request) {
-        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("github", request.getCode())));
+    @Operation(summary = "GitHub 로그인 API", description = "GitHub OAuth를 사용하여 로그인하고 사용자 정보를 반환합니다.")
+    public ResponseEntity<OAuthLoginResponseDTO> loginWithGithub(@RequestBody OAuthLoginRequest request) {
+        OAuthLoginResponseDTO response = authService.loginWithOAuth("github", request.getCode());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/google")
-    @Operation(summary = "Google 로그인 API", description = "Google OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
-    public ResponseEntity<JwtResponse> loginWithGoogle(@RequestBody OAuthLoginRequest request) {
-        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("google", request.getCode())));
+    @Operation(summary = "Google 로그인 API", description = "Google OAuth를 사용하여 로그인하고 사용자 정보를 반환합니다.")
+    public ResponseEntity<OAuthLoginResponseDTO> loginWithGoogle(@RequestBody OAuthLoginRequest request) {
+        OAuthLoginResponseDTO response = authService.loginWithOAuth("google", request.getCode());
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/kakao")
-    @Operation(summary = "Kakao 로그인 API", description = "Kakao OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
-    public ResponseEntity<JwtResponse> loginWithKakao(@RequestBody OAuthLoginRequest request) {
-        return ResponseEntity.ok(new JwtResponse(authService.loginWithGithub("kakao", request.getCode())));
+    @Operation(summary = "Kakao 로그인 API", description = "Kakao OAuth를 사용하여 로그인하고 사용자 정보를 반환합니다.")
+    public ResponseEntity<OAuthLoginResponseDTO> loginWithKakao(@RequestBody OAuthLoginRequest request) {
+        OAuthLoginResponseDTO response = authService.loginWithOAuth("kakao", request.getCode());
+        return ResponseEntity.ok(response);
     }
-
-//    /**
-//     * GitHub 로그인 API
-//     */
-//    @PostMapping("/github")
-//    @Operation(summary = "GitHub 로그인 API", description = "GitHub OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
-//    public ResponseEntity<JwtResponse> loginWithGithub(@RequestBody OAuthLoginRequest request) {
-//        return handleOAuthLogin("github", request);
-//    }
-//
-//    /**
-//     * Google 로그인 API
-//     */
-//    @PostMapping("/google")
-//    @Operation(summary = "Google 로그인 API", description = "Google OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
-//    public ResponseEntity<JwtResponse> loginWithGoogle(@RequestBody OAuthLoginRequest request) {
-//        return handleOAuthLogin("google", request);
-//    }
-//
-//    /**
-//     * Kakao 로그인 API
-//     */
-//    @PostMapping("/kakao")
-//    @Operation(summary = "Kakao 로그인 API", description = "Kakao OAuth를 사용하여 로그인하고 JWT 토큰을 반환합니다.")
-//    public ResponseEntity<JwtResponse> loginWithKakao(@RequestBody OAuthLoginRequest request) {
-//        return handleOAuthLogin("kakao", request);
-//    }
-//
-//    /**
-//     * 공통 OAuth 로그인 처리 (GitHub, Google, Kakao)
-//     */
-//    private ResponseEntity<JwtResponse> handleOAuthLogin(String provider, OAuthLoginRequest request) {
-//        if (request.getCode() == null || request.getCode().isEmpty()) {
-//            logger.error("❌ {} OAuth 로그인 실패: 인증 코드가 없음!", provider);
-//            throw new RuntimeException(provider + " OAuth 인증 코드가 없습니다.");
-//        }
-//        String jwt = authService.loginWithGithub(provider, request.getCode());
-//        return ResponseEntity.ok(new JwtResponse(jwt));
-//    }
 
     /**
      * 로그아웃 API
@@ -183,4 +161,37 @@ public class AuthController {
         boolean isBlacklisted = authHeader != null && authService.isTokenBlacklisted(authHeader);
         return ResponseEntity.ok(Map.of("blacklisted", isBlacklisted));
     }
+
+    @GetMapping("/me")
+    @Operation(summary = "내 정보 조회 API")
+    @Transactional(readOnly = true) // ✅ 추가
+    public ResponseEntity<?> getMyInfo(@RequestHeader("Authorization") String authorizationHeader) {
+        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization 헤더가 없습니다.");
+        }
+
+        try {
+            String token = authorizationHeader.substring(7);
+            String email = jwtTokenProvider.getUserEmail(token);
+
+            return clientRepository.findByEmail(email)
+                    .map(client -> {
+                        // OAuth 정보 조회
+                        Optional<OAuth> oauthInfo = oAuthRepository.findByEmail(email);
+                        String provider = oauthInfo.map(OAuth::getProvider).orElse("UNKNOWN");
+
+                        // 최근 로그인 시간 조회
+                        Optional<LoginHistory> lastLogin = loginHistoryRepository.findFirstByClientEntityOrderByLoginAtDesc(client);
+                        LocalDateTime lastLoginAt = lastLogin.map(LoginHistory::getLoginAt).orElse(null);
+
+                        return ResponseEntity.ok(new LoginUserResponseDTO(client, provider, lastLoginAt));
+                    })
+                    .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
+        } catch (Exception e) {
+            e.printStackTrace(); // ❗ 예외 스택 트레이스 출력 추가
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류 발생");
+        }
+    }
+
+
 }

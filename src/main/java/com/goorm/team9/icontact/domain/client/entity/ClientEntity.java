@@ -72,4 +72,11 @@ public class ClientEntity extends BaseTimeEntity {
         }
     }
 
+    @PostLoad
+    private void initCollections() {
+        if (this.oauthAccounts == null) {
+            this.oauthAccounts = new ArrayList<>();
+        }
+    }
+
 }
