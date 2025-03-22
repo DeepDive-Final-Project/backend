@@ -58,11 +58,14 @@ public class ChatMessageService {
 
         ChatMessage chatMessage = ChatMessage.builder()
                 .chatRoom(chatRoom)
-                .senderNickname(senderNickname)
+                .senderNickname(senderNickname.getNickName())
                 .content(chatMessageDto.getContent())
                 .type(chatMessageDto.getType())
                 .build();
         chatMessageRepository.save(chatMessage);
+
+        chatRoom.updateLastMessage(chatMessage.getContent(), chatMessage.getCreated_at());
+        chatRoomRepository.save(chatRoom);
 
         String destination = "/queue/" + chatMessageDto.getRoomId();
         messagingTemplate.convertAndSend(destination, chatMessageDto);
@@ -87,6 +90,7 @@ public class ChatMessageService {
 
     @Transactional(readOnly = true)
     public List<ChatMessageDto> getMessagesByRoomId(Long roomId, Long clientId) {
+
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 채팅방을 찾을 수 없습니다."));
 
@@ -102,5 +106,22 @@ public class ChatMessageService {
                 .stream()
                 .map(ChatMessageDto::fromEntity)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public void markMessagesAsRead(Long roomId, Long clientId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
+
+        ClientEntity reader = clientRepository.findById(clientId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        List<ChatMessage> unreadMessages = chatMessageRepository.findUnreadMessages(chatRoom, reader);
+
+        for (ChatMessage chatMessage : unreadMessages) {
+            chatMessage.markAsRead();
+        }
+
+        chatMessageRepository.saveAll(unreadMessages);
     }
 }

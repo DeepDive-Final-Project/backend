@@ -2,6 +2,7 @@ package com.goorm.team9.icontact.domain.chat.repository;
 
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessage;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,4 +19,11 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     @Query("SELECT m FROM ChatMessage m WHERE m.chatRoom.roomId = :roomId ORDER BY m.created_at ASC")
     List<ChatMessage> findByChatRoomId(@Param("roomId") Long roomId);
+
+    @Query("SELECT m FROM ChatMessage m " +
+            "WHERE m.chatRoom = :chatRoom " +
+            "AND m.isRead = false " +
+            "AND m.senderNickname <> :reader")
+    List<ChatMessage> findUnreadMessages(@Param("chatRoom") ChatRoom chatRoom,
+                                         @Param("reader") ClientEntity reader);
 }

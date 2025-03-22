@@ -14,23 +14,26 @@ public interface ChatRequestRepository extends JpaRepository<ChatRequest, Long> 
     Optional<ChatRequest> findByIdAndStatus(Long requestId, RequestStatus status);
 
     @Query("SELECT cr FROM ChatRequest cr WHERE " +
-            "cr.senderNickname.nickName = :sender AND cr.receiverNickname.nickName = :receiver " +
+            "cr.sender.nickName = :sender AND cr.receiver.nickName = :receiver " +
             "AND cr.status = 'PENDING'")
     Optional<ChatRequest> findPendingRequest(@Param("sender") String sender, @Param("receiver") String receiver);
 
-    List<ChatRequest> findByReceiverNicknameAndStatus(ClientEntity receiver, RequestStatus status);
+    @Query("SELECT cr FROM ChatRequest cr WHERE cr.receiver.nickName = :receiver AND cr.status = :status")
+    List<ChatRequest> findByReceiverNicknameAndStatus(@Param("receiver") String receiver, @Param("status") RequestStatus status);
 
-    List<ChatRequest> findBySenderNicknameAndStatus(ClientEntity sender, RequestStatus status);
+    @Query("SELECT cr FROM ChatRequest cr WHERE cr.sender.nickName = :sender AND cr.status = :status")
+    List<ChatRequest> findBySenderNicknameAndStatus(@Param("sender") String sender, @Param("status") RequestStatus status);
 
     @Query("SELECT COUNT(cr) " +
             "FROM ChatRequest cr " +
             "WHERE cr.receiverNickname = :receiver AND cr.status = :status")
-    long countReceivedRequests(@Param("receiver") ClientEntity receiver, @Param("status") RequestStatus status);
+    long countReceivedRequests(@Param("receiver") String receiver, @Param("status") RequestStatus status);
 
     @Query("SELECT COUNT(cr) " +
             "FROM ChatRequest cr " +
             "WHERE cr.senderNickname = :sender AND cr.status = :status")
-    long countSentRequests(@Param("sender") ClientEntity sender, @Param("status") RequestStatus status);
+    long countSentRequests(@Param("sender") String sender, @Param("status") RequestStatus status);
 
     List<ChatRequest> status(RequestStatus status);
+
 }

@@ -26,7 +26,7 @@ public class ChatMessageDto {
         return ChatMessageDto.builder()
                 .messageId(chatMessage.getId())
                 .roomId(chatMessage.getChatRoom().getRoomId())
-                .senderNickname(chatMessage.getSenderNickname().getNickName())
+                .senderNickname(chatMessage.getSenderNickname())
                 .content(chatMessage.getContent())
                 .type(chatMessage.getType())
                 .timeStamp(chatMessage.getCreated_at())
