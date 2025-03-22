@@ -3,7 +3,6 @@ package com.goorm.team9.icontact.domain.chat.controller;
 import com.goorm.team9.icontact.domain.chat.dto.ChatRequestCountDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatRequestDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatResponseDto;
-import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
 import com.goorm.team9.icontact.domain.chat.entity.RequestStatus;
 import com.goorm.team9.icontact.domain.chat.service.ChatRequestService;
 import com.goorm.team9.icontact.domain.chat.service.ChatRoomService;
@@ -15,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @Tag(name = "Chat Request API", description = "채팅 요청 API")
 @RestController
@@ -46,23 +44,20 @@ public class ChatRequestController {
     @Operation(summary = "채팅 요청 상태 확인", description = "요청 상태를 확인합니다.")
     @GetMapping("/{id}")
     public ResponseEntity<ChatResponseDto> getChatRequest(@PathVariable Long id) {
-        Optional<ChatRequest> chatRequest = chatRequestService.getChatRequestById(id);
-        if (chatRequest.isPresent()) {
-            return ResponseEntity.ok(new ChatResponseDto(chatRequest.get().getId(), chatRequest.get().getStatus().toString(), null));
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+        return chatRequestService.getChatRequestById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @Operation(summary = "채팅 승인 API", description = "채팅 신청을 승인하여 채팅방을 개설합니다.")
-    @PatchMapping("/accept")
+    @PatchMapping("/accept/{id}")
     public ResponseEntity<ChatResponseDto> acceptChatRequest(@PathVariable Long id) {
         Long roomId = chatRequestService.acceptChatRequest(id);
         return ResponseEntity.ok(new ChatResponseDto(id, "채팅 요청이 수락되었습니다.", roomId));
     }
 
     @Operation(summary = "채팅 거절 API", description = "채팅 신청을 거절합니다.")
-    @PatchMapping("/reject")
+    @PatchMapping("/reject/{id}")
     public ResponseEntity<ChatResponseDto> rejectChatRequest(@PathVariable Long id) {
         chatRequestService.rejectChatRequest(id);
         return ResponseEntity.ok(new ChatResponseDto(id, "채팅 요청이 거절되었습니다.", null));
