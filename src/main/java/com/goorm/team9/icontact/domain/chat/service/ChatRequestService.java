@@ -55,8 +55,26 @@ public class ChatRequestService {
     }
 
     @Transactional(readOnly = true)
-    public Optional<ChatRequest> getChatRequestById(Long requestId) {
-        return chatRequestRepository.findById(requestId);
+    public Optional<ChatResponseDto> getChatRequestById(Long requestId) {
+        Optional<ChatRequest> chatRequestOpt = chatRequestRepository.findById(requestId);
+        if (chatRequestOpt.isEmpty()) return Optional.empty();
+
+        ChatRequest chatRequest = chatRequestOpt.get();
+        Long roomId = null;
+
+        if (chatRequest.getStatus() == RequestStatus.ACCEPTED) {
+            Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findExistingChatRoom(
+                    chatRequest.getSenderNickname(),
+                    chatRequest.getReceiverNickname()
+            );
+            roomId = chatRoomOpt.map(ChatRoom::getRoomId).orElse(null);
+        }
+
+        return Optional.of(new ChatResponseDto(
+                chatRequest.getId(),
+                chatRequest.getStatus().toString(),
+                roomId
+        ));
     }
 
     @Transactional
