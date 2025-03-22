@@ -3,17 +3,20 @@ package com.goorm.team9.icontact.domain.chat.controller;
 import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessageType;
 import com.goorm.team9.icontact.domain.chat.service.ChatMessageService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Chat Message API", description = "채팅 메시지 관련 API")
 @RestController
+@RequestMapping("/api/messages")
 @RequiredArgsConstructor
 public class ChatMessageController {
 
@@ -51,7 +54,8 @@ public class ChatMessageController {
         }
     }
 
-    @GetMapping("/{roomId}/messages")
+    @Operation(summary = "채팅 메시지 목록 조회", description = "해당 채팅방의 메시지를 조회합니다.")
+    @GetMapping("/{roomId}")
     public ResponseEntity<List<ChatMessageDto>> getMessagesByRoomId(
             @PathVariable Long roomId,
             @RequestParam Long clientId) {
@@ -60,6 +64,7 @@ public class ChatMessageController {
         return ResponseEntity.ok(messages);
     }
 
+    @Operation(summary = "메시지 읽음 처리", description = "해당 채팅방에서 사용자의 메시지를 읽음 처리합니다.")
     @PatchMapping("/{roomId}/read")
     public ResponseEntity<Void> markMessagesRead(@PathVariable Long roomId, @RequestParam Long clientId) {
         chatMessageService.markMessagesAsRead(roomId, clientId);
