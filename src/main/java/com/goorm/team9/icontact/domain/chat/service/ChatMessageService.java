@@ -58,7 +58,7 @@ public class ChatMessageService {
 
         ChatMessage chatMessage = ChatMessage.builder()
                 .chatRoom(chatRoom)
-                .senderNickname(senderNickname)
+                .senderNickname(senderNickname.getNickName())
                 .content(chatMessageDto.getContent())
                 .type(chatMessageDto.getType())
                 .build();
@@ -90,6 +90,7 @@ public class ChatMessageService {
 
     @Transactional(readOnly = true)
     public List<ChatMessageDto> getMessagesByRoomId(Long roomId, Long clientId) {
+
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 채팅방을 찾을 수 없습니다."));
 
