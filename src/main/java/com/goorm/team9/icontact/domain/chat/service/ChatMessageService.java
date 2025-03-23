@@ -2,6 +2,7 @@ package com.goorm.team9.icontact.domain.chat.service;
 
 import com.goorm.team9.icontact.domain.block.repository.BlockRepository;
 import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
+import com.goorm.team9.icontact.domain.chat.dto.ChatMessageNotificationDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatJoin;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessage;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
@@ -69,6 +70,22 @@ public class ChatMessageService {
 
         String destination = "/queue/" + chatMessageDto.getRoomId();
         messagingTemplate.convertAndSend(destination, chatMessageDto);
+
+        for (ChatJoin participant : participants) {
+            ClientEntity recipient = participant.getClient();
+            if (!recipient.getNickName().equals(chatMessageDto.getSenderNickname())) {
+                String userDestination = "/queue/chat-notification/" + recipient.getNickName();
+
+                ChatMessageNotificationDto notification = new ChatMessageNotificationDto(
+                        chatMessageDto.getSenderNickname(),
+                        chatMessageDto.getContent().length() > 30 ? chatMessageDto.getContent().substring(0, 30) + "..." : chatMessageDto.getContent(),
+                        chatRoom.getRoomId(),
+                        chatMessage.getCreated_at()
+                );
+
+                messagingTemplate.convertAndSend(userDestination, notification);
+            }
+        }
     }
 
     public List<ChatMessage> getMessages(Long roomId, Long clientId) {
