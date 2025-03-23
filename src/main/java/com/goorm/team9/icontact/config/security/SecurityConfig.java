@@ -52,7 +52,9 @@ public class SecurityConfig {
                             "http://localhost:8080",
                             "http://3.34.165.63:8080",
                             "http://43.201.245.222:8080",
+                            "https://i-contacts.link",
                             "https://www.i-contacts.link",
+                            "https://api.i-contacts.link",
                             "http://localhost:5173"
                     ));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
