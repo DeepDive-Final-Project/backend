@@ -57,7 +57,7 @@ public class SecurityConfig {
                             "https://api.i-contacts.link",
                             "http://localhost:5173"
                     ));
-                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     config.setAllowedHeaders(List.of("*"));
                     config.setExposedHeaders(List.of("Authorization", "Content-Type"));
                     return config;
