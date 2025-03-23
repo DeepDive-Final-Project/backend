@@ -83,27 +83,39 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         final String userEmail = email;
-        ClientEntity client = clientRepository.findByEmail(userEmail)
-                .orElseGet(() -> clientRepository.save(ClientEntity.builder()
-                        .nickName(userEmail.split("@")[0])
-                        .email(userEmail)
-                        .role(Role.DEV)
-                        .status(Status.PUBLIC)
-                        .isDeleted(false)
-                        .build()));
+        ClientEntity client = clientRepository.findByProviderAndEmail(userEmail, provider)
+                .orElseGet(() -> {
+                    logger.info("🆕 새로운 ClientEntity 생성: email={}, provider={}", userEmail, provider);
+                    return clientRepository.save(ClientEntity.builder()
+                            .nickName(NicknameGeneratorService.generateNickname())
+                            .email(userEmail)
+                            .provider(provider)
+                            .role(Role.DEV)
+                            .status(Status.PUBLIC)
+                            .isDeleted(false)
+                            .build());
+                });
 
-        OAuth oauth = oAuthRepository.findByProviderAndOauthUserId(provider, oauthUserId)
-                .orElse(OAuth.builder()
-                        .client(client)
-                        .provider(provider)
-                        .email(userEmail)
-                        .oauthUserId(oauthUserId)
-                        .accessToken(accessToken)
-                        .refreshToken(refreshToken)
-                        .expiresAt(LocalDateTime.now().plusDays(7))
-                        .createdAt(LocalDateTime.now())
-                        .updatedAt(LocalDateTime.now())
-                        .build());
+        if (client.getProvider() == null || !client.getProvider().equals(provider)) {
+            client.setProvider(provider);
+            clientRepository.saveAndFlush(client);
+        }
+
+        OAuth oauth = oAuthRepository.findByProviderAndEmail(provider, userEmail)
+                .orElseGet(() -> {
+                    logger.info("🆕 새로운 OAuth 계정 저장: provider={}, email={}", provider, userEmail);
+                    return OAuth.builder()
+                            .provider(provider)
+                            .email(userEmail)
+                            .client(client)
+                            .oauthUserId(oauthUserId)
+                            .accessToken(accessToken)
+                            .refreshToken(null)
+                            .expiresAt(LocalDateTime.now().plusDays(7))
+                            .createdAt(LocalDateTime.now())
+                            .updatedAt(LocalDateTime.now())
+                            .build();
+                });
 
         oauth.updateAccessToken(accessToken);
         if (refreshToken != null) {

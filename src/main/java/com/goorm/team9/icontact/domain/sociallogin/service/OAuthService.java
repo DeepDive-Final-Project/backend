@@ -146,12 +146,14 @@ public class OAuthService {
 //    }
     @Transactional
     public void saveOrUpdateUser(String provider, String email, String accessToken) {
-        ClientEntity client = clientRepository.findByEmail(email)
+        // 기존 클라이언트가 있는지 확인하고 없으면 생성
+        ClientEntity client = clientRepository.findByProviderAndEmail(email, provider)
                 .orElseGet(() -> {
-                    logger.info("🆕 새로운 ClientEntity 생성: {}", email);
+                    logger.info("🆕 새로운 ClientEntity 생성: email={}, provider={}", email, provider);
                     ClientEntity newClient = ClientEntity.builder()
                             .email(email)
-                            .nickName(email.split("@")[0])  // 기본 닉네임 설정
+                            .provider(provider)
+                            .nickName(NicknameGeneratorService.generateNickname())
                             .role(Role.DEV)
                             .status(Status.PUBLIC)
                             .isDeleted(false)
@@ -159,7 +161,8 @@ public class OAuthService {
                     return clientRepository.save(newClient);
                 });
 
-        OAuth oauth = oauthRepository.findByEmail(email)
+        // ✅ 기존 OAuth 계정이 있는지 provider와 함께 조회
+        OAuth oauth = oauthRepository.findByProviderAndEmail(provider, email)
                 .orElseGet(() -> {
                     logger.info("🆕 새로운 OAuth 계정 저장: provider={}, email={}", provider, email);
                     return OAuth.builder()
@@ -173,9 +176,10 @@ public class OAuthService {
                             .build();
                 });
 
+        // ✅ accessToken 업데이트
         oauth.updateAccessToken(accessToken);
         oauthRepository.save(oauth);
-        logger.info("✅ OAuth 저장 완료: {}", email);
+        logger.info("✅ OAuth 저장 완료: email={}, provider={}", email, provider);
     }
 
     /**
