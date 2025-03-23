@@ -13,4 +13,7 @@ public class ChatResponseDto {
 
     @Schema(example = "채팅이 요청되었습니다.", description = "응답 메시지")
     private final String message;
+
+    @Schema(example = "123", description = "채팅방 ID")
+    private final Long roomId;
 }

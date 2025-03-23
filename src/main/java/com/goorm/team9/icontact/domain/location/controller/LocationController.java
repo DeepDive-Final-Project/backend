@@ -19,47 +19,80 @@ import java.util.Map;
 public class LocationController {
     private final LocationService locationService;
 
-    @Operation(summary = "위치 데이터 저장", description = "사용자의 위치 및 관심 분야를 저장하는 API입니다.")
+    @Operation(
+            summary = "위치 데이터 저장",
+            description = "참가자의 위치 데이터를 저장합니다. 기존 위치가 존재하는 경우 갱신되며, 위치 데이터는 30초 동안 유지됩니다."
+    )
     @PostMapping("/save")
     public ResponseEntity<String> saveLocation(
-            @Parameter(description = "사용자 ID", required = true) @RequestParam Long id,
+            @Parameter(description = "참가자 ID", required = true) @RequestParam Long id,
             @Parameter(description = "위도(latitude)", required = true) @RequestParam double latitude,
-            @Parameter(description = "경도(longitude)", required = true) @RequestParam double longitude,
-            @Parameter(description = "사용자의 관심 분야", required = true) @RequestParam String interest
+            @Parameter(description = "경도(longitude)", required = true) @RequestParam double longitude
     ) {
-        boolean isUpdated = locationService.saveUserInformation(id, latitude, longitude, interest);
-        return ResponseEntity.ok(isUpdated ? "위치 데이터가 갱신되었습니다." : "위치 변화가 없어 위치 데이터가 유지되었습니다.");
+        locationService.saveUserInformation(id, latitude, longitude);
+
+        String responseMessage = String.format(
+                "위치 데이터가 저장되었습니다. (ID: %d, 위도: %.6f, 경도: %.6f)",
+                id, latitude, longitude
+        );
+
+        return ResponseEntity.ok(responseMessage);
     }
 
-    @Operation(summary = "근처 참가자 조회", description = "사용자의 현재 위치와 관심 분야를 기반으로 반경 내 참가자를 조회하는 API입니다.")
-    @GetMapping("/api/nearby")
-    public ResponseEntity<Map<String, Object>> getNearbyUsers(
-            @Parameter(description = "현재 위도(latitude)", required = true) @RequestParam double latitude,
-            @Parameter(description = "현재 경도(longitude)", required = true) @RequestParam double longitude,
-            @Parameter(description = "사용자의 관심 분야", required = true) @RequestParam String interest
+    @Operation(
+            summary = "위치 데이터 삭제",
+            description = "참가자의 위치 데이터 삭제합니다."
+    )
+    @DeleteMapping("/delete")
+    public ResponseEntity<Map<String, Object>> deleteLocation(
+            @Parameter(description = "참가자 ID", required = true) @RequestParam Long id
     ) {
-        List<LocationResponse> nearbyUsers = locationService.getNearbyUsers(latitude, longitude, interest);
+        locationService.deleteUserLocation(id);
 
         Map<String, Object> response = Map.of(
-                "message", "근처 참가자 조회 완료",
+                "message", "위치 데이터가 삭제되었습니다.",
+                "id", id
+        );
+
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(
+            summary = "근처 참가자 조회",
+            description = "참가자의 위치와 관심분야 일치도를 기반으로 반경 10m 이내의 참가자를 재조회합니다. 직무와 경력 조건은 선택적으로 필터링에 사용됩니다."
+    )
+    @GetMapping("/nearby")
+    public ResponseEntity<Map<String, Object>> getNearbyUsers(
+            @Parameter(description = "참가자 ID", required = true) @RequestParam Long id,
+            @Parameter(description = "직무(Role) - 예: 개발자", required = false) @RequestParam(required = false) String role,
+            @Parameter(description = "경력(Career) - 예: 주니어", required = false) @RequestParam(required = false) String career
+    ) {
+        List<LocationResponse> nearbyUsers = locationService.getNearbyUsers(id, role, career);
+
+        Map<String, Object> response = Map.of(
+                "message", "근처 참가자 조회가 완료되었습니다.",
                 "data", nearbyUsers
         );
 
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "새로고침(주변 참가자 재조회)", description = "사용자의 위치를 확인하고, 최신 참가자 목록을 조회하는 API입니다.")
-    @GetMapping("/api/refresh")
+    @Operation(
+            summary = "근처 참가자 재조회",
+            description = "참가자의 위치와 관심분야 일치도를 기반으로 반경 10m 이내의 참가자를 재조회합니다. 직무와 경력 조건은 선택적으로 필터링에 사용됩니다."
+    )
+    @GetMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refreshNearbyUsers(
-            @Parameter(description = "사용자의 ID", required = true) @RequestParam Long id,
+            @Parameter(description = "참가자 ID", required = true) @RequestParam Long id,
             @Parameter(description = "현재 위도(latitude)", required = true) @RequestParam double latitude,
             @Parameter(description = "현재 경도(longitude)", required = true) @RequestParam double longitude,
-            @Parameter(description = "사용자의 관심 분야", required = true) @RequestParam String interest
+            @Parameter(description = "직무(Role) - 예: 개발자", required = false) @RequestParam(required = false) String role,
+            @Parameter(description = "경력(Career) - 예: 주니어", required = false) @RequestParam(required = false) String career
     ) {
-        List<LocationResponse> nearbyUsers = locationService.refreshNearbyUsers(id, latitude, longitude, interest);
+        List<LocationResponse> nearbyUsers = locationService.refreshNearbyUsers(id, latitude, longitude, role, career);
 
         Map<String, Object> response = Map.of(
-                "message", "주변 참가자 새로고침 완료",
+                "message", "주변 참가자 재조회가 완료되었습니다.",
                 "data", nearbyUsers
         );
 

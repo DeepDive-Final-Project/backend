@@ -27,7 +27,7 @@ public class ChatRoom {
     @JoinColumn(name = "receiver_nickname", referencedColumnName = "nickName", nullable = false)
     private ClientEntity receiverNickname;
 
-    @Column(name = "last_message", length = 200)
+    @Column(name = "last_message", length = 1000)
     private String lastMessage;
 
     @Column(name = "last_message_time")
@@ -46,5 +46,10 @@ public class ChatRoom {
         chatRoom.setLastMessage(null);
         chatRoom.setLastMessageTime(null);
         return chatRoom;
+    }
+
+    public void updateLastMessage(String lastMessage, LocalDateTime lastMessageTime) {
+        this.lastMessage = lastMessage;
+        this.lastMessageTime = lastMessageTime;
     }
 }

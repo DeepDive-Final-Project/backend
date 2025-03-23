@@ -1,6 +1,5 @@
 package com.goorm.team9.icontact.domain.chat.entity;
 
-import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,9 +19,8 @@ public class ChatMessage extends BaseTimeEntity {
     @JoinColumn(name = "room_id", nullable = false)
     private ChatRoom chatRoom;
 
-    @ManyToOne
-    @JoinColumn(name = "sender_nickname", nullable = false)
-    private ClientEntity senderNickname;
+    @Column(name = "sender_nickname", nullable = false)
+    private String senderNickname;
 
     @Column(nullable = false, length = 1000)
     private String content;
@@ -34,7 +32,7 @@ public class ChatMessage extends BaseTimeEntity {
     @Builder.Default
     private boolean isRead = false;
 
-    public static ChatMessage createChatMessage(ChatRoom chatRoom, ClientEntity senderNickname, String content, ChatMessageType type) {
+    public static ChatMessage createChatMessage(ChatRoom chatRoom, String senderNickname, String content, ChatMessageType type) {
         return ChatMessage.builder()
                 .chatRoom(chatRoom)
                 .senderNickname(senderNickname)
@@ -42,5 +40,9 @@ public class ChatMessage extends BaseTimeEntity {
                 .type(type)
                 .isRead(false)
                 .build();
+    }
+
+    public void markAsRead() {
+        this.isRead = true;
     }
 }

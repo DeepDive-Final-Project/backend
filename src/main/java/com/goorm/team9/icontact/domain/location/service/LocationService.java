@@ -1,9 +1,13 @@
 package com.goorm.team9.icontact.domain.location.service;
 
-import com.goorm.team9.icontact.domain.location.dto.LocationResponse;
-import com.goorm.team9.icontact.common.exception.GlobalExceptionErrorCode;
 import com.goorm.team9.icontact.common.exception.CustomException;
+import com.goorm.team9.icontact.common.exception.GlobalExceptionErrorCode;
+import com.goorm.team9.icontact.domain.client.enums.Career;
+import com.goorm.team9.icontact.domain.client.enums.Interest;
+import com.goorm.team9.icontact.domain.client.enums.Role;
+import com.goorm.team9.icontact.domain.location.dto.LocationResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.geo.*;
 import org.springframework.data.redis.connection.RedisGeoCommands;
@@ -11,10 +15,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class LocationService {
     private final RedisTemplate<String, String> redisTemplate;
     private final JdbcTemplate jdbcTemplate;
@@ -22,11 +30,11 @@ public class LocationService {
     @Value("${app.geo.search-radius:10}")
     private double searchRadius;
 
-    public boolean saveUserInformation(Long id, double latitude, double longitude, String interest) {
+    public boolean saveUserInformation(Long id, double latitude, double longitude) {
         validateId(id);
         validateLocationData(latitude, longitude);
 
-        String userKey = "client: " + id;
+        String userKey = "client:" + id;
         String globalKey = "location_data";
 
         redisTemplate.delete(userKey);
@@ -35,16 +43,36 @@ public class LocationService {
         redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
         redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
 
-        updateUserInterest(id, interest);
+        redisTemplate.expire(userKey, Duration.ofSeconds(30));
+        redisTemplate.expire(globalKey, Duration.ofSeconds(30));
+
+        updateUserInterest(id);
+
+        List<Point> savedPoints = redisTemplate.opsForGeo().position(globalKey, id.toString());
+        if (savedPoints == null || savedPoints.isEmpty()) {
+            throw new CustomException(GlobalExceptionErrorCode.REDIS_SAVE_FAILURE);
+        }
+        Point savedPoint = savedPoints.get(0);
+        log.info("[위치 저장] client_id: {}, 위도: {}, 경도: {}", id, savedPoint.getY(), savedPoint.getX());
 
         return true;
+    }
+
+    public void deleteUserLocation(Long id) {
+        String userKey = "client:" + id;
+        String globalKey = "location_data";
+
+        redisTemplate.delete(userKey);
+        redisTemplate.opsForZSet().remove(globalKey, id.toString());
+
+        log.info("[위치 삭제] client_id: {}", id);
     }
 
     private void validateId(Long id) {
         String sql = "SELECT EXISTS (SELECT 1 FROM client WHERE id = ?)";
         Boolean exists = jdbcTemplate.queryForObject(sql, new Object[]{id}, Boolean.class);
         if (exists == null || !exists) {
-            throw new CustomException(GlobalExceptionErrorCode.INVALID_USER_ID);
+            throw new CustomException(GlobalExceptionErrorCode.CLIENT_NOT_FOUND);
         }
     }
 
@@ -54,145 +82,207 @@ public class LocationService {
         }
     }
 
-    public void updateUserInterest(Long id, String interest) {
-        System.out.println("[DEBUG] updateUserInterest 호출 - client_id = " + id + ", interest = " + interest);
+    public void updateUserInterest(Long id) {
+        String sql = "SELECT topic1, topic2, topic3 FROM it_topic WHERE client_id = ?";
+        Map<String, Object> interestData = jdbcTemplate.queryForMap(sql, id);
 
-        String[] topicsArray = interest.split(",");
-        List<String> topics = new ArrayList<>();
-
-        for (int i = 0; i < topicsArray.length; i++) {
-            String topic = topicsArray[i].trim();
-            if (!topic.isEmpty()) {
-                topics.add(topic);
-            }
-            if (topics.size() >= 3) {
-                break;
-            }
-        }
-
-        String topic1 = topics.size() > 0 ? topics.get(0) : "";
-        String topic2 = topics.size() > 1 ? topics.get(1) : "";
-        String topic3 = topics.size() > 2 ? topics.get(2) : "";
-
-        System.out.println("[DEBUG] 최종 저장될 관심사 topic1 = " + topic1 + ", topic2 = " + topic2 + ", topic3 = " + topic3);
-
-        String checkSql = "SELECT COUNT(*) FROM it_topic WHERE client_id = ?";
-        Integer count = jdbcTemplate.queryForObject(checkSql, Integer.class, id);
-
-        if (count == null || count == 0) {
-            String insertSql = "INSERT INTO it_topic (client_id, topic1, topic2, topic3) VALUES (?, ?, ?, ?)";
-            System.out.println("[DEBUG] INSERT 실행 - client_id = " + id);
-            jdbcTemplate.update(insertSql, id, topic1, topic2, topic3);
-        } else {
-            String updateSql = "UPDATE it_topic SET topic1 = ?, topic2 = ?, topic3 = ? WHERE client_id = ?";
-            System.out.println("[DEBUG] UPDATE 실행 - client_id = " + id);
-            jdbcTemplate.update(updateSql, topic1, topic2, topic3, id);
+        if (interestData.isEmpty()) {
+            throw new CustomException(GlobalExceptionErrorCode.MISSING_INTEREST);
         }
 
         String redisKey = "interest:" + id;
-        redisTemplate.opsForHash().putAll(redisKey, Map.of("topic1", topic1, "topic2", topic2, "topic3", topic3));
+        redisTemplate.opsForHash().putAll(redisKey, interestData);
+
+        log.info("[관심분야 저장] client_id: {}, topic1: {}, topic2: {}, topic3: {}",
+                id, interestData.get("topic1"), interestData.get("topic2"), interestData.get("topic3"));
     }
 
-    public List<LocationResponse> getNearbyUsers(double latitude, double longitude, String interest) {
-        String key = "location_data";
+    public List<LocationResponse> getNearbyUsers(Long id, String roleDesc, String careerDesc) {
+        syncInterestFromMySQLIfChanged(id);
 
-        GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo()
-                .radius(
-                        key,
-                        new Circle(new Point(longitude, latitude), new Distance(searchRadius, RedisGeoCommands.DistanceUnit.METERS)),
-                        RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs().includeCoordinates().includeDistance()
-                );
+        Point userPoint = getUserPoint(id);
+        String interest = getFormattedInterest(id);
 
-        if (results == null || results.getContent().isEmpty()) {
-            return Collections.emptyList();
+        return findNearbyUsers(userPoint.getY(), userPoint.getX(), interest, roleDesc, careerDesc);
+    }
+
+    public List<LocationResponse> refreshNearbyUsers(Long id, double latitude, double longitude, String roleDesc, String careerDesc) {
+        String userKey = "client:" + id;
+        String globalKey = "location_data";
+
+        Point existingPoint = getUserPoint(id);
+
+        if (Math.abs(latitude - existingPoint.getY()) < 0.000001 && Math.abs(longitude - existingPoint.getX()) < 0.000001) {
+            return getNearbyUsers(id, roleDesc, careerDesc);
         }
 
-        List<LocationResponse> filteredUsers = new ArrayList<>();
-        Map<Long, Integer> interestMatchCount = new HashMap<>();
+        redisTemplate.delete(userKey);
+        redisTemplate.opsForZSet().remove(globalKey, id.toString());
 
-        for (GeoResult<RedisGeoCommands.GeoLocation<String>> result : results.getContent()) {
-            Long targetId = Long.valueOf(result.getContent().getName());
+        redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
+        redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
 
+        redisTemplate.expire(userKey, Duration.ofSeconds(30));
+        redisTemplate.expire(globalKey, Duration.ofSeconds(30));
+
+        log.info("[위치 새로고침] client_id: {}, 위치 갱신됨 (위도: {}, 경도: {})", id, latitude, longitude);
+
+        return getNearbyUsers(id, roleDesc, careerDesc);
+    }
+
+    public List<LocationResponse> findNearbyUsers(double latitude, double longitude, String interest, String roleDesc, String careerDesc) {
+        GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo().radius(
+                "location_data",
+                new Circle(new Point(longitude, latitude), new Distance(searchRadius, RedisGeoCommands.DistanceUnit.METERS)),
+                RedisGeoCommands.GeoRadiusCommandArgs.newGeoRadiusArgs().includeCoordinates().includeDistance()
+        );
+
+        if (results == null || results.getContent().isEmpty()) return Collections.emptyList();
+
+        List<LocationResponse> allCandidates = new ArrayList<>();
+
+        List<GeoResult<RedisGeoCommands.GeoLocation<String>>> resultList = results.getContent();
+        for (int i = 0; i < resultList.size(); i++) {
+            GeoResult<RedisGeoCommands.GeoLocation<String>> result = resultList.get(i);
+            RedisGeoCommands.GeoLocation<String> geoLocation = result.getContent();
+
+            Long targetId = Long.valueOf(geoLocation.getName());
             Map<String, String> targetInterest = getUserInterest(targetId);
-            if (!targetInterest.isEmpty()) {
-                int matchScore = calculateInterestMatch(interest, targetInterest);
-                if (matchScore > 0) {
-                    Double distanceValue;
-                    if (result.getDistance() != null) {
-                        distanceValue = result.getDistance().getValue();
-                    } else {
-                        distanceValue = 0.0;
-                    }
+            int matchScore = calculateInterestMatch(interest, targetInterest);
 
-                    filteredUsers.add(new LocationResponse(
-                            targetId,
-                            result.getContent().getPoint().getY(),
-                            result.getContent().getPoint().getX(),
-                            distanceValue,
-                            targetInterest.toString()
-                    ));
-                    interestMatchCount.put(targetId, matchScore);
-                }
+            Map<String, Object> rcInfo = jdbcTemplate.queryForMap(
+                    "SELECT role, career FROM client WHERE id = ?", targetId);
+            String targetRole = rcInfo.getOrDefault("role", "").toString();
+            String targetCareer = rcInfo.getOrDefault("career", "").toString();
+
+            double distance = result.getDistance().getValue();
+
+            LocationResponse response = new LocationResponse(
+                    targetId,
+                    geoLocation.getPoint().getY(),
+                    geoLocation.getPoint().getX(),
+                    distance,
+                    targetInterest.toString(),
+                    targetRole,
+                    targetCareer
+            );
+
+            response.setDistanceValue(distance);
+            response.setMatchScore(matchScore);
+            allCandidates.add(response);
+        }
+
+        Stream<LocationResponse> filteredStream = allCandidates.stream();
+        if (roleDesc != null || careerDesc != null) {
+            filteredStream = filteredStream.filter(r -> isRoleCareerMatch(r.getId(), roleDesc, careerDesc));
+        }
+
+        List<LocationResponse> sorted = filteredStream
+                .sorted(Comparator
+                        .comparingDouble(LocationResponse::getDistanceValue)
+                        .thenComparing(Comparator.comparingInt(LocationResponse::getMatchScore).reversed())
+                )
+                .limit(10)
+                .collect(Collectors.toList());
+
+        return sorted;
+    }
+
+    private Point getUserPoint(Long id) {
+        List<Point> points = redisTemplate.opsForGeo().position("location_data", id.toString());
+        if (points == null || points.isEmpty()) {
+            throw new CustomException(GlobalExceptionErrorCode.INVALID_USER_ID);
+        }
+        return points.get(0);
+    }
+
+    private String getFormattedInterest(Long id) {
+        Map<Object, Object> cached = redisTemplate.opsForHash().entries("interest:" + id);
+        return String.format("%s,%s,%s",
+                cached.getOrDefault("topic1", ""),
+                cached.getOrDefault("topic2", ""),
+                cached.getOrDefault("topic3", "")
+        );
+    }
+
+    private void syncInterestFromMySQLIfChanged(Long id) {
+        Map<Object, Object> cached = redisTemplate.opsForHash().entries("interest:" + id);
+        Map<String, Object> db = jdbcTemplate.queryForMap("SELECT topic1, topic2, topic3 FROM it_topic WHERE client_id = ?", id);
+
+        boolean isDifferent = db.entrySet().stream()
+                .anyMatch(e -> !Objects.equals(e.getValue(), cached.getOrDefault(e.getKey(), "")));
+
+        if (isDifferent) {
+            redisTemplate.opsForHash().putAll("interest:" + id, db);
+            log.info("[관심분야 동기화] client_id: {}, Redis가 최신 MySQL 기준으로 갱신됨", id);
+        }
+    }
+
+    private boolean isRoleCareerMatch(Long id, String roleDesc, String careerDesc) {
+        if (roleDesc == null && careerDesc == null) return true;
+
+        Map<String, Object> rc = jdbcTemplate.queryForMap("SELECT role, career FROM client WHERE id = ?", id);
+        String userRole = rc.getOrDefault("role", "").toString();
+        String userCareer = rc.getOrDefault("career", "").toString();
+
+        boolean roleMatch = true;
+        boolean careerMatch = true;
+
+        if (roleDesc != null) {
+            try {
+                Role roleEnum = Role.fromDescription(roleDesc.trim());
+                roleMatch = roleEnum.name().equalsIgnoreCase(userRole);
+            } catch (IllegalArgumentException e) {
+                throw new CustomException(GlobalExceptionErrorCode.INVALID_ROLE);
             }
         }
 
-        filteredUsers.sort((u1, u2) -> interestMatchCount.getOrDefault(u2.getId(), 0)
-                - interestMatchCount.getOrDefault(u1.getId(), 0));
-
-        if (filteredUsers.size() > 10) {
-            Collections.shuffle(filteredUsers);
-            return filteredUsers.subList(0, 10);
-        } else {
-            return filteredUsers;
+        if (careerDesc != null) {
+            try {
+                Career careerEnum = Career.fromDescription(careerDesc.trim());
+                careerMatch = careerEnum.name().equalsIgnoreCase(userCareer);
+            } catch (IllegalArgumentException e) {
+                throw new CustomException(GlobalExceptionErrorCode.INVALID_CAREER);
+            }
         }
-    }
 
-    public List<LocationResponse> refreshNearbyUsers(Long id, double latitude, double longitude, String interest) {
-        return getNearbyUsers(latitude, longitude, interest);
+        return roleMatch && careerMatch;
     }
 
     private Map<String, String> getUserInterest(Long id) {
-        String redisKey = "interest: " + id;
+        Map<Object, Object> raw = redisTemplate.opsForHash().entries("interest:" + id);
+        Map<String, String> interestMap = new HashMap<>();
 
-        Map<Object, Object> cachedInterest = redisTemplate.opsForHash().entries(redisKey);
-        if (!cachedInterest.isEmpty()) {
-            Map<String, String> interestMap = new HashMap<>();
-            cachedInterest.forEach((key, value) -> interestMap.put(key.toString(), value.toString()));
-            return interestMap;
-        }
-
-        String sql = "SELECT topic1, topic2, topic3 FROM it_topic WHERE client_id = ?";
-        Map<String, String> interestMap;
-
-        try {
-            interestMap = jdbcTemplate.queryForObject(sql, new Object[]{id}, (rs, rowNum) -> {
-                Map<String, String> map = new HashMap<>();
-                map.put("topic1", rs.getString("topic1"));
-                map.put("topic2", rs.getString("topic2"));
-                map.put("topic3", rs.getString("topic3"));
-                return map;
-            });
-
-            if (interestMap != null) {
-                redisTemplate.opsForHash().putAll(redisKey, interestMap);
-            }
-        } catch (Exception e) {
-            return new HashMap<>();
+        List<Map.Entry<Object, Object>> entryList = new ArrayList<>(raw.entrySet());
+        for (int i = 0; i < entryList.size(); i++) {
+            Map.Entry<Object, Object> entry = entryList.get(i);
+            String key = entry.getKey().toString();
+            String value = convertToDescription(entry.getValue().toString());
+            interestMap.put(key, value);
         }
 
         return interestMap;
     }
 
-    private int calculateInterestMatch(String userInterest, Map<String, String> targetInterest) {
-        int matchScore = 0;
-        Set<String> userTopics = new LinkedHashSet<>(Arrays.asList(userInterest.split(",")));
+    private String convertToDescription(String enumName) {
+        if (enumName == null || enumName.isEmpty()) return GlobalExceptionErrorCode.INVALID_INTEREST.getDescription();
+        try {
+            return Interest.valueOf(enumName).getDescription();
+        } catch (IllegalArgumentException e) {
+            return GlobalExceptionErrorCode.UNKNOWN_INTEREST.getFormattedMessage(enumName);
+        }
+    }
 
-        for (String topic : targetInterest.values()) {
-            if (topic != null && userTopics.contains(topic)) {
-                matchScore++;
+    private int calculateInterestMatch(String userInterest, Map<String, String> targetInterest) {
+        int score = 0;
+        Set<String> userTopics = new HashSet<>(Arrays.asList(userInterest.split(",")));
+        List<String> topicList = new ArrayList<>(targetInterest.values());
+        for (int i = 0; i < topicList.size(); i++) {
+            String topic = topicList.get(i);
+            if (userTopics.contains(topic)) {
+                score++;
             }
         }
-
-        return matchScore;
+        return score;
     }
 }

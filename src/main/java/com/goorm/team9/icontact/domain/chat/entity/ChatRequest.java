@@ -18,12 +18,18 @@ public class ChatRequest {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "sender_nickname", nullable = false)
-    private ClientEntity senderNickname;
+    @JoinColumn(name = "sender_id", nullable = false)
+    private ClientEntity sender;
 
     @ManyToOne
-    @JoinColumn(name = "receiver_nickname", nullable = false)
-    private ClientEntity receiverNickname;
+    @JoinColumn(name = "receiver_id", nullable = false)
+    private ClientEntity receiver;
+
+    @Column(name = "sender_nickname", nullable = false)
+    private String senderNickname;
+
+    @Column(name = "receiver_nickname", nullable = false)
+    private String receiverNickname;
 
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
@@ -32,9 +38,11 @@ public class ChatRequest {
         return new ChatRequest(senderNickname, receiverNickname);
     }
 
-    public ChatRequest(ClientEntity senderNickname, ClientEntity receiverNickname) {
-        this.senderNickname = senderNickname;
-        this.receiverNickname = receiverNickname;
+    public ChatRequest(ClientEntity sender, ClientEntity receiver) {
+        this.sender = sender;
+        this.receiver = receiver;
+        this.senderNickname = sender.getNickName();
+        this.receiverNickname = receiver.getNickName();
         this.status = RequestStatus.PENDING;
     }
 

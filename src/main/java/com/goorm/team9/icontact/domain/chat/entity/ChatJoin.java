@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @Setter
@@ -25,16 +27,15 @@ public class ChatJoin {
     @Column(nullable = false)
     private boolean exited = false;
 
+    @Column(nullable = true)
+    private LocalDateTime lastReadAt;
+
     public void exitChatRoom() {
         this.exited = true;
     }
 
-    public void rejoinChatRoom() {
-        this.exited = false;
-    }
-
-    public ChatRoom getChatRoom() {
-        return this.chatRoom;
+    public void updateLastReadAt() {
+        this.lastReadAt = LocalDateTime.now();
     }
 
 }
