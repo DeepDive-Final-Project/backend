@@ -10,7 +10,9 @@ import lombok.*;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "oauth")
+@Table(name = "oauth", uniqueConstraints = {
+        @UniqueConstraint(name = "UniqueEmailProvider", columnNames = {"email", "provider"}) // email + provider 복합 유니크 키
+})
 public class OAuth {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
