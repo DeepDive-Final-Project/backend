@@ -29,6 +29,8 @@ public class ChatMessageService {
     private final ClientRepository clientRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final BlockRepository blockRepository;
+    private final WebSocketSessionService webSocketSessionService;
+    private final EmailService emailService;
 
     @Transactional
     public void sendMessage(ChatMessageDto chatMessageDto) {
@@ -84,6 +86,15 @@ public class ChatMessageService {
                 );
 
                 messagingTemplate.convertAndSend(userDestination, notification);
+
+                if (!webSocketSessionService.isUserOnline(recipient.getNickName())) {
+                    String recipientEmail = recipient.getEmail();
+                    String messagePreview = chatMessageDto.getContent().length() > 30
+                            ? chatMessageDto.getContent().substring(0, 30) + "..."
+                            : chatMessageDto.getContent();
+
+                    emailService.sendNewMessageNotification(recipientEmail, chatMessageDto.getSenderNickname(), messagePreview);
+                }
             }
         }
     }
