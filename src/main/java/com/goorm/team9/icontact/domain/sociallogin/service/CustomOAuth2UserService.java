@@ -59,7 +59,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 ? authorizedClient.getRefreshToken().getTokenValue()
                 : null;
         logger.info("🛠 Access Token: {}", accessToken);
-        logger.info("🔄 Refresh Token: {}", refreshToken);
 
         OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
         if (oAuthProvider == null) {
@@ -98,7 +97,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         if (client.getProvider() == null || !client.getProvider().equals(provider)) {
             client.setProvider(provider);
-            clientRepository.saveAndFlush(client);
+            clientRepository.save(client);
         }
 
         OAuth oauth = oAuthRepository.findByProviderAndEmail(provider, userEmail)
