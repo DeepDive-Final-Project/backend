@@ -50,7 +50,6 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/ws-chat/**",
-                                "/ws-chat/**/**",
                                 "/topic/**",
                                 "/app/**",
                                 "/swagger-ui/**",
