@@ -7,7 +7,6 @@ import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.sociallogin.dto.OAuthTokenResponse;
 import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
 import com.goorm.team9.icontact.domain.sociallogin.repository.OAuthRepository;
-import com.goorm.team9.icontact.domain.sociallogin.security.exception.OAuthTokenExpiredException;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvider;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProviderFactory;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +24,6 @@ import org.springframework.web.client.RestTemplate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * OAuth 인증 및 사용자 정보 관리 서비스.
@@ -147,7 +145,7 @@ public class OAuthService {
     @Transactional
     public void saveOrUpdateUser(String provider, String email, String accessToken) {
         // 기존 클라이언트가 있는지 확인하고 없으면 생성
-        ClientEntity client = clientRepository.findByProviderAndEmail(email, provider)
+        ClientEntity client = clientRepository.findByEmailAndProviderNative(email, provider)
                 .orElseGet(() -> {
                     logger.info("🆕 새로운 ClientEntity 생성: email={}, provider={}", email, provider);
                     ClientEntity newClient = ClientEntity.builder()

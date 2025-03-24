@@ -4,6 +4,7 @@ import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.enums.Role;
 import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
+import com.goorm.team9.icontact.domain.client.service.ClientSaveService;
 import com.goorm.team9.icontact.domain.sociallogin.entity.LoginHistory;
 import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
 import com.goorm.team9.icontact.domain.sociallogin.repository.LoginHistoryRepository;
@@ -14,7 +15,10 @@ import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvid
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -44,6 +48,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private final OAuthRepository oAuthRepository;
     private final LoginHistoryRepository loginHistoryRepository;
     private final OAuth2AuthorizedClientService authorizedClientService;
+    private final ClientSaveService clientSaveService;
 
     private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
@@ -82,39 +87,50 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         final String userEmail = email;
-        ClientEntity client = clientRepository.findByProviderAndEmail(userEmail, provider)
-                .orElseGet(() -> {
-                    logger.info("🆕 새로운 ClientEntity 생성: email={}, provider={}", userEmail, provider);
-                    return clientRepository.save(ClientEntity.builder()
-                            .nickName(NicknameGeneratorService.generateNickname())
-                            .email(userEmail)
-                            .provider(provider)
-                            .role(Role.DEV)
-                            .status(Status.PUBLIC)
-                            .isDeleted(false)
-                            .build());
-                });
+        final String normalizedProvider = provider.toLowerCase();
 
-        if (client.getProvider() == null || !client.getProvider().equals(provider)) {
-            client.setProvider(provider);
+        logger.info("🔍 사용자 조회 - email={}, provider={}", userEmail, normalizedProvider);
+
+        ClientEntity client = clientRepository.findByEmailAndProviderNative(userEmail, normalizedProvider)
+                .orElse(null);
+
+        if (client == null) {
+            ClientEntity clientEntityToSave = ClientEntity.builder()
+                    .nickName(NicknameGeneratorService.generateNickname())
+                    .email(userEmail)
+                    .provider(normalizedProvider)
+                    .role(Role.DEV)
+                    .status(Status.PUBLIC)
+                    .isDeleted(false)
+                    .build();
+
+            logger.info("📝 사용자 저장 시도 - email={}, provider={}", userEmail, normalizedProvider);
+            client = clientSaveService.saveClientSafely(clientEntityToSave);
+            logger.info("✅ 사용자 저장 완료 - id={}", client.getId());
+        } else {
+            logger.info("✅ 기존 사용자 조회 성공 - id={}", client.getId());
+        }
+
+        if (client.getProvider() == null || !client.getProvider().equalsIgnoreCase(provider)) {
+            client.setProvider(normalizedProvider);
             clientRepository.save(client);
         }
 
-        OAuth oauth = oAuthRepository.findByProviderAndEmail(provider, userEmail)
-                .orElseGet(() -> {
-                    logger.info("🆕 새로운 OAuth 계정 저장: provider={}, email={}", provider, userEmail);
-                    return OAuth.builder()
-                            .provider(provider)
-                            .email(userEmail)
-                            .client(client)
-                            .oauthUserId(oauthUserId)
-                            .accessToken(accessToken)
-                            .refreshToken(null)
-                            .expiresAt(LocalDateTime.now().plusDays(7))
-                            .createdAt(LocalDateTime.now())
-                            .updatedAt(LocalDateTime.now())
-                            .build();
-                });
+        OAuth oauth = oAuthRepository.findByProviderAndEmail(normalizedProvider, userEmail).orElse(null);
+        if (oauth == null) {
+            logger.info("🆕 새로운 OAuth 계정 저장 - provider={}, email={}", normalizedProvider, userEmail);
+            oauth = OAuth.builder()
+                    .provider(normalizedProvider)
+                    .email(userEmail)
+                    .client(client)
+                    .oauthUserId(oauthUserId)
+                    .accessToken(accessToken)
+                    .refreshToken(null)
+                    .expiresAt(LocalDateTime.now().plusDays(7))
+                    .createdAt(LocalDateTime.now())
+                    .updatedAt(LocalDateTime.now())
+                    .build();
+        }
 
         oauth.updateAccessToken(accessToken);
         if (refreshToken != null) {
@@ -124,7 +140,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         loginHistoryRepository.save(LoginHistory.builder()
                 .clientEntity(client)
-                .provider(provider)
+                .provider(normalizedProvider)
                 .loginAt(LocalDateTime.now())
                 .build());
 
@@ -132,7 +148,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         userInfo.put("jwtToken", jwtToken);
         userInfo.put("email", email);
 
-        logger.info("✅ {} 로그인 성공 - JWT 발급 완료: {}", provider, jwtToken);
+        logger.info("✅ {} 로그인 성공 - JWT 발급 완료: {}", normalizedProvider, jwtToken);
         return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), userInfo, "email");
     }
 
