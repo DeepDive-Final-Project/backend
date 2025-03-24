@@ -59,4 +59,9 @@ public class WebSocketSessionService {
     public Long createOrGetRoomId(ClientEntity senderNickname, ClientEntity receiverNickname) {
         return chatRoomService.createOrGetRoomId(senderNickname, receiverNickname);
     }
+
+    public boolean isUserOnline(String nickname) {
+        return chatRoomSessions.values().stream()
+                .anyMatch(userMap -> userMap.containsKey(nickname));
+    }
 }
