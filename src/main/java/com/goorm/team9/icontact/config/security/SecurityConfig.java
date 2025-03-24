@@ -37,7 +37,6 @@ public class SecurityConfig {
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(
                 "/ws-chat/**",
-                "/ws-chat/**/**",
                 "/actuator/**",
                 "/swagger-ui/**",
                 "/v3/api-docs/**"
