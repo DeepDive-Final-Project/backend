@@ -54,6 +54,7 @@ public class ClientService {
         topicEntity.setTopic3(request.getTopic3());
         topicEntity.setLanguage(request.getLanguage());
         topicEntity.setFramework(request.getFramework());
+        clientEntity.setProvider(request.getProvider());
 
         topicEntity.setClient(clientEntity);
         clientEntity.setIt_topic(topicEntity);

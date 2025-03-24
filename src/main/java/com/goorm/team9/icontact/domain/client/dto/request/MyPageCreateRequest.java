@@ -25,6 +25,7 @@ import lombok.Setter;
         "  \"topic3\": \"API_Development\",\n" +
         "  \"language\": \"JAVA\",\n" +
         "  \"framework\": \"SPRINGBOOT\"\n" +
+        "  \"provider\": \"kakao\"\n" +
         "}")
 public class MyPageCreateRequest {
     @Schema(example = "Noah")
@@ -62,4 +63,7 @@ public class MyPageCreateRequest {
 
     @Schema(example = "SPRINGBOOT")
     private Framework framework;
+
+    @Schema(example = "kakao")
+    private String provider;
 }

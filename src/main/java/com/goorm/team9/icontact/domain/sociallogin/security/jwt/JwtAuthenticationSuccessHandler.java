@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
+import jakarta.servlet.http.Cookie;
 
 import java.io.IOException;
 import java.util.Map;
@@ -54,6 +55,7 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         String jwtToken = jwtTokenProvider.createToken(email, expiresAt);
 
         setAuthorizationHeader(response, jwtToken);
+        setJwtCookie(response, jwtToken);
         writeJsonResponse(response, jwtToken);
 
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
@@ -80,5 +82,18 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         tokenResponse.put("accessToken", jwtToken);
 
         response.getWriter().write(new ObjectMapper().writeValueAsString(tokenResponse));
+    }
+
+    /**
+     *  JWT를 브라우저 쿠키에 저장하는 메서드
+     */
+    private void setJwtCookie(HttpServletResponse response, String jwtToken) {
+        Cookie jwtCookie = new Cookie("Authorization", jwtToken);
+        jwtCookie.setHttpOnly(true);        // JS로 접근 못 하게 (보안 강화)
+        jwtCookie.setSecure(false);         // HTTPS 환경이면 true로 설정
+        jwtCookie.setPath("/");             // 모든 경로에서 접근 가능
+        jwtCookie.setMaxAge(60 * 60);       // 1시간 유효
+
+        response.addCookie(jwtCookie);
     }
 }

@@ -29,6 +29,7 @@ public class ChatMessage extends BaseTimeEntity {
     private ChatMessageType type;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isRead = false;
 
     public static ChatMessage createChatMessage(ChatRoom chatRoom, String senderNickname, String content, ChatMessageType type) {
