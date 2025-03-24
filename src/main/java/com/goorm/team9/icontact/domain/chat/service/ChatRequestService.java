@@ -2,6 +2,7 @@ package com.goorm.team9.icontact.domain.chat.service;
 
 import com.goorm.team9.icontact.domain.chat.dto.ChatRequestCountDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatRequestDto;
+import com.goorm.team9.icontact.domain.chat.dto.ChatRequestNotificationDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatResponseDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
@@ -11,9 +12,11 @@ import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -26,11 +29,13 @@ public class ChatRequestService {
     private final ChatRequestRepository chatRequestRepository;
     private final ChatRoomRepository chatRoomRepository;
     private final ClientRepository clientRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
-    public ChatRequestService(ChatRequestRepository chatRequestRepository, ChatRoomRepository chatRoomRepository, ClientRepository clientRepository) {
+    public ChatRequestService(ChatRequestRepository chatRequestRepository, ChatRoomRepository chatRoomRepository, ClientRepository clientRepository,SimpMessagingTemplate simpMessagingTemplate) {
         this.chatRequestRepository = chatRequestRepository;
         this.chatRoomRepository = chatRoomRepository;
         this.clientRepository = clientRepository;
+        this.simpMessagingTemplate = simpMessagingTemplate;
     }
 
 
@@ -50,6 +55,15 @@ public class ChatRequestService {
 
         ChatRequest chatRequest = ChatRequest.create(sender, receiver);
         Long requestId = chatRequestRepository.save(chatRequest).getId();
+
+        ChatRequestNotificationDto notification = new ChatRequestNotificationDto(
+                sender.getNickName(),
+                requestId,
+                LocalDateTime.now()
+        );
+
+        String destination = "/queue/chat-request" + receiver.getNickName();
+        simpMessagingTemplate.convertAndSend(destination, notification);
 
         return ResponseEntity.ok(new ChatResponseDto(requestId, "채팅 요청이 정상적으로 전송되었습니다.", null));
     }
