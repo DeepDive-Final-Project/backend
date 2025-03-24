@@ -127,7 +127,7 @@ public class SecurityConfig {
                 "https://www.i-contacts.link",
                 "http://localhost:5173"
         ));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "FETCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setExposedHeaders(List.of("Authorization", "Content-Type"));
         config.setMaxAge(3600L); // 프리플라이트 요청 캐싱 (1시간)
