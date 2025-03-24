@@ -1,11 +1,14 @@
 package com.goorm.team9.icontact.config.websocket;
 
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.socket.server.HandshakeInterceptor;
+import org.springframework.web.util.UriComponentsBuilder;
 
+import java.net.URI;
 import java.util.Map;
 
 public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
@@ -13,17 +16,18 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
     @Override
     public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
                                    WebSocketHandler wsHandler, Map<String, Object> attributes) {
+        URI uri = request.getURI();
+        MultiValueMap<String, String> params = UriComponentsBuilder.fromUri(uri).build().getQueryParams();
 
-        String roomId = request.getURI().getPath().split("/")[2];
+        String roomIdStr = params.getFirst("roomId");
+        String senderNickname = params.getFirst("senderNickname");
 
-        String senderNickname = request.getURI().getQuery();
-        String[] params = senderNickname.split("=");
-        if (params.length == 2 && "senderNickname".equals(params[0])) {
-            senderNickname = params[1];
+        if (roomIdStr != null) {
+            attributes.put("roomId", Long.parseLong(roomIdStr));
         }
-
-        attributes.put("roomId", roomId);
-        attributes.put("senderNickname", senderNickname);
+        if (senderNickname != null) {
+            attributes.put("senderNickname", senderNickname);
+        }
         return true;
     }
 
