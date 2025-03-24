@@ -74,15 +74,15 @@ public class SecurityConfig {
                         .requestMatchers("/auth/home").authenticated()
                         .anyRequest().authenticated()
                 )
-//                .oauth2Login(oauth2 -> oauth2
-//                        .redirectionEndpoint(redirection -> redirection
-//                                .baseUri("/login/oauth2/code/*")
-//                        )
-//                        .userInfoEndpoint(userInfo -> userInfo
-//                                .userService(customOAuth2UserService)
-//                        )
-//                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider)) // JWT 발급 후 반환
-//                )
+                .oauth2Login(oauth2 -> oauth2
+                        .redirectionEndpoint(redirection -> redirection
+                                .baseUri("/login/oauth2/code/*")
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider)) // JWT 발급 후 반환
+                )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtBlacklist),
                         UsernamePasswordAuthenticationFilter.class) // JWT 필터 적용
 
