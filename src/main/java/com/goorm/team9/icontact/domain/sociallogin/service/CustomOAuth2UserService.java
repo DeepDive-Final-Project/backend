@@ -1,30 +1,38 @@
 package com.goorm.team9.icontact.domain.sociallogin.service;
 
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
+import com.goorm.team9.icontact.domain.client.enums.Role;
+import com.goorm.team9.icontact.domain.client.enums.Status;
+import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
+import com.goorm.team9.icontact.domain.sociallogin.entity.LoginHistory;
+import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
+import com.goorm.team9.icontact.domain.sociallogin.repository.LoginHistoryRepository;
+import com.goorm.team9.icontact.domain.sociallogin.repository.OAuthRepository;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvider;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProviderFactory;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
-
-import java.util.Collections;
-import java.util.Map;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 /**
  * OAuth 로그인 시 사용자 정보를 처리하는 서비스
- * - OAuth2User를 로드하고 JWT를 생성하여 반환
  */
 @Service
 @RequiredArgsConstructor
@@ -32,12 +40,24 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final OAuthProviderFactory providerFactory;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ClientRepository clientRepository;
+    private final OAuthRepository oAuthRepository;
+    private final LoginHistoryRepository loginHistoryRepository;
+    private final OAuth2AuthorizedClientService authorizedClientService;
+
     private static final Logger logger = LoggerFactory.getLogger(CustomOAuth2UserService.class);
 
     @Override
+    @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
-        String provider = userRequest.getClientRegistration().getRegistrationId(); // "github", "google", "kakao"
-        String accessToken = userRequest.getAccessToken().getTokenValue(); // OAuth Access Token 가져오기
+        String provider = userRequest.getClientRegistration().getRegistrationId();
+        String accessToken = userRequest.getAccessToken().getTokenValue();
+        OAuth2AuthorizedClient authorizedClient = authorizedClientService.loadAuthorizedClient(
+                provider, userRequest.getClientRegistration().getClientId());
+
+        String refreshToken = authorizedClient != null && authorizedClient.getRefreshToken() != null
+                ? authorizedClient.getRefreshToken().getTokenValue()
+                : null;
         logger.info("🛠 Access Token: {}", accessToken);
 
         OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
@@ -46,26 +66,137 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         Map<String, Object> userInfo = oAuthProvider.getUserInfo(accessToken);
-        long expiresAt = oAuthProvider.getTokenExpiry(accessToken); // Access Token 만료 시간 가져오기
+        long expiresAt = oAuthProvider.getTokenExpiry(accessToken);
+
+        String oauthUserId = String.valueOf(userInfo.getOrDefault("id", userInfo.get("sub")));
+        if (oauthUserId == null || oauthUserId.isEmpty()) {
+            throw new RuntimeException("❌ OAuth2User ID가 누락되었습니다.");
+        }
 
         String email = (String) userInfo.get("email");
-
-        // GitHub의 경우 기본 API 응답에서 이메일이 제공되지 않으므로, 별도의 API 호출로 가져옴
         if ("github".equals(provider) && (email == null || email.isEmpty())) {
             email = getPrimaryEmailFromGitHub(accessToken);
-            if (email == null || email.isEmpty()) {
+            if (email == null) {
                 throw new RuntimeException("❌ GitHub 이메일 정보를 가져올 수 없습니다.");
             }
         }
 
-        // JWT 생성 (OAuth 만료 시간과 동기화)
+        final String userEmail = email;
+        ClientEntity client = clientRepository.findByProviderAndEmail(userEmail, provider)
+                .orElseGet(() -> {
+                    logger.info("🆕 새로운 ClientEntity 생성: email={}, provider={}", userEmail, provider);
+                    return clientRepository.save(ClientEntity.builder()
+                            .nickName(NicknameGeneratorService.generateNickname())
+                            .email(userEmail)
+                            .provider(provider)
+                            .role(Role.DEV)
+                            .status(Status.PUBLIC)
+                            .isDeleted(false)
+                            .build());
+                });
+
+        if (client.getProvider() == null || !client.getProvider().equals(provider)) {
+            client.setProvider(provider);
+            clientRepository.save(client);
+        }
+
+        OAuth oauth = oAuthRepository.findByProviderAndEmail(provider, userEmail)
+                .orElseGet(() -> {
+                    logger.info("🆕 새로운 OAuth 계정 저장: provider={}, email={}", provider, userEmail);
+                    return OAuth.builder()
+                            .provider(provider)
+                            .email(userEmail)
+                            .client(client)
+                            .oauthUserId(oauthUserId)
+                            .accessToken(accessToken)
+                            .refreshToken(null)
+                            .expiresAt(LocalDateTime.now().plusDays(7))
+                            .createdAt(LocalDateTime.now())
+                            .updatedAt(LocalDateTime.now())
+                            .build();
+                });
+
+        oauth.updateAccessToken(accessToken);
+        if (refreshToken != null) {
+            oauth.updateRefreshToken(refreshToken);
+        }
+        oAuthRepository.save(oauth);
+
+        loginHistoryRepository.save(LoginHistory.builder()
+                .clientEntity(client)
+                .provider(provider)
+                .loginAt(LocalDateTime.now())
+                .build());
+
         String jwtToken = jwtTokenProvider.createToken(email, expiresAt);
         userInfo.put("jwtToken", jwtToken);
         userInfo.put("email", email);
 
         logger.info("✅ {} 로그인 성공 - JWT 발급 완료: {}", provider, jwtToken);
-
         return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), userInfo, "email");
+    }
+
+    public String refreshAccessToken(String provider, String refreshToken) {
+        if (refreshToken == null || refreshToken.isEmpty()) {
+            throw new RuntimeException("리프레시 토큰이 없습니다. 다시 로그인하세요.");
+        }
+
+        OAuth oauth = oAuthRepository.findByRefreshToken(refreshToken)
+                .orElseThrow(() -> new RuntimeException("유효하지 않은 리프레시 토큰입니다. 다시 로그인하세요."));
+
+        String newAccessToken = switch (provider) {
+            case "google" -> refreshGoogleAccessToken(refreshToken);
+            case "kakao" -> refreshKakaoAccessToken(refreshToken);
+            case "github" -> refreshGitHubAccessToken(refreshToken);
+            default -> throw new RuntimeException("지원하지 않는 OAuth 제공자: " + provider);
+        };
+
+        if (newAccessToken == null) {
+            throw new RuntimeException("새로운 액세스 토큰을 가져오지 못했습니다. 다시 로그인하세요.");
+        }
+
+        oauth.updateAccessToken(newAccessToken);
+        oAuthRepository.save(oauth);
+
+        return newAccessToken;
+    }
+
+    private String refreshGoogleAccessToken(String refreshToken) {
+        String url = "https://oauth2.googleapis.com/token";
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+
+        String body = "client_id=" + System.getenv("GOOGLE_CLIENT_ID") +
+                "&client_secret=" + System.getenv("GOOGLE_CLIENT_SECRET") +
+                "&refresh_token=" + refreshToken +
+                "&grant_type=refresh_token";
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+
+        return (response.getBody() != null) ? (String) response.getBody().get("access_token") : null;
+    }
+
+    private String refreshKakaoAccessToken(String refreshToken) {
+        String url = "https://kauth.kakao.com/oauth/token";
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Content-Type", "application/x-www-form-urlencoded");
+
+        String body = "grant_type=refresh_token" +
+                "&client_id=" + System.getenv("KAKAO_CLIENT_ID") +
+                "&client_secret=" + System.getenv("KAKAO_CLIENT_SECRET") +
+                "&refresh_token=" + refreshToken;
+
+        HttpEntity<String> entity = new HttpEntity<>(body, headers);
+        ResponseEntity<Map> response = restTemplate.exchange(url, HttpMethod.POST, entity, Map.class);
+
+        return (response.getBody() != null) ? (String) response.getBody().get("access_token") : null;
+    }
+
+    private String refreshGitHubAccessToken(String refreshToken) {
+        throw new RuntimeException("GitHub OAuth는 리프레시 토큰을 지원하지 않습니다. 다시 로그인하세요.");
     }
 
     /**
@@ -98,4 +229,5 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         return null; // 이메일 정보를 가져오지 못하면 null 반환
     }
+
 }

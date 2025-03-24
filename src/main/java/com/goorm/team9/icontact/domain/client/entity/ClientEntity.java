@@ -19,7 +19,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "\"client\"")
+@Table(name = "client", uniqueConstraints = {
+        @UniqueConstraint(name = "UniqueEmailProvider", columnNames = {"email", "provider"}) // ✅ email + provider 조합이 유니크하도록 설정
+})
 public class ClientEntity extends BaseTimeEntity {
 
     @Id
@@ -29,8 +31,11 @@ public class ClientEntity extends BaseTimeEntity {
     @Column(nullable = false, unique = true)
     private String nickName;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
+
+    @Column(nullable = false)
+    private String provider;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -69,6 +74,13 @@ public class ClientEntity extends BaseTimeEntity {
             super.setDeleted_at(LocalDateTime.now());
         } else {
             super.setDeleted_at(null);
+        }
+    }
+
+    @PostLoad
+    private void initCollections() {
+        if (this.oauthAccounts == null) {
+            this.oauthAccounts = new ArrayList<>();
         }
     }
 
