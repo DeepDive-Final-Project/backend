@@ -45,38 +45,11 @@ public class AuthService {
      * @param code 발급한 인증 코드
      * @return JWT 토큰
      */
-//    public String loginWithOAuth(String provider, String code) {
-//        // OAuth Access Token + 사용자 이메일 가져오기
-//        OAuthTokenResponse tokenResponse = oAuthService.authenticateWithOAuth(provider, code);
-//        OAuthProvider oAuthProvider = providerFactory.getProvider(provider);
-//
-//        String accessToken = oAuthService.getAccessToken(provider, code);
-//
-//        Map<String, Object> userInfo = oAuthProvider.getUserInfo(accessToken);
-//        String oauthUserId = userInfo.get("id").toString();
-//
-//        oAuthService.saveOrUpdateUser(provider, tokenResponse.getEmail(), accessToken, oauthUserId);
-//
-//        String email = tokenResponse.getEmail();
-//        long oauthTokenExpiryMillis = tokenResponse.getExpiresAt(); // OAuth Access Token 만료 시간 가져오기
-//
-//        // 사용자 정보 조회 (없으면 예외 발생)
-//        ClientEntity clientEntity = clientRepository.findByEmail(email)
-//                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
-//
-//        // 로그인 이력 저장
-//        loginHistoryService.saveLoginHistory(clientEntity, provider);
-//
-//        // JWT 발급 (OAuth Access Token 만료 시간 고려)
-//        String jwtToken = jwtTokenProvider.createToken(email, oauthTokenExpiryMillis);
-//        logger.info("🔑 발급된 JWT 토큰: {}", jwtToken);
-//
-//        return jwtToken;
-//    }
     public OAuthLoginResponseDTO loginWithOAuth(String provider, String code) {
         OAuthTokenResponse tokenResponse = oAuthService.authenticateWithOAuth(provider, code);
         String email = tokenResponse.getEmail();
         long expiresAt = tokenResponse.getExpiresAt();
+        boolean isNewUser = !clientRepository.existsByEmailAndProvider(email, provider);
 
         ClientEntity clientEntity = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -84,7 +57,14 @@ public class AuthService {
         String accessToken = jwtTokenProvider.createToken(email, expiresAt);
         loginHistoryService.saveLoginHistory(clientEntity, provider);
 
-        return new OAuthLoginResponseDTO(email, provider, accessToken, null, clientEntity.getRole().toString());
+        return new OAuthLoginResponseDTO(
+                email,
+                provider,
+                accessToken,
+                null,
+                clientEntity.getRole().toString(),
+                isNewUser
+        );
     }
 
     /**
@@ -101,7 +81,7 @@ public class AuthService {
 
         if (token != null) {
             jwtBlacklist.addToBlacklist(token, jwtTokenProvider.getExpirationMillis(token));
-            oAuthService.invalidateAccessToken(email);
+//            oAuthService.invalidateAccessToken(email);
         }
 
         SecurityContextHolder.clearContext();
