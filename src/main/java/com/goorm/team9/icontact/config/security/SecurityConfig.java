@@ -36,6 +36,7 @@ public class SecurityConfig {
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return (web) -> web.ignoring().requestMatchers(
+                "/ws-chat/**",
                 "/actuator/**",
                 "/swagger-ui/**",
                 "/v3/api-docs/**"
