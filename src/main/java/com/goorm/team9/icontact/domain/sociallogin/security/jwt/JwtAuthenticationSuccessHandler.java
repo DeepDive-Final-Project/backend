@@ -61,8 +61,8 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
 
         // 필요 시 특정 페이지로 리다이렉트하도록, 지금은 기본 처리 유지
-//        String redirectUrl = "https://www.i-contacts.link/oauth-success?token=" + jwtToken;
-        String redirectUrl = "http://localhost:5173/profile1";
+        String redirectUrl = "https://www.i-contacts.link/oauth-success?token=" + jwtToken;
+//        String redirectUrl = "http://localhost:5173/profile1";
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
 //        clearAuthenticationAttributes(request);
 
