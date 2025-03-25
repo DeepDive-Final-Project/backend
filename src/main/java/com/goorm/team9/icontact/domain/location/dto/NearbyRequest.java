@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "근처 참가자 조회 요청 정보")
 public class NearbyRequest {
 
-    @Schema(description = "참가자 ID", example = "user1")
+    @Schema(description = "참가자 ID", example = "11")
     private Long id;
 
     @Schema(description = "직무 (예: 개발자)", example = "개발자", required = false)
