@@ -4,9 +4,11 @@ import com.goorm.team9.icontact.domain.chat.dto.ChatRequestCountDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatRequestDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatRequestNotificationDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatResponseDto;
+import com.goorm.team9.icontact.domain.chat.entity.ChatJoin;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
 import com.goorm.team9.icontact.domain.chat.entity.RequestStatus;
+import com.goorm.team9.icontact.domain.chat.repository.ChatJoinRepository;
 import com.goorm.team9.icontact.domain.chat.repository.ChatRequestRepository;
 import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
@@ -34,6 +36,7 @@ public class ChatRequestService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final WebSocketSessionService webSocketSessionservice;
     private final EmailService emailService;
+    private final ChatJoinRepository chatJoinRepository;
 
     @Transactional
     public ResponseEntity<ChatResponseDto> requestChat(ClientEntity sender, ClientEntity receiver) {
@@ -108,6 +111,18 @@ public class ChatRequestService {
 
         ChatRoom chatRoom = createChatRoom(sender, receiver);
         chatRoomRepository.save(chatRoom);
+
+        ChatJoin senderJoin = new ChatJoin();
+        senderJoin.setChatRoom(chatRoom);
+        senderJoin.setClient(sender);
+        senderJoin.setExited(false);
+
+        ChatJoin receiverJoin = new ChatJoin();
+        receiverJoin.setChatRoom(chatRoom);
+        receiverJoin.setClient(receiver);
+        receiverJoin.setExited(false);
+
+        chatJoinRepository.saveAll(List.of(senderJoin, receiverJoin));
 
         return chatRoom.getRoomId();
     }
