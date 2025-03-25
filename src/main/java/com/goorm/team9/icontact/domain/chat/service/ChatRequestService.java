@@ -61,11 +61,12 @@ public class ChatRequestService {
         String destination = "/queue/chat-request" + receiver.getNickName();
         simpMessagingTemplate.convertAndSend(destination, notification);
 
-        if (!webSocketSessionservice.isUserOnline(receiver.getNickName())) {
+        if (webSocketSessionservice.isUserOnline(receiver.getNickName())) {
+            webSocketSessionservice.sendPrivateMessage(receiver.getNickName(), destination, notification);
+        } else {
             String receiverEmail = receiver.getEmail();
             emailService.sendChatRequestNotification(receiverEmail, sender.getNickName());
         }
-
         return ResponseEntity.ok(new ChatResponseDto(requestId, "채팅 요청이 정상적으로 전송되었습니다.", null));
     }
 
