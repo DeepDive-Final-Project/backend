@@ -12,15 +12,12 @@ public class ClientConverter {
         clientResponseDTO.setId(clientEntity.getId());
         clientResponseDTO.setNickName(clientEntity.getNickName());
         clientResponseDTO.setEmail(clientEntity.getEmail());
-        clientResponseDTO.setRole(clientEntity.getRole().getDescription()); // ENUM → description
+        clientResponseDTO.setRole(clientEntity.getRole().getDescription());
         clientResponseDTO.setCareer(clientEntity.getCareer() != null ? clientEntity.getCareer().getDescription() : null);
         clientResponseDTO.setStatus(clientEntity.getStatus().getDescription());
         clientResponseDTO.setIntroduction(clientEntity.getIntroduction());
         clientResponseDTO.setLink(clientEntity.getLink());
         clientResponseDTO.setProfileImage(clientEntity.getProfileImage());
-//        clientResponseDTO.setChatOpportunity(clientEntity.getChatOpportunity());
-//        clientResponseDTO.setChatMessage(clientEntity.getChatMessage());
-//        clientResponseDTO.setOffline(clientEntity.isOffline());
         clientResponseDTO.setCreatedAt(clientEntity.getCreated_at());
         clientResponseDTO.setUpdatedAt(clientEntity.getUpdated_at());
 
