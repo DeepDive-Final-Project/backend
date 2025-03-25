@@ -13,6 +13,7 @@ import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +23,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
@@ -30,15 +32,6 @@ public class ChatRoomService {
     private final ClientService clientService;
     private final ChatRequestRepository chatRequestRepository;
     private final ChatMessageRepository chatMessageRepository;
-
-    public ChatRoomService(ChatRoomRepository chatRoomRepository, ChatJoinRepository chatJoinRepository, ClientRepository clientRepository, ChatRequestRepository chatRequestRepository, ClientService clientService, ChatMessageRepository chatMessageRepository) {
-        this.chatRoomRepository = chatRoomRepository;
-        this.chatJoinRepository = chatJoinRepository;
-        this.clientRepository = clientRepository;
-        this.chatRequestRepository = chatRequestRepository;
-        this.clientService = clientService;
-        this.chatMessageRepository = chatMessageRepository;
-    }
 
     @Transactional
     public Long createOrGetRoomId(ClientEntity sender, ClientEntity receiver) {
