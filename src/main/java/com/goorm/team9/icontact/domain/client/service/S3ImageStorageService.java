@@ -30,13 +30,11 @@ public class S3ImageStorageService {
 
     public String storeFile(MultipartFile file) {
         try {
-            // 파일명을 UUID로 변환하여 중복 방지
             String uniqueFileName = PROFILE_IMAGE_FOLDER + UUID.randomUUID() + "_" + file.getOriginalFilename();
 
             try (InputStream is = file.getInputStream()) {
-                // S3에 파일 업로드
                 S3Resource upload = s3Template.upload(bucketName, uniqueFileName, is);
-                return upload.getURL().toString(); // 업로드된 S3 URL 반환
+                return upload.getURL().toString();
             }
         } catch (IOException | S3Exception e) {
             throw new RuntimeException("파일 업로드 실패", e);
