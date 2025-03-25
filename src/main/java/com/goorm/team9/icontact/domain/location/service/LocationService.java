@@ -43,8 +43,8 @@ public class LocationService {
         redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
         redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
 
-        redisTemplate.expire(userKey, Duration.ofSeconds(30));
-        redisTemplate.expire(globalKey, Duration.ofSeconds(30));
+        redisTemplate.expire(userKey, Duration.ofSeconds(600));
+        redisTemplate.expire(globalKey, Duration.ofSeconds(600));
 
         updateUserInterest(id);
 
@@ -53,7 +53,7 @@ public class LocationService {
             throw new CustomException(GlobalExceptionErrorCode.REDIS_SAVE_FAILURE);
         }
         Point savedPoint = savedPoints.get(0);
-        log.info("[위치 저장] client_id: {}, 위도: {}, 경도: {}", id, savedPoint.getY(), savedPoint.getX());
+        log.info("[참가자 위치 저장] client_id: {}, 위도: {}, 경도: {}", id, savedPoint.getY(), savedPoint.getX());
 
         return true;
     }
@@ -65,7 +65,7 @@ public class LocationService {
         redisTemplate.delete(userKey);
         redisTemplate.opsForZSet().remove(globalKey, id.toString());
 
-        log.info("[위치 삭제] client_id: {}", id);
+        log.info("[참가자 위치 삭제] client_id: {}", id);
     }
 
     private void validateId(Long id) {
@@ -93,7 +93,7 @@ public class LocationService {
         String redisKey = "interest:" + id;
         redisTemplate.opsForHash().putAll(redisKey, interestData);
 
-        log.info("[관심분야 저장] client_id: {}, topic1: {}, topic2: {}, topic3: {}",
+        log.info("[참가자 관심분야 저장] client_id: {}, topic1: {}, topic2: {}, topic3: {}",
                 id, interestData.get("topic1"), interestData.get("topic2"), interestData.get("topic3"));
     }
 
@@ -122,10 +122,10 @@ public class LocationService {
         redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
         redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
 
-        redisTemplate.expire(userKey, Duration.ofSeconds(30));
-        redisTemplate.expire(globalKey, Duration.ofSeconds(30));
+        redisTemplate.expire(userKey, Duration.ofSeconds(600));
+        redisTemplate.expire(globalKey, Duration.ofSeconds(600));
 
-        log.info("[위치 새로고침] client_id: {}, 위치 갱신됨 (위도: {}, 경도: {})", id, latitude, longitude);
+        log.info("[참가자 위치 새로고침] client_id: {}, 위치 갱신됨 (위도: {}, 경도: {})", id, latitude, longitude);
 
         return getNearbyUsers(id, roleDesc, careerDesc);
     }
@@ -214,7 +214,7 @@ public class LocationService {
 
         if (isDifferent) {
             redisTemplate.opsForHash().putAll("interest:" + id, db);
-            log.info("[관심분야 동기화] client_id: {}, Redis가 최신 MySQL 기준으로 갱신됨", id);
+            log.info("[참가자 관심분야 동기화] client_id: {}, Redis가 최신 MySQL 기준으로 갱신됨", id);
         }
     }
 
