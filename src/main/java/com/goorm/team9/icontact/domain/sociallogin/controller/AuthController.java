@@ -193,5 +193,12 @@ public class AuthController {
         }
     }
 
+    @RequestMapping("/test")
+    public ResponseEntity<String> test(HttpServletRequest request) {
+        System.out.println("🔍 request.getScheme() = " + request.getScheme());
+        System.out.println("🔍 request.getServerName() = " + request.getServerName());
+        System.out.println("🔍 request.getRemoteAddr() = " + request.getRemoteAddr());
+        return ResponseEntity.ok("헤더 확인 완료");
+    }
 
 }
