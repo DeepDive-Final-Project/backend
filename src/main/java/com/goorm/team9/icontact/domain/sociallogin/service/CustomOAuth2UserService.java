@@ -55,6 +55,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     @Override
     @Transactional
     public OAuth2User loadUser(OAuth2UserRequest userRequest) {
+        logger.info("📌 리디렉션 처리 중 - URI: /login/oauth2/code/{} 요청 도착", userRequest.getClientRegistration().getRegistrationId());
+
         String provider = userRequest.getClientRegistration().getRegistrationId();
         String accessToken = userRequest.getAccessToken().getTokenValue();
         OAuth2AuthorizedClient authorizedClient = authorizedClientService.loadAuthorizedClient(

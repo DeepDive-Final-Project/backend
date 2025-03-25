@@ -4,6 +4,7 @@ import com.goorm.team9.icontact.domain.sociallogin.security.jwt.*;
 import com.goorm.team9.icontact.domain.sociallogin.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 
 @Slf4j
 @Configuration
@@ -45,6 +47,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("✅ SecurityFilterChain is active");
+
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 분리
                 .authorizeHttpRequests(auth -> auth
@@ -74,15 +78,15 @@ public class SecurityConfig {
                         .requestMatchers("/auth/home").authenticated()
                         .anyRequest().authenticated()
                 )
-//                .oauth2Login(oauth2 -> oauth2
-//                        .redirectionEndpoint(redirection -> redirection
-//                                .baseUri("/login/oauth2/code/*")
-//                        )
-//                        .userInfoEndpoint(userInfo -> userInfo
-//                                .userService(customOAuth2UserService)
-//                        )
-//                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider)) // JWT 발급 후 반환
-//                )
+                .oauth2Login(oauth2 -> oauth2
+                        .redirectionEndpoint(redirection -> redirection
+                                .baseUri("/login/oauth2/code/*")
+                        )
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider)) // JWT 발급 후 반환
+                )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtBlacklist),
                         UsernamePasswordAuthenticationFilter.class) // JWT 필터 적용
 
@@ -137,4 +141,11 @@ public class SecurityConfig {
         return source;
     }
 
+    @Bean
+    public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
+        FilterRegistrationBean<ForwardedHeaderFilter> filterRegBean = new FilterRegistrationBean<>();
+        filterRegBean.setFilter(new ForwardedHeaderFilter());
+        filterRegBean.setOrder(0); // 제일 먼저 적용되도록
+        return filterRegBean;
+    }
 }
