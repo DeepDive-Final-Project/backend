@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Schema(description = "위치 삭제 요청 정보")
 public class DeleteRequest {
 
-    @Schema(description = "참가자 ID", example = "user1")
+    @Schema(description = "참가자 ID", example = "11")
     private Long id;
 }
