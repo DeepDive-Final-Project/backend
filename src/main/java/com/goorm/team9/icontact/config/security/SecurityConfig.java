@@ -56,7 +56,7 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 분리
                 // .addFilterBefore(new OAuth2DomainRedirectFilter(), CorsFilter.class)
-                .addFilterBefore(new RequestLoggingFilter(), CorsFilter.class)
+                // .addFilterBefore(new RequestLoggingFilter(), CorsFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/ws-chat/**",
@@ -172,5 +172,13 @@ public class SecurityConfig {
         filterRegBean.setOrder(1); // ForwardedHeaderFilter보다 뒤에서 실행
         return filterRegBean;
     }
+
+    @Bean
+    public FilterRegistrationBean<RequestLoggingFilter> requestLoggingFilter() {
+    FilterRegistrationBean<RequestLoggingFilter> filterRegBean = new FilterRegistrationBean<>();
+    filterRegBean.setFilter(new RequestLoggingFilter());
+    filterRegBean.setOrder(0); // 가장 먼저 실행되게
+    return filterRegBean;
+}
     
 }
