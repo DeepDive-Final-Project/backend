@@ -163,4 +163,13 @@ public class SecurityConfig {
         filterRegBean.setOrder(0); // 제일 먼저 적용되도록
         return filterRegBean;
     }
+
+    @Bean
+    public FilterRegistrationBean<OAuth2DomainRedirectFilter> oauth2DomainRedirectFilter() {
+        FilterRegistrationBean<OAuth2DomainRedirectFilter> filterRegBean = new FilterRegistrationBean<>();
+        filterRegBean.setFilter(new OAuth2DomainRedirectFilter());
+        filterRegBean.setOrder(1); // ForwardedHeaderFilter보다 뒤에서 실행
+        return filterRegBean;
+    }
+    
 }
