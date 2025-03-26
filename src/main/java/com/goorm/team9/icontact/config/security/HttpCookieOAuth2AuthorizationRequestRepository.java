@@ -15,11 +15,14 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
 
     public static final String OAUTH2_AUTH_REQUEST_COOKIE_NAME = "oauth2_auth_request";
     private static final int COOKIE_EXPIRE_SECONDS = 180;
-    private final boolean secure;
-    public HttpCookieOAuth2AuthorizationRequestRepository(boolean secure) {
-        this.secure = secure;
-    }
 
+    private final boolean secure;
+    private final String domain;
+
+    public HttpCookieOAuth2AuthorizationRequestRepository(boolean secure, String domain) {
+        this.secure = secure;
+        this.domain = domain;
+    }
 
     @Override
     public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
@@ -53,6 +56,7 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
         cookie.setMaxAge(0);
         cookie.setSecure(secure);
         response.addCookie(cookie);
+        if (!domain.isEmpty()) cookie.setDomain(domain);
     }
 
     private String serialize(OAuth2AuthorizationRequest object) {
@@ -68,16 +72,21 @@ public class HttpCookieOAuth2AuthorizationRequestRepository implements Authoriza
         cookie.setPath("/");
         cookie.setHttpOnly(true);
         cookie.setMaxAge(maxAge);
-//        cookie.setSecure(true); // ✅ HTTPS에서만 작동
+//        cookie.setSecure(true); // HTTPS에서만 작동
 //        // Spring은 SameSite 옵션 설정하는 공식 API 없음 → 아래처럼 수동으로 헤더 추가 필요할 수도 있음
 //        response.addHeader("Set-Cookie", String.format("%s=%s; Max-Age=%d; Path=/; HttpOnly; Secure; SameSite=None", name, value, maxAge));
-        cookie.setSecure(secure); // ✅ 프로파일에 따라 적용
+        cookie.setSecure(secure); //프로파일에 따라 적용
+
+        if (!domain.isEmpty()) {
+            cookie.setDomain(domain);
+        }
 
         // 수동으로 SameSite=None 헤더 추가 (Secure 쿠키에서 필수)
         if (secure) {
             response.addHeader("Set-Cookie", String.format(
-                    "%s=%s; Max-Age=%d; Path=/; HttpOnly; Secure; SameSite=None",
-                    name, value, maxAge
+                    "%s=%s; Max-Age=%d; Path=/; HttpOnly; Secure; SameSite=None%s",
+                    name, value, maxAge,
+                    domain.isEmpty() ? "" : "; Domain=" + domain
             ));
         } else {
             response.addCookie(cookie);
