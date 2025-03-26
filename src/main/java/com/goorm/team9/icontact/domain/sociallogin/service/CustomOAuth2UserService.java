@@ -146,7 +146,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .loginAt(LocalDateTime.now())
                 .build());
 
-        String jwtToken = jwtTokenProvider.createToken(email, expiresAt);
+        String jwtToken = jwtTokenProvider.createToken(email, expiresAt, provider);
         userInfo.put("jwtToken", jwtToken);
         userInfo.put("email", email);
 

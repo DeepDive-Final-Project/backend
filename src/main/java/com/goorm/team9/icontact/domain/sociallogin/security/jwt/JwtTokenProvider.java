@@ -55,19 +55,25 @@ public class JwtTokenProvider {
     /**
      * JWT 생성 : 사용자 이메일 기반
      */
-    public String createToken(String email, long oauthTokenExpiryMillis) {
-        Claims claims = Jwts.claims().setSubject(email).build();
+    public String createToken(String email, long oauthTokenExpiryMillis,  String provider) {
+
         Date now = new Date();
         // JWT 만료 시간 = OAuth Access Token 만료 시간과 기존 만료 시간 중 더 짧은 값 선택
         long jwtExpiryMillis = Math.min(now.getTime() + validityInMilliseconds, oauthTokenExpiryMillis);
         Date validity = new Date(jwtExpiryMillis);
 
         return Jwts.builder()
-                .setClaims(claims)
+                .setSubject(email)
+                .claim("provider", provider)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256) // 서명 추가 (보안 강화를 위해 HS256 사용)
                 .compact();
+    }
+
+    public String getProvider(String token) {
+        Claims claims = parseToken(token);
+        return (String) claims.get("provider");
     }
 
     /**

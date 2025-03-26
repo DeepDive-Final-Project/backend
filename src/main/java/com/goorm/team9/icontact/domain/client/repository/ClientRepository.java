@@ -22,4 +22,6 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Long> {
     @Query(value = "SELECT * FROM client WHERE email = :email AND provider = :provider", nativeQuery = true)
     Optional<ClientEntity> findByEmailAndProviderNative(@Param("email") String email, @Param("provider") String provider);
 
+    Optional<ClientEntity> findByEmailAndProviderAndIsDeletedFalse(String email, String provider);
+    Optional<ClientEntity> findByEmailAndProviderAndIsDeletedTrue(String email, String provider);
 }
