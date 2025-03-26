@@ -55,6 +55,7 @@ public class SecurityConfig {
 
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 분리
+                .addFilterBefore(new OAuth2DomainRedirectFilter(), CorsFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/ws-chat/**",
