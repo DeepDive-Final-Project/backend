@@ -27,8 +27,8 @@ public class UserService {
      * @param email 사용자 이메일
      * @return 재가입 가능 여부
      */
-    public boolean canReRegister(String email) {
-        Optional<ClientEntity> clientOptional = clientRepository.findByEmail(email);
+    public boolean canReRegister(String email, String provider) {
+        Optional<ClientEntity> clientOptional = clientRepository.findByEmailAndProviderAndIsDeletedTrue(email, provider);
         if (clientOptional.isPresent()) {
             ClientEntity clientEntity = clientOptional.get();
             if (clientEntity.isDeleted()) {
@@ -46,8 +46,8 @@ public class UserService {
      * 회원 탈퇴 처리 (소프트 삭제 적용)
      */
     @Transactional
-    public void deleteUserByEmail(String email) {
-        Optional<ClientEntity> clientOptional = clientRepository.findByEmail(email);
+    public void deleteUserByEmail(String email, String provider) {
+        Optional<ClientEntity> clientOptional = clientRepository.findByEmailAndProviderAndIsDeletedFalse(email, provider);
         if (clientOptional.isPresent()) {
             ClientEntity clientEntity = clientOptional.get();
             clientEntity.setDeleted(true);
@@ -59,8 +59,8 @@ public class UserService {
      * 계정 복구 (탈퇴 취소)
      */
     @Transactional
-    public void restoreUser(String email) {
-        Optional<ClientEntity> clientOptional = clientRepository.findByEmail(email);
+    public void restoreUser(String email, String provider) {
+        Optional<ClientEntity> clientOptional = clientRepository.findByEmailAndProviderAndIsDeletedTrue(email, provider);
         if (clientOptional.isPresent()) {
             ClientEntity clientEntity = clientOptional.get();
             clientEntity.setDeleted(false);

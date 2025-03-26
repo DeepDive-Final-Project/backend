@@ -13,12 +13,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.stereotype.Service;
 
 /**
@@ -54,7 +56,7 @@ public class AuthService {
         ClientEntity clientEntity = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        String accessToken = jwtTokenProvider.createToken(email, expiresAt);
+        String accessToken = jwtTokenProvider.createToken(email, expiresAt,provider);
         loginHistoryService.saveLoginHistory(clientEntity, provider);
 
         return new OAuthLoginResponseDTO(
@@ -110,14 +112,25 @@ public class AuthService {
         }
 
         String email = authentication.getName();
+        String provider = null;
+
+        if (authentication instanceof OAuth2AuthenticationToken oAuth2Token) {
+            provider = oAuth2Token.getAuthorizedClientRegistrationId();
+        }
+
+        Optional<ClientEntity> clientOpt = clientRepository.findByEmailAndProviderAndIsDeletedFalse(email, provider);
+        if (clientOpt.isEmpty()) {
+            return ResponseEntity.status(HttpServletResponse.SC_NOT_FOUND)
+                    .body("탈퇴한 사용자이거나 존재하지 않는 사용자입니다.");
+        }
 
         // 14일 이내 재탈퇴 불가 검증 추가
-        if (!userService.canReRegister(email)) {
+        if (!userService.canReRegister(email, provider)) {
             return ResponseEntity.status(HttpServletResponse.SC_BAD_REQUEST)
                     .body("탈퇴 후 14일 이내에는 재탈퇴할 수 없습니다.");
         }
 
-        userService.deleteUserByEmail(email);
+        userService.deleteUserByEmail(email, provider);
         logout(request, response);
 
         return ResponseEntity.ok("회원 탈퇴 완료 ✅");

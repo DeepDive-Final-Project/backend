@@ -154,5 +154,6 @@ server:
     connection-timeout: 20000  # 연결 타임아웃 (ms)
 
 app:
+  domain: i-contacts.link
   oauth:
     cookie-secure: false

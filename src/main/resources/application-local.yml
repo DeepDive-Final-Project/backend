@@ -30,5 +30,6 @@ spring:
           max-request-size: 10MB
 
 app:
+  domain: ""
   oauth:
     cookie-secure: false

@@ -27,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -126,11 +127,17 @@ public class AuthController {
         }
 
         String email = authentication.getName();
-        if (!userService.canReRegister(email)) {
+        String provider = null;
+
+        if (authentication instanceof OAuth2AuthenticationToken oAuth2Token) {
+            provider = oAuth2Token.getAuthorizedClientRegistrationId();
+        }
+
+        if (!userService.canReRegister(email, provider)) {
             return ResponseEntity.badRequest().body("계정 복구가 불가능합니다.");
         }
 
-        userService.restoreUser(email);
+        userService.restoreUser(email, provider);
         return ResponseEntity.ok("계정 복구 완료 ✅");
     }
 
@@ -173,13 +180,13 @@ public class AuthController {
         try {
             String token = authorizationHeader.substring(7);
             String email = jwtTokenProvider.getUserEmail(token);
+            String provider = jwtTokenProvider.getProvider(token);
 
-            return clientRepository.findByEmail(email)
+            // OAuth 정보 조회
+            Optional<OAuth> oauthInfo = oAuthRepository.findByProviderAndEmail(email, provider);
+
+            return clientRepository.findByEmailAndProviderAndIsDeletedFalse(email,provider)
                     .map(client -> {
-                        // OAuth 정보 조회
-                        Optional<OAuth> oauthInfo = oAuthRepository.findByEmail(email);
-                        String provider = oauthInfo.map(OAuth::getProvider).orElse("UNKNOWN");
-
                         // 최근 로그인 시간 조회
                         Optional<LoginHistory> lastLogin = loginHistoryRepository.findFirstByClientEntityOrderByLoginAtDesc(client);
                         LocalDateTime lastLoginAt = lastLogin.map(LoginHistory::getLoginAt).orElse(null);

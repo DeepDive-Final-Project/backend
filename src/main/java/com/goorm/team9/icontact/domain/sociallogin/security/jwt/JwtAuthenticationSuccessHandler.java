@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 import jakarta.servlet.http.Cookie;
@@ -33,6 +34,9 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException {
 
+        OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
+        String provider = oauthToken.getAuthorizedClientRegistrationId();
+
         String email = authentication.getName(); // OAuth 로그인한 사용자 이메일
 
         // JWT 생성 전 email 값 검증 추가
@@ -52,7 +56,7 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
         // OAuth 인증된 사용자에게 JWT 생성 (기본 만료 시간: 1시간)
         long expiresAt = System.currentTimeMillis() + 3600000;
-        String jwtToken = jwtTokenProvider.createToken(email, expiresAt);
+        String jwtToken = jwtTokenProvider.createToken(email, expiresAt, provider);
 
         setAuthorizationHeader(response, jwtToken);
         setJwtCookie(response, jwtToken);
