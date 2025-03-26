@@ -85,7 +85,7 @@ public class SecurityConfig {
                                 .authorizationRequestRepository(cookieAuthorizationRequestRepository)
                         )
                         .redirectionEndpoint(redirection -> redirection
-                                .baseUri("/login/oauth2/code/kakao")
+                                .baseUri("/login/oauth2/code/*")
                         )
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
