@@ -59,4 +59,18 @@ public class WebSocketSessionService {
     public Long createOrGetRoomId(ClientEntity senderNickname, ClientEntity receiverNickname) {
         return chatRoomService.createOrGetRoomId(senderNickname, receiverNickname);
     }
+
+    public boolean isUserOnline(String nickname) {
+        return chatRoomSessions.values().stream()
+                .anyMatch(userMap -> userMap.containsKey(nickname));
+    }
+
+    public void sendPrivateMessage(String nickname, String destination, Object payload) {
+        chatRoomSessions.values().forEach(userMap -> {
+            WebSocketSession session = userMap.get(nickname);
+            if (session != null && session.isOpen()) {
+                messagingTemplate.convertAndSendToUser(session.getId(), destination, payload);
+            }
+        });
+    }
 }

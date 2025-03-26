@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "위치 새로고침 요청 정보")
 public class RefreshRequest {
 
-    @Schema(description = "참가자 ID", example = "101")
+    @Schema(description = "참가자 ID", example = "11")
     private Long id;
 
     @Schema(description = "현재 위도", example = "37.402056")

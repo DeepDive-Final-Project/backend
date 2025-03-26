@@ -5,6 +5,7 @@ import com.goorm.team9.icontact.common.exception.CustomException;
 import com.goorm.team9.icontact.domain.client.converter.ClientConverter;
 import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequest;
 import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequest;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDTO;
 import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.entity.TopicEntity;
@@ -122,6 +123,16 @@ public class ClientService {
         return clients.stream()
                 .map(clientConverter::toResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ClientProfileImageDTO> getProfileImages(List<Long> clientIds) {
+        return clientIds.stream()
+                .map(id -> clientRepository.findByIdAndIsDeletedFalse(id)
+                        .map(client -> new ClientProfileImageDTO(client.getId(),
+                                client.getProfileImage() != null ? client.getProfileImage() : imageFileStorageService.getDefaultImage()))
+                        .orElse(new ClientProfileImageDTO(id, imageFileStorageService.getDefaultImage())))
+                .toList();
     }
 
 }

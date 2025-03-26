@@ -3,6 +3,7 @@ package com.goorm.team9.icontact.domain.client.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequest;
 import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequest;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDTO;
 import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,6 +71,19 @@ public class ClientController {
     @Operation(summary = "전체 사용자 조회 API", description = "삭제되지 않은 모든 사용자의 정보를 반환합니다.")
     public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
         return ResponseEntity.ok(clientService.getAllClients());
+    }
+
+    @GetMapping("/profile-images")
+    @Operation(summary = "사용자 프로필 이미지 조회 API", description = "최대 10명의 사용자 ID를 입력받아 각자의 프로필 이미지를 반환합니다.")
+    public ResponseEntity<?> getProfileImages(
+            @RequestParam(required = false) List<Long> clientIds
+    ) {
+        if (clientIds == null || clientIds.size() > 10) {
+            return ResponseEntity.badRequest().body("clientId는 최대 10개까지 입력 가능합니다.");
+        }
+
+        List<ClientProfileImageDTO> images = clientService.getProfileImages(clientIds);
+        return ResponseEntity.ok(images);
     }
 
 }

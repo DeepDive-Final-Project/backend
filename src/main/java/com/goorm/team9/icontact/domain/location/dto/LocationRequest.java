@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Schema(description = "참가자의 위치 요청 정보")
 public class LocationRequest {
 
-    @Schema(description = "참가자 ID", example = "user1")
+    @Schema(description = "참가자 ID", example = "11")
     private Long id;
 
     @Schema(description = "위도 (latitude)", example = "37.402056")
