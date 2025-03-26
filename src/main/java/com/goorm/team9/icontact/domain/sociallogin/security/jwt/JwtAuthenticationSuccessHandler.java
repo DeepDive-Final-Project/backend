@@ -1,6 +1,7 @@
 package com.goorm.team9.icontact.domain.sociallogin.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -25,9 +26,11 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationSuccessHandler.class);
     private final JwtTokenProvider jwtTokenProvider;
+    private final ClientRepository clientRepository; // 추가
 
-    public JwtAuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider) {
+    public JwtAuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider, ClientRepository clientRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.clientRepository = clientRepository;
     }
 
     @Override
@@ -65,11 +68,15 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
 
         // 필요 시 특정 페이지로 리다이렉트하도록, 지금은 기본 처리 유지
-        String redirectUrl = "https://www.i-contacts.link/profile1";
-//        String redirectUrl = "https://www.i-contacts.link/oauth-success?token=" + jwtToken;
-//        String redirectUrl = "http://localhost:5173/profile1";
+//        String redirectUrl = "https://www.i-contacts.link/profile1";
+
+        boolean isNewUser = !clientRepository.existsByEmailAndProvider(email, provider);
+
+        String redirectUrl = isNewUser
+                ? "https://www.i-contacts.link/profile1"
+                : "https://www.i-contacts.link/home";
+
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-//        clearAuthenticationAttributes(request);
 
         logger.info("✅ 로그인 성공, 토큰 발급 및 리디렉션 완료");
     }

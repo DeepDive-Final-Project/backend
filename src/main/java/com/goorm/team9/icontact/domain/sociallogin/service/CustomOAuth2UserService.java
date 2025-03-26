@@ -12,6 +12,7 @@ import com.goorm.team9.icontact.domain.sociallogin.repository.OAuthRepository;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvider;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProviderFactory;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,10 +94,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         logger.info("🔍 사용자 조회 - email={}, provider={}", userEmail, normalizedProvider);
 
-        ClientEntity client = clientRepository.findByEmailAndProviderNative(userEmail, normalizedProvider)
+        ClientEntity client = clientRepository.findByEmailAndProviderAndIsDeletedFalse(userEmail, normalizedProvider)
                 .orElse(null);
 
         if (client == null) {
+            Optional<ClientEntity> deletedClient = clientRepository.findByEmailAndProviderAndIsDeletedTrue(userEmail, normalizedProvider);
+            if (deletedClient.isPresent()) {
+                logger.warn("🚫 탈퇴한 사용자 - 로그인 차단: email={}, provider={}", userEmail, normalizedProvider);
+                throw new RuntimeException("탈퇴한 사용자입니다. 복구 후 이용해주세요.");
+            }
+
+            // 3. 신규 사용자 저장
             ClientEntity clientEntityToSave = ClientEntity.builder()
                     .nickName(NicknameGeneratorService.generateNickname())
                     .email(userEmail)
@@ -112,7 +120,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         } else {
             logger.info("✅ 기존 사용자 조회 성공 - id={}", client.getId());
         }
-
         if (client.getProvider() == null || !client.getProvider().equalsIgnoreCase(provider)) {
             client.setProvider(normalizedProvider);
             clientRepository.save(client);

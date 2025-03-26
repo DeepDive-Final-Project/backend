@@ -71,22 +71,22 @@ public class AuthController {
 
     @PostMapping("/github")
     @Operation(summary = "GitHub 로그인 API", description = "GitHub OAuth를 사용하여 로그인하고 사용자 정보를 반환합니다.")
-    public ResponseEntity<OAuthLoginResponseDTO> loginWithGithub(@RequestBody OAuthLoginRequest request) {
-        OAuthLoginResponseDTO response = authService.loginWithOAuth("github", request.getCode());
+    public ResponseEntity<OAuthLoginResponseDTO> loginWithGithub(@RequestBody OAuthLoginRequest request, HttpServletRequest httpRequest) {
+        OAuthLoginResponseDTO response = authService.loginWithOAuth("github", request.getCode(), httpRequest);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/google")
     @Operation(summary = "Google 로그인 API", description = "Google OAuth를 사용하여 로그인하고 사용자 정보를 반환합니다.")
-    public ResponseEntity<OAuthLoginResponseDTO> loginWithGoogle(@RequestBody OAuthLoginRequest request) {
-        OAuthLoginResponseDTO response = authService.loginWithOAuth("google", request.getCode());
+    public ResponseEntity<OAuthLoginResponseDTO> loginWithGoogle(@RequestBody OAuthLoginRequest request, HttpServletRequest httpRequest) {
+        OAuthLoginResponseDTO response = authService.loginWithOAuth("google", request.getCode(), httpRequest);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/kakao")
     @Operation(summary = "Kakao 로그인 API", description = "Kakao OAuth를 사용하여 로그인하고 사용자 정보를 반환합니다.")
-    public ResponseEntity<OAuthLoginResponseDTO> loginWithKakao(@RequestBody OAuthLoginRequest request) {
-        OAuthLoginResponseDTO response = authService.loginWithOAuth("kakao", request.getCode());
+    public ResponseEntity<OAuthLoginResponseDTO> loginWithKakao(@RequestBody OAuthLoginRequest request, HttpServletRequest httpRequest) {
+        OAuthLoginResponseDTO response = authService.loginWithOAuth("kakao", request.getCode(), httpRequest);
         return ResponseEntity.ok(response);
     }
 
