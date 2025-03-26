@@ -25,6 +25,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 
 import java.util.List;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 
 @Slf4j
 @Configuration
@@ -50,6 +51,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("✅ SecurityFilterChain is active");
+
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 분리
                 .authorizeHttpRequests(auth -> auth
@@ -91,13 +94,13 @@ public class SecurityConfig {
                                 .userService(customOAuth2UserService)
                         )
                         .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider)) // JWT 발급 후 반환
+                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider)) // JWT 발급 후 반환
                         .failureHandler((request, response, exception) -> {
                             log.error("❌ OAuth2 인증 실패: {}", exception.getMessage(), exception); // 실패 원인 로그 출력
                             response.sendRedirect("/login?error=" + exception.getMessage()); // 에러 메시지 포함
                         })
 
                 )
-
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtBlacklist),
                         UsernamePasswordAuthenticationFilter.class) // JWT 필터 적용
 
@@ -166,5 +169,4 @@ public class SecurityConfig {
     ) {
         return new HttpCookieOAuth2AuthorizationRequestRepository(secure);
     }
-
 }
