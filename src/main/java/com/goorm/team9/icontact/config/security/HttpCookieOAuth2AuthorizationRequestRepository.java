@@ -1,0 +1,86 @@
+package com.goorm.team9.icontact.config.security;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequest;
+import org.springframework.security.oauth2.client.web.AuthorizationRequestRepository;
+import org.springframework.util.SerializationUtils;
+import org.springframework.web.util.WebUtils;
+
+import java.util.Base64;
+
+public class HttpCookieOAuth2AuthorizationRequestRepository implements AuthorizationRequestRepository<OAuth2AuthorizationRequest> {
+
+    public static final String OAUTH2_AUTH_REQUEST_COOKIE_NAME = "oauth2_auth_request";
+    private static final int COOKIE_EXPIRE_SECONDS = 180;
+    private final boolean secure;
+    public HttpCookieOAuth2AuthorizationRequestRepository(boolean secure) {
+        this.secure = secure;
+    }
+
+
+    @Override
+    public OAuth2AuthorizationRequest loadAuthorizationRequest(HttpServletRequest request) {
+        Cookie cookie = WebUtils.getCookie(request, OAUTH2_AUTH_REQUEST_COOKIE_NAME);
+        if (cookie != null) {
+            return deserialize(cookie.getValue());
+        }
+        return null;
+    }
+
+    @Override
+    public void saveAuthorizationRequest(OAuth2AuthorizationRequest authorizationRequest, HttpServletRequest request, HttpServletResponse response) {
+        if (authorizationRequest == null) {
+            removeAuthorizationRequest(request, response);
+            return;
+        }
+        String serialized = serialize(authorizationRequest);
+        addCookie(response, OAUTH2_AUTH_REQUEST_COOKIE_NAME, serialized, COOKIE_EXPIRE_SECONDS);
+    }
+
+    @Override
+    public OAuth2AuthorizationRequest removeAuthorizationRequest(HttpServletRequest request, HttpServletResponse response) {
+        OAuth2AuthorizationRequest authorizationRequest = loadAuthorizationRequest(request);
+        removeAuthorizationRequestCookies(request, response);
+        return authorizationRequest;
+    }
+
+    private void removeAuthorizationRequestCookies(HttpServletRequest request, HttpServletResponse response) {
+        Cookie cookie = new Cookie(OAUTH2_AUTH_REQUEST_COOKIE_NAME, null);
+        cookie.setPath("/");
+        cookie.setMaxAge(0);
+        cookie.setSecure(secure);
+        response.addCookie(cookie);
+    }
+
+    private String serialize(OAuth2AuthorizationRequest object) {
+        return Base64.getUrlEncoder().encodeToString(SerializationUtils.serialize(object));
+    }
+
+    private OAuth2AuthorizationRequest deserialize(String cookie) {
+        return (OAuth2AuthorizationRequest) SerializationUtils.deserialize(Base64.getUrlDecoder().decode(cookie));
+    }
+
+    private void addCookie(HttpServletResponse response, String name, String value, int maxAge) {
+        Cookie cookie = new Cookie(name, value);
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setMaxAge(maxAge);
+//        cookie.setSecure(true); // ✅ HTTPS에서만 작동
+//        // Spring은 SameSite 옵션 설정하는 공식 API 없음 → 아래처럼 수동으로 헤더 추가 필요할 수도 있음
+//        response.addHeader("Set-Cookie", String.format("%s=%s; Max-Age=%d; Path=/; HttpOnly; Secure; SameSite=None", name, value, maxAge));
+        cookie.setSecure(secure); // ✅ 프로파일에 따라 적용
+
+        // 수동으로 SameSite=None 헤더 추가 (Secure 쿠키에서 필수)
+        if (secure) {
+            response.addHeader("Set-Cookie", String.format(
+                    "%s=%s; Max-Age=%d; Path=/; HttpOnly; Secure; SameSite=None",
+                    name, value, maxAge
+            ));
+        } else {
+            response.addCookie(cookie);
+        }
+    }
+}
