@@ -152,3 +152,7 @@ server:
     max-connections: 10000  # 최대 동시 연결 수 (기본 8192)
     accept-count: 1000  # 요청 큐 크기 (처리 중일 때 대기 가능 요청 수)
     connection-timeout: 20000  # 연결 타임아웃 (ms)
+
+app:
+  oauth:
+    cookie-secure: false
