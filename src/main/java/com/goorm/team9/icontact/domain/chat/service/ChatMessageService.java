@@ -130,10 +130,15 @@ public class ChatMessageService {
             throw new IllegalArgumentException("해당 채팅방에 속해있지 않습니다.");
         }
 
-        return chatMessageRepository.findByChatRoomId(roomId)
+        List<ChatMessageDto> messages = chatMessageRepository.findByChatRoomId(roomId)
                 .stream()
                 .map(ChatMessageDto::fromEntity)
                 .collect(Collectors.toList());
+
+        if (messages.isEmpty()) {
+            throw new IllegalArgumentException("주고받은 메시지가 없습니다.");
+        }
+        return messages;
     }
 
     @Transactional
