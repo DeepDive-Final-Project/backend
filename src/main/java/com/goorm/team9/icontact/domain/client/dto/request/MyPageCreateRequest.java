@@ -7,11 +7,15 @@ import com.goorm.team9.icontact.domain.client.enums.Language;
 import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.client.enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 @Schema(description = "마이페이지 생성 요청 DTO", example = "{\n" +
         "  \"nickName\": \"Noah\",\n" +
         "  \"email\": \"noah@gmail.com\",\n" +
