@@ -2,11 +2,15 @@ package com.goorm.team9.icontact.domain.client.dto.request;
 
 import com.goorm.team9.icontact.domain.client.enums.*;
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
 @Schema(description = "마이페이지 수정 요청 DTO", example = "{\n" +
         "  \"nickName\": \"NoahUpdated\",\n" +
         "  \"role\": \"DEV\",\n" +

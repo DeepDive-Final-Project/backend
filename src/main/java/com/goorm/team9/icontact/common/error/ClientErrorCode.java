@@ -18,4 +18,8 @@ public enum ClientErrorCode implements ErrorCodeInterface {
     private final Integer httpStatusCode;
     private final Integer errorCode;
     private final String description;
+
+    public String getMessage() {
+        return description;
+    }
 }
