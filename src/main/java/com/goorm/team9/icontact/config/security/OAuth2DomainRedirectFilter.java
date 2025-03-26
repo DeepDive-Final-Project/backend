@@ -20,7 +20,7 @@ public class OAuth2DomainRedirectFilter extends OncePerRequestFilter {
         // www 도메인에서 /oauth2/authorization/... 요청이 들어오면 리디렉션
         if (host.equals("www.i-contacts.link") && uri.startsWith("/oauth2/authorization/")) {
             String queryString = request.getQueryString();
-            String redirectUrl = "https://api.i-contacts.link" + uri;
+            String redirectUrl = "https://api.i-contacts.link/" + uri;
             if (queryString != null) {
                 redirectUrl += "?" + queryString;
             }

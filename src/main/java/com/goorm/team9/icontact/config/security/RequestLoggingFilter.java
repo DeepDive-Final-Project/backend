@@ -11,13 +11,13 @@ import java.io.IOException;
 
 @Slf4j
 public class RequestLoggingFilter extends OncePerRequestFilter {
-
+    
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        log.info("✅ RequestLoggingFilter 도착함"); // 이거 꼭 넣으세요
 
+        log.info("✅ RequestLoggingFilter 도착함");
         String method = request.getMethod();
         String uri = request.getRequestURI();
         String query = request.getQueryString();
