@@ -162,11 +162,4 @@ public class SecurityConfig {
         filterRegBean.setOrder(0); // 제일 먼저 적용되도록
         return filterRegBean;
     }
-
-    @Bean
-    public AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthorizationRequestRepository(
-            @Value("${app.oauth.cookie-secure}") boolean secure
-    ) {
-        return new HttpCookieOAuth2AuthorizationRequestRepository(secure);
-    }
 }
