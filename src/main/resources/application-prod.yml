@@ -37,5 +37,6 @@ server:
     enabled: false
 
 app:
+  domain: i-contacts.link
   oauth:
     cookie-secure: true
