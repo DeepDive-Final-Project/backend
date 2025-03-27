@@ -151,10 +151,10 @@ public class LocationService {
             int matchScore = calculateInterestMatch(interest, targetInterest);
 
             Map<String, Object> rcInfo = jdbcTemplate.queryForMap(
-                    "SELECT role, career, nickname, introduction FROM client WHERE id = ?", targetId);
+                    "SELECT role, career, nick_name, introduction FROM client WHERE id = ?", targetId);
             String targetRole = rcInfo.getOrDefault("role", "").toString();
             String targetCareer = rcInfo.getOrDefault("career", "").toString();
-            String nickname = rcInfo.getOrDefault("nickname", "").toString();
+            String nickname = rcInfo.getOrDefault("nick_name", "").toString();
             String introduction = rcInfo.getOrDefault("introduction", "").toString();
 
             double distance = result.getDistance().getValue();
