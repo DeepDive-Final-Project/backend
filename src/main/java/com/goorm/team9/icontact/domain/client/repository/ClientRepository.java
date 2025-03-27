@@ -25,5 +25,5 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Long> {
     Optional<ClientEntity> findByEmailAndProviderAndIsDeletedFalse(String email, String provider);
     Optional<ClientEntity> findByEmailAndProviderAndIsDeletedTrue(String email, String provider);
     boolean existsByEmailAndProviderAndIsDeletedFalse(String email, String provider);
-
+    Optional<ClientEntity> findByEmailAndProvider(String email, String provider);
 }

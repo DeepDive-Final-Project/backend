@@ -1,9 +1,12 @@
 package com.goorm.team9.icontact.domain.sociallogin.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -58,6 +61,40 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
             return; // 예외를 던지지 않고 여기서 종료
         }
 
+        Optional<ClientEntity> optionalClient = clientRepository.findByEmailAndProvider(email, provider);
+
+        if (optionalClient.isPresent()) {
+            ClientEntity client = optionalClient.get();
+
+            boolean hasWithdrawnRole = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_WITHDRAWN"));
+
+            if (hasWithdrawnRole && client.getDeleted_at() != null) {
+                boolean isExpired = client.getDeleted_at().plusDays(14).isBefore(LocalDateTime.now());
+
+                if (isExpired) {
+                    logger.warn("❌ 탈퇴 14일 경과 - 복구 불가: {}", email);
+
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+
+                    Map<String, String> expiredResponse = Map.of(
+                            "status", "expired",
+                            "message", "계정 복구 가능 기간(14일)이 지나 복구가 불가능합니다."
+                    );
+                    response.getWriter().write(new ObjectMapper().writeValueAsString(expiredResponse));
+                    return;
+                }
+
+                // 복구 가능한 탈퇴자일 경우 → 복구 페이지 리디렉트
+                String redirectUrl = "https://www.i-contacts.link/restore";
+                getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+                logger.info("🚫 탈퇴자 리디렉션 완료: {}", redirectUrl);
+                return;
+            }
+        }
+
         // OAuth 인증된 사용자에게 JWT 생성 (기본 만료 시간: 1시간)
         long expiresAt = System.currentTimeMillis() + 3600000;
         String jwtToken = jwtTokenProvider.createToken(email, expiresAt, provider);
@@ -67,20 +104,6 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         writeJsonResponse(response, jwtToken);
 
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
-
-        boolean isWithdrawn = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_WITHDRAWN"));
-
-        if (isWithdrawn) {
-            // 탈퇴자는 복구 전용 페이지로
-            String redirectUrl = "https://www.i-contacts.link/restore";
-            getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-            logger.info("🚫 탈퇴자 리디렉션 완료: {}", redirectUrl);
-            return;
-        }
-
-        // 필요 시 특정 페이지로 리다이렉트하도록, 지금은 기본 처리 유지
-//        String redirectUrl = "https://www.i-contacts.link/profile1";
 
         String redirectUrl = isNewUser
                 ? "https://www.i-contacts.link/profile1"
