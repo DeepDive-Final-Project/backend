@@ -12,9 +12,10 @@ public class LocationResponse {
     private double latitude;
     private double longitude;
     private String interest;
-
     private String role;
     private String career;
+    private String nickname;
+    private String introduction;
 
     @JsonProperty("distanceToParticipant")
     private String formattedDistance;
@@ -25,13 +26,16 @@ public class LocationResponse {
     @JsonIgnore
     private transient int matchScore;
 
-    public LocationResponse(Long id, double latitude, double longitude, Double distance, String interest, String role, String career) {
+    public LocationResponse(Long id, double latitude, double longitude, Double distance, String interest,
+                            String role, String career, String nickname, String introduction) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
         this.interest = interest;
         this.role = role;
         this.career = career;
+        this.nickname = nickname;
+        this.introduction = introduction;
 
         if (distance != null) {
             this.distanceValue = distance;
