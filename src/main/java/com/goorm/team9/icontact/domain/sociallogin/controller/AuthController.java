@@ -110,8 +110,14 @@ public class AuthController {
      */
     @PostMapping("/withdraw")
     @Operation(summary = "회원 탈퇴 API", description = "현재 사용자의 계정을 소프트 삭제 처리합니다. 로그아웃 로직과 동일한 절차를 따릅니다.")
-    public ResponseEntity<String> withdraw(HttpServletRequest request, HttpServletResponse response) {
-        return authService.withdraw(request, response);
+    public ResponseEntity<Map<String, String>> withdraw(HttpServletRequest request, HttpServletResponse response) {
+        authService.withdraw(request, response); // 실제 탈퇴 처리
+
+        Map<String, String> result = Map.of(
+                "status", "withdrawn",
+                "message", "회원 탈퇴가 완료되었습니다."
+        );
+        return ResponseEntity.ok(result);
     }
 
     /**
@@ -120,27 +126,45 @@ public class AuthController {
      */
     @PostMapping("/restore")
     @Operation(summary = "회원 복구 API", description = "탈퇴한 사용자의 계정을 복구합니다.")
-    public ResponseEntity<String> restoreAccount(@RequestHeader(name = "Authorization", required = false) String authHeader) {
+    public ResponseEntity<Map<String, String>> restoreAccount(
+            @RequestHeader(name = "Authorization", required = false) String authHeader) {
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("인증되지 않은 사용자입니다.");
+            Map<String, String> error = Map.of(
+                    "status", "unauthorized",
+                    "message", "인증되지 않은 사용자입니다."
+            );
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(error);
         }
 
         String token = authHeader.substring(7); // "Bearer " 제거
         if (authService.isTokenBlacklisted(authHeader)) {
-            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("해당 토큰은 블랙리스트에 등록되어 있습니다.");
+            Map<String, String> error = Map.of(
+                    "status", "blacklisted",
+                    "message", "해당 토큰은 블랙리스트에 등록되어 있습니다."
+            );
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(error);
         }
 
         String email = jwtTokenProvider.getUserEmail(token);
         String provider = jwtTokenProvider.getProvider(token);
 
-        // "복구"는 14일 제한 없이 허용
         Optional<ClientEntity> deletedUser = clientRepository.findByEmailAndProviderAndIsDeletedTrue(email, provider);
         if (deletedUser.isEmpty()) {
-            return ResponseEntity.badRequest().body("계정 복구가 불가능합니다.");
+            Map<String, String> error = Map.of(
+                    "status", "not_found",
+                    "message", "계정 복구가 불가능합니다."
+            );
+            return ResponseEntity.badRequest().body(error);
         }
 
         userService.restoreUser(email, provider);
-        return ResponseEntity.ok("계정 복구 완료 ✅");
+
+        Map<String, String> result = Map.of(
+                "status", "restored",
+                "message", "계정 복구가 완료되었습니다."
+        );
+        return ResponseEntity.ok(result);
     }
 
     /**
