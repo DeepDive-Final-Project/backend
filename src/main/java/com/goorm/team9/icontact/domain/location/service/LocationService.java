@@ -151,20 +151,28 @@ public class LocationService {
             int matchScore = calculateInterestMatch(interest, targetInterest);
 
             Map<String, Object> rcInfo = jdbcTemplate.queryForMap(
-                    "SELECT role, career FROM client WHERE id = ?", targetId);
+                    "SELECT role, career, nickname, introduction FROM client WHERE id = ?", targetId);
             String targetRole = rcInfo.getOrDefault("role", "").toString();
             String targetCareer = rcInfo.getOrDefault("career", "").toString();
+            String nickname = rcInfo.getOrDefault("nickname", "").toString();
+            String introduction = rcInfo.getOrDefault("introduction", "").toString();
 
             double distance = result.getDistance().getValue();
+
+            String formattedInterest = targetInterest.entrySet().stream()
+                    .map(e -> e.getKey() + " : " + e.getValue())
+                    .collect(Collectors.joining(", "));
 
             LocationResponse response = new LocationResponse(
                     targetId,
                     geoLocation.getPoint().getY(),
                     geoLocation.getPoint().getX(),
                     distance,
-                    targetInterest.toString(),
+                    formattedInterest,
                     targetRole,
-                    targetCareer
+                    targetCareer,
+                    nickname,
+                    introduction
             );
 
             response.setDistanceValue(distance);
