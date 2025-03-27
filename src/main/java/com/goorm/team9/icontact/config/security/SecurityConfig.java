@@ -1,5 +1,6 @@
 package com.goorm.team9.icontact.config.security;
 
+import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.*;
 import com.goorm.team9.icontact.domain.sociallogin.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -38,6 +39,7 @@ public class SecurityConfig {
     private final JwtBlacklist jwtBlacklist;
     private final JwtLogoutSuccessHandler jwtLogoutSuccessHandler;
     private final AuthorizationRequestRepository<OAuth2AuthorizationRequest> cookieAuthorizationRequestRepository;
+    private final ClientRepository clientRepository;
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -96,8 +98,8 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
-                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider)) // JWT 발급 후 반환
-                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider)) // JWT 발급 후 반환
+                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider, clientRepository)) // JWT 발급 후 반환
+                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider, clientRepository)) // JWT 발급 후 반환
                         .failureHandler((request, response, exception) -> {
                             log.error("❌ OAuth2 인증 실패: {}", exception.getMessage(), exception); // 실패 원인 로그 출력
                             response.sendRedirect("/login?error=" + exception.getMessage()); // 에러 메시지 포함

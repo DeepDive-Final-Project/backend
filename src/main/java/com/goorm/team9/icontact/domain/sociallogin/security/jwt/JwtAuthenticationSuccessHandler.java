@@ -39,8 +39,9 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
         OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
         String provider = oauthToken.getAuthorizedClientRegistrationId();
+        String email = authentication.getName();
 
-        String email = authentication.getName(); // OAuth 로그인한 사용자 이메일
+        boolean isNewUser = !clientRepository.existsByEmailAndProviderAndIsDeletedFalse(email, provider);
 
         // JWT 생성 전 email 값 검증 추가
         if (email == null || "no-email".equals(email)) {
@@ -80,8 +81,6 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
         // 필요 시 특정 페이지로 리다이렉트하도록, 지금은 기본 처리 유지
 //        String redirectUrl = "https://www.i-contacts.link/profile1";
-
-        boolean isNewUser = !clientRepository.existsByEmailAndProvider(email, provider);
 
         String redirectUrl = isNewUser
                 ? "https://www.i-contacts.link/profile1"
