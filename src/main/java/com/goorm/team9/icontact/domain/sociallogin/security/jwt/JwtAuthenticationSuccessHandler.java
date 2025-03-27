@@ -93,7 +93,8 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         }
 
         // 신규 유저 여부 판단
-        boolean isNewUser = optionalClient.isEmpty();
+        Map<String, Object> attributes = oauthToken.getPrincipal().getAttributes();
+        boolean isNewUser = Boolean.TRUE.equals(attributes.get("isNewUser"));
 
         // JWT 생성
         long expiresAt = System.currentTimeMillis() + 3600000;

@@ -126,6 +126,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             logger.info("📝 사용자 저장 시도 - email={}, provider={}", userEmail, normalizedProvider);
             client = clientSaveService.saveClientSafely(clientEntityToSave);
             logger.info("✅ 사용자 저장 완료 - id={}", client.getId());
+            userInfo.put("isNewUser", true);
         } else {
             if (client.isDeleted()) {
                 logger.warn("🚫 탈퇴 처리된 사용자가 조회됨 - 복구 API 접근 허용 only");
@@ -140,8 +141,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                         "email"
                 );
             }
-
             logger.info("✅ 기존 사용자 조회 성공 - id={}", client.getId());
+            userInfo.put("isNewUser", false);
         }
 
         if (client.getProvider() == null || !client.getProvider().equalsIgnoreCase(provider)) {
