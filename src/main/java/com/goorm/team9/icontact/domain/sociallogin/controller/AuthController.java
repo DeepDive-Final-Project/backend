@@ -120,20 +120,22 @@ public class AuthController {
      */
     @PostMapping("/restore")
     @Operation(summary = "회원 복구 API", description = "탈퇴한 사용자의 계정을 복구합니다.")
-    public ResponseEntity<String> restoreAccount(HttpServletRequest request) {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getName() == null) {
+    public ResponseEntity<String> restoreAccount(@RequestHeader(name = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("인증되지 않은 사용자입니다.");
         }
 
-        String email = authentication.getName();
-        String provider = null;
-
-        if (authentication instanceof OAuth2AuthenticationToken oAuth2Token) {
-            provider = oAuth2Token.getAuthorizedClientRegistrationId();
+        String token = authHeader.substring(7); // "Bearer " 제거
+        if (authService.isTokenBlacklisted(authHeader)) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body("해당 토큰은 블랙리스트에 등록되어 있습니다.");
         }
 
-        if (!userService.canReRegister(email, provider)) {
+        String email = jwtTokenProvider.getUserEmail(token);
+        String provider = jwtTokenProvider.getProvider(token);
+
+        // "복구"는 14일 제한 없이 허용
+        Optional<ClientEntity> deletedUser = clientRepository.findByEmailAndProviderAndIsDeletedTrue(email, provider);
+        if (deletedUser.isEmpty()) {
             return ResponseEntity.badRequest().body("계정 복구가 불가능합니다.");
         }
 

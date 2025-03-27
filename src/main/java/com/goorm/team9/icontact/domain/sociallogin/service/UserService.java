@@ -51,6 +51,7 @@ public class UserService {
         if (clientOptional.isPresent()) {
             ClientEntity clientEntity = clientOptional.get();
             clientEntity.setDeleted(true);
+            clientEntity.setDeleted_at(LocalDateTime.now());
             clientRepository.save(clientEntity);
         }
     }
@@ -64,6 +65,7 @@ public class UserService {
         if (clientOptional.isPresent()) {
             ClientEntity clientEntity = clientOptional.get();
             clientEntity.setDeleted(false);
+            clientEntity.setDeleted_at(null);
             clientRepository.save(clientEntity);
         }
     }

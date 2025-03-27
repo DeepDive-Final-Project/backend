@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        String requestURI = request.getRequestURI();
+
+        // 특정 URI는 JWT 검증하지 않고 바로 통과
+        if (List.of("/auth/token-status").contains(requestURI)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         String token = jwtTokenProvider.resolveToken(request);
         logger.info("🔍 요청된 JWT: " + token);

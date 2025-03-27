@@ -81,6 +81,7 @@ public class SecurityConfig {
                                 "/auth/logout",
                                 "/webjars/**"
                         ).permitAll()
+                        .requestMatchers("/auth/restore").hasAuthority("ROLE_WITHDRAWN")
                         .requestMatchers("/auth/home").authenticated()
                         .anyRequest().authenticated()
                 )

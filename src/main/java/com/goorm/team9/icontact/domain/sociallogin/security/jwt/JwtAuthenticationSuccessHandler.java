@@ -67,6 +67,17 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
 
+        boolean isWithdrawn = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_WITHDRAWN"));
+
+        if (isWithdrawn) {
+            // 탈퇴자는 복구 전용 페이지로
+            String redirectUrl = "https://www.i-contacts.link/restore";
+            getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+            logger.info("🚫 탈퇴자 리디렉션 완료: {}", redirectUrl);
+            return;
+        }
+
         // 필요 시 특정 페이지로 리다이렉트하도록, 지금은 기본 처리 유지
 //        String redirectUrl = "https://www.i-contacts.link/profile1";
 
