@@ -31,15 +31,17 @@ public class UserService {
         Optional<ClientEntity> clientOptional = clientRepository.findByEmailAndProviderAndIsDeletedTrue(email, provider);
         if (clientOptional.isPresent()) {
             ClientEntity clientEntity = clientOptional.get();
-            if (clientEntity.isDeleted()) {
-                // 탈퇴 후 14일이 지났는지 확인
-                if (clientEntity.getDeleted_at() != null &&
-                        clientEntity.getDeleted_at().plusDays(14).isAfter(LocalDateTime.now())) {
-                    return false; // 14일이 지나지 않음 -> 재가입 불가능
+            if (clientEntity.getDeleted_at() != null) {
+                // 14일이 지났으면 DB에서 삭제
+                if (clientEntity.getDeleted_at().plusDays(14).isBefore(LocalDateTime.now())) {
+                    clientRepository.delete(clientEntity); // 완전 삭제
+                    return true; // 삭제했으니 재가입 가능
+                } else {
+                    return false; // 아직 14일 안 지남 → 재가입 불가
                 }
             }
         }
-        return true; // 탈퇴 이력이 없거나 14일이 지남 -> 재가입 가능
+        return true; // 탈퇴 이력이 없으면 재가입 가능
     }
 
     /**
@@ -51,6 +53,7 @@ public class UserService {
         if (clientOptional.isPresent()) {
             ClientEntity clientEntity = clientOptional.get();
             clientEntity.setDeleted(true);
+            clientEntity.setDeleted_at(LocalDateTime.now());
             clientRepository.save(clientEntity);
         }
     }
@@ -64,6 +67,7 @@ public class UserService {
         if (clientOptional.isPresent()) {
             ClientEntity clientEntity = clientOptional.get();
             clientEntity.setDeleted(false);
+            clientEntity.setDeleted_at(null);
             clientRepository.save(clientEntity);
         }
     }

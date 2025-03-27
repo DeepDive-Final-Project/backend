@@ -47,7 +47,7 @@ public class AuthService {
      * @param code 발급한 인증 코드
      * @return JWT 토큰
      */
-    public OAuthLoginResponseDTO loginWithOAuth(String provider, String code) {
+    public OAuthLoginResponseDTO loginWithOAuth(String provider, String code, HttpServletRequest request) {
         OAuthTokenResponse tokenResponse = oAuthService.authenticateWithOAuth(provider, code);
         String email = tokenResponse.getEmail();
         long expiresAt = tokenResponse.getExpiresAt();
@@ -112,10 +112,15 @@ public class AuthService {
         }
 
         String email = authentication.getName();
+        String token = jwtTokenProvider.resolveToken(request);
         String provider = null;
 
         if (authentication instanceof OAuth2AuthenticationToken oAuth2Token) {
             provider = oAuth2Token.getAuthorizedClientRegistrationId();
+        }
+
+        if (provider == null && token != null) {
+            provider = jwtTokenProvider.getProvider(token); // <- 이 한 줄 추가!
         }
 
         Optional<ClientEntity> clientOpt = clientRepository.findByEmailAndProviderAndIsDeletedFalse(email, provider);

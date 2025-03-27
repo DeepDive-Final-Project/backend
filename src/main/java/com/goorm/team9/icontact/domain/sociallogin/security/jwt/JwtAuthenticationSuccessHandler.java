@@ -1,8 +1,12 @@
 package com.goorm.team9.icontact.domain.sociallogin.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
+import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.time.LocalDateTime;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -25,9 +29,11 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationSuccessHandler.class);
     private final JwtTokenProvider jwtTokenProvider;
+    private final ClientRepository clientRepository; // 추가
 
-    public JwtAuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider) {
+    public JwtAuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider, ClientRepository clientRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.clientRepository = clientRepository;
     }
 
     @Override
@@ -36,41 +42,74 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
         OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
         String provider = oauthToken.getAuthorizedClientRegistrationId();
+        String email = authentication.getName();
 
-        String email = authentication.getName(); // OAuth 로그인한 사용자 이메일
-
-        // JWT 생성 전 email 값 검증 추가
+        // 이메일 유효성 검증
         if (email == null || "no-email".equals(email)) {
             logger.error("❌ JWT 발급 실패: 유효한 이메일 정보가 없습니다.");
-
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 응답
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
 
             Map<String, String> errorResponse = new HashMap<>();
             errorResponse.put("error", "JWT 발급 실패: 유효한 이메일 정보가 없습니다.");
-
             response.getWriter().write(new ObjectMapper().writeValueAsString(errorResponse));
-            return; // 예외를 던지지 않고 여기서 종료
+            return;
         }
 
-        // OAuth 인증된 사용자에게 JWT 생성 (기본 만료 시간: 1시간)
+        // 클라이언트 정보 조회
+        Optional<ClientEntity> optionalClient = clientRepository.findByEmailAndProvider(email, provider);
+
+        // 탈퇴 유저 처리
+        if (optionalClient.isPresent()) {
+            ClientEntity client = optionalClient.get();
+
+            boolean hasWithdrawnRole = authentication.getAuthorities().stream()
+                    .anyMatch(authority -> authority.getAuthority().equals("ROLE_WITHDRAWN"));
+
+            if (hasWithdrawnRole && client.getDeleted_at() != null) {
+                boolean isExpired = client.getDeleted_at().plusDays(14).isBefore(LocalDateTime.now());
+
+                if (isExpired) {
+                    logger.warn("❌ 탈퇴 14일 경과 - 복구 불가: {}", email);
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+
+                    Map<String, String> expiredResponse = Map.of(
+                            "status", "expired",
+                            "message", "계정 복구 가능 기간(14일)이 지나 복구가 불가능합니다."
+                    );
+                    response.getWriter().write(new ObjectMapper().writeValueAsString(expiredResponse));
+                    return;
+                }
+
+                // 복구 가능 → 복구 페이지 리디렉션
+                String redirectUrl = "https://www.i-contacts.link/restore";
+                getRedirectStrategy().sendRedirect(request, response, redirectUrl);
+                logger.info("🚫 탈퇴자 리디렉션 완료: {}", redirectUrl);
+                return;
+            }
+        }
+
+        // 신규 유저 여부 판단
+        Map<String, Object> attributes = oauthToken.getPrincipal().getAttributes();
+        boolean isNewUser = Boolean.TRUE.equals(attributes.get("isNewUser"));
+
+        // JWT 생성
         long expiresAt = System.currentTimeMillis() + 3600000;
         String jwtToken = jwtTokenProvider.createToken(email, expiresAt, provider);
-
         setAuthorizationHeader(response, jwtToken);
         setJwtCookie(response, jwtToken);
         writeJsonResponse(response, jwtToken);
-
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
 
-        // 필요 시 특정 페이지로 리다이렉트하도록, 지금은 기본 처리 유지
-        String redirectUrl = "https://www.i-contacts.link/profile1";
-//        String redirectUrl = "https://www.i-contacts.link/oauth-success?token=" + jwtToken;
-//        String redirectUrl = "http://localhost:5173/profile1";
-        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-//        clearAuthenticationAttributes(request);
+        // 리디렉션 분기
+        String redirectUrl = isNewUser
+                ? "https://www.i-contacts.link/profile1"
+                : "https://www.i-contacts.link/home";
 
+        getRedirectStrategy().sendRedirect(request, response, redirectUrl);
         logger.info("✅ 로그인 성공, 토큰 발급 및 리디렉션 완료");
     }
 

@@ -12,6 +12,7 @@ import com.goorm.team9.icontact.domain.sociallogin.repository.OAuthRepository;
 import com.goorm.team9.icontact.domain.sociallogin.security.jwt.JwtTokenProvider;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProvider;
 import com.goorm.team9.icontact.domain.sociallogin.security.provider.OAuthProviderFactory;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -93,10 +94,26 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
         logger.info("🔍 사용자 조회 - email={}, provider={}", userEmail, normalizedProvider);
 
-        ClientEntity client = clientRepository.findByEmailAndProviderNative(userEmail, normalizedProvider)
+        ClientEntity client = clientRepository.findByEmailAndProviderAndIsDeletedFalse(userEmail, normalizedProvider)
                 .orElse(null);
 
         if (client == null) {
+            Optional<ClientEntity> deletedClient = clientRepository.findByEmailAndProviderAndIsDeletedTrue(userEmail, normalizedProvider);
+            if (deletedClient.isPresent()) {
+                logger.warn("🚫 탈퇴한 사용자 - JWT만 발급하여 복구 API 접근 허용: email={}, provider={}", userEmail, normalizedProvider);
+
+                String jwtToken = jwtTokenProvider.createToken(userEmail, expiresAt, provider);
+                userInfo.put("jwtToken", jwtToken);
+                userInfo.put("email", userEmail);
+
+                return new DefaultOAuth2User(
+                        Collections.singleton(new SimpleGrantedAuthority("ROLE_WITHDRAWN")), // 복구 전용 권한
+                        userInfo,
+                        "email"
+                );
+            }
+
+            // 신규 사용자 저장
             ClientEntity clientEntityToSave = ClientEntity.builder()
                     .nickName(NicknameGeneratorService.generateNickname())
                     .email(userEmail)
@@ -109,8 +126,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             logger.info("📝 사용자 저장 시도 - email={}, provider={}", userEmail, normalizedProvider);
             client = clientSaveService.saveClientSafely(clientEntityToSave);
             logger.info("✅ 사용자 저장 완료 - id={}", client.getId());
+            userInfo.put("isNewUser", true);
         } else {
+            if (client.isDeleted()) {
+                logger.warn("🚫 탈퇴 처리된 사용자가 조회됨 - 복구 API 접근 허용 only");
+
+                String jwtToken = jwtTokenProvider.createToken(userEmail, expiresAt, provider);
+                userInfo.put("jwtToken", jwtToken);
+                userInfo.put("email", userEmail);
+
+                return new DefaultOAuth2User(
+                        Collections.singleton(new SimpleGrantedAuthority("ROLE_WITHDRAWN")),
+                        userInfo,
+                        "email"
+                );
+            }
             logger.info("✅ 기존 사용자 조회 성공 - id={}", client.getId());
+            userInfo.put("isNewUser", false);
         }
 
         if (client.getProvider() == null || !client.getProvider().equalsIgnoreCase(provider)) {
