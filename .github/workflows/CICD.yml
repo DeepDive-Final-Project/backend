@@ -86,6 +86,7 @@ jobs:
       - name: Ensure Dependencies on EC2 Server A
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
             sudo apt update
             sudo apt install -y git docker-compose-plugin curl
             sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
@@ -135,6 +136,7 @@ jobs:
       - name: Ensure Dependencies on EC2 Server B
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
             sudo apt update
             sudo apt install -y git docker-compose-plugin curl
             sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
