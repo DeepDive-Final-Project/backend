@@ -10,10 +10,6 @@ on:
       - main
       - dev
 
-concurrency:
-  group: cicd-backend
-  cancel-in-progress: false
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -87,36 +83,44 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
             export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Ensuring required packages are installed..."
             sudo apt update
-            sudo apt install -y git docker-compose-plugin curl
+            sudo apt install -y git docker-compose-plugin
             sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
           EOF
 
       - name: Deploy to EC2 Server A
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Creating and moving to backend directory..."
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
 
+            echo "Force updating to the latest dev branch..."
             git fetch --all
             git checkout dev || git checkout -b dev origin/dev
             git reset --hard origin/dev
             git pull origin dev
 
-            echo "Checking Spring Boot health on Server A..."
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
-            if [ "$STATUS" = "200" ]; then
-              echo "Spring Boot is running. Proceeding to stop..."
-            else
-              echo "Spring Boot not responding. Proceeding anyway."
-            fi
-
+            echo "Stopping and removing existing containers..."
             docker-compose down || true
+
+            echo "Removing existing Docker image (to prevent caching)..."
             docker rmi -f dawnisproblem/i-contact-backend:latest || true
+
+            echo "Removing existing build folder (to clear JAR cache)..."
             sudo rm -rf build || true
+
+            echo "Pulling the latest Docker image..."
             docker-compose pull
+
+            echo "Forcibly restarting containers..."
             docker-compose up -d --force-recreate
           EOF
+    
 
       - name: ALB Health Check for Server A
         run: |
@@ -128,43 +132,51 @@ jobs:
               echo "Server A is Healthy!"
               exit 0
             fi
-            sleep 10
+            echo "Waiting for Server A... ($i/30)"
+            sleep 60
           done
-          echo "Server A did not become healthy in time."
+          echo "Server A did not become Healthy in time. Failing deployment."
           exit 1
 
       - name: Ensure Dependencies on EC2 Server B
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
             export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Ensuring required packages are installed..."
             sudo apt update
-            sudo apt install -y git docker-compose-plugin curl
+            sudo apt install -y git docker-compose-plugin
             sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
           EOF
 
       - name: Deploy to EC2 Server B
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
+            export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+
+            echo "Creating and moving to backend directory..."
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
 
+            echo "Force updating to the latest dev branch..."
             git fetch --all
             git checkout dev || git checkout -b dev origin/dev
             git reset --hard origin/dev
             git pull origin dev
 
-            echo "Checking Spring Boot health on Server B..."
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/actuator/health || echo "000")
-            if [ "$STATUS" = "200" ]; then
-              echo "Spring Boot is running. Proceeding to stop..."
-            else
-              echo "Spring Boot not responding. Proceeding anyway."
-            fi
-
+            echo "Stopping and removing existing containers..."
             docker-compose down || true
+
+            echo "Removing existing Docker image (to prevent caching)..."
             docker rmi -f dawnisproblem/i-contact-backend:latest || true
+
+            echo "Removing existing build folder (to clear JAR cache)..."
             sudo rm -rf build || true
+
+            echo "Pulling the latest Docker image..."
             docker-compose pull
+
+            echo "Forcibly restarting containers..."
             docker-compose up -d --force-recreate
           EOF
 
@@ -178,7 +190,8 @@ jobs:
               echo "Server B is Healthy!"
               exit 0
             fi
-            sleep 10
+            echo "Waiting for Server B... ($i/30)"
+            sleep 60
           done
-          echo "Server B did not become healthy in time."
+          echo "Server B did not become Healthy in time. Failing deployment."
           exit 1
