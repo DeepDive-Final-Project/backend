@@ -140,7 +140,4 @@ class ChatRequestControllerTest {
                 .andExpect(jsonPath("$.receivedCount").value(5L));
 
     }
-
-
-
 }
