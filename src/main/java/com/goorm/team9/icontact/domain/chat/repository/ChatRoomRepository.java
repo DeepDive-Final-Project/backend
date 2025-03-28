@@ -43,4 +43,9 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "FROM ChatRoom c " +
             "ORDER BY (SELECT MAX(m.created_at) FROM ChatMessage m WHERE m.chatRoom = c) DESC")
     List<Object[]> findAllChatRoomsWithUnreadCount(@Param("clientId") Long clientId);
+
+    @Query("SELECT cr FROM ChatRoom cr WHERE " +
+            "(cr.senderNickname.nickName = :sender AND cr.receiverNickname.nickName = :receiver) " +
+            "OR (cr.senderNickname.nickName = :receiver AND cr.receiverNickname.nickName = :sender)")
+    Optional<ChatRoom> findBySenderAndReceiver(@Param("sender") String sender, @Param("receiver") String receiver);
 }
