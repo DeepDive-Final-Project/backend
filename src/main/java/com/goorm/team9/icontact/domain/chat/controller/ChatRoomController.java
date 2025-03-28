@@ -35,19 +35,25 @@ public class ChatRoomController {
             @RequestBody
             @Schema(example = "{\"roomId\": 123, \"clientId\": 456}")
             Map<String, Long> request) {
+        try {
+            Long roomId = request.get("roomId");
+            Long clientId = request.get("clientId");
 
-        Long roomId = request.get("roomId");
-        Long clientId = request.get("clientId");
+            if (roomId == null || clientId == null) {
+               return ResponseEntity.badRequest().body(Map.of("error", "roomId 또는 clientId가 비어 있습니다."));
+            }
 
-        ClientEntity client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            ClientEntity client = clientRepository.findById(clientId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        chatRoomService.exitChatRoom(roomId, clientId);
+            chatRoomService.exitChatRoom(roomId, clientId);
 
-        Map<String, String> response = new HashMap<>();
-        response.put("message", client.getNickName() + "님이 퇴장했습니다.");
-
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(Map.of("message", client.getNickName() + "님이 퇴장했습니다."));
+        } catch(IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
+        } catch(Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "서버 오류"));
+        }
     }
 
     @Operation(summary = "채팅방 입장 API", description = "사용자가 채팅방에 입장하면 last_read_at을 업데이트합니다.")
