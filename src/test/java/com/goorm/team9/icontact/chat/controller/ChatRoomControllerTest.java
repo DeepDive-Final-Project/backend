@@ -107,7 +107,9 @@ public class ChatRoomControllerTest {
                 List.of("Noah1", "Noah2"),
                 "안녕하세요",
                 LocalDateTime.now(),
-                2L
+                2L,
+                false,
+                3L
         );
 
         when(clientRepository.findByNickName("Noah1")).thenReturn(Optional.of(client));
@@ -134,7 +136,9 @@ public class ChatRoomControllerTest {
                 List.of("Noah1", "Noah2"),
                 "안녕하세요",
                 LocalDateTime.now(),
-                2L
+                2L,
+                false,
+                3L
         );
     }
 }
