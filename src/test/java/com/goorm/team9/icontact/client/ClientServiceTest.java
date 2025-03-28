@@ -22,6 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -59,6 +60,7 @@ class ClientServiceTest {
                 .status(Status.PUBLIC)
                 .it_topic(mockTopic)
                 .profileImage("profile.jpg")
+                .links(new ArrayList<>())
                 .build();
 
         mockFile = new MockMultipartFile("profileImage", "test.jpg", "image/jpeg", "fake-image".getBytes());
@@ -119,7 +121,7 @@ class ClientServiceTest {
 
     @Test
     @Order(4)
-    @DisplayName("상용자 정보 업데이트 테스트")
+    @DisplayName("사용자 정보 업데이트 테스트")
     void 사용자_정보_업데이트_테스트() {
         // given
         MyPageUpdateRequest request = MyPageUpdateRequest.builder()
