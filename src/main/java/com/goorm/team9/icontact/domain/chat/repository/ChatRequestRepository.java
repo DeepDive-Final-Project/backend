@@ -2,7 +2,6 @@ package com.goorm.team9.icontact.domain.chat.repository;
 
 import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
 import com.goorm.team9.icontact.domain.chat.entity.RequestStatus;
-import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -35,5 +34,4 @@ public interface ChatRequestRepository extends JpaRepository<ChatRequest, Long> 
     long countSentRequests(@Param("sender") String sender, @Param("status") RequestStatus status);
 
     List<ChatRequest> status(RequestStatus status);
-
 }
