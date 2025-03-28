@@ -15,14 +15,22 @@ public class ChatRoomResponse {
     private String lastMessage;
     private LocalDateTime lastMessageTime;
     private Long unreadCount;
+    private boolean exited;
+    private Long otherId;
 
-    public static ChatRoomResponse fromEntity(ChatRoom chatRoom, Long unreadCount) {
+    public static ChatRoomResponse fromEntity(ChatRoom chatRoom, Long unreadCount, boolean exited, Long myId) {
+        Long otherId = chatRoom.getSenderNickname().getId().equals(myId)
+                ? chatRoom.getReceiverNickname().getId()
+                : chatRoom.getSenderNickname().getId();
+
         return new ChatRoomResponse(
                 chatRoom.getRoomId(),
                 List.of(chatRoom.getSenderNickname().getNickName(), chatRoom.getReceiverNickname().getNickName()),
                 chatRoom.getLastMessage() != null ? chatRoom.getLastMessage() : "새 메시지가 없습니다.",
                 chatRoom.getLastMessageTime(),
-                unreadCount
+                unreadCount,
+                exited,
+                otherId
         );
     }
 }

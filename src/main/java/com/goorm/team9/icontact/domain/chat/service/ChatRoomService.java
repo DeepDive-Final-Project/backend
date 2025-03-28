@@ -1,11 +1,8 @@
 package com.goorm.team9.icontact.domain.chat.service;
 
-import com.goorm.team9.icontact.domain.chat.dto.ChatResponseDto;
 import com.goorm.team9.icontact.domain.chat.dto.ChatRoomResponse;
 import com.goorm.team9.icontact.domain.chat.entity.ChatJoin;
-import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
-import com.goorm.team9.icontact.domain.chat.entity.RequestStatus;
 import com.goorm.team9.icontact.domain.chat.repository.ChatJoinRepository;
 import com.goorm.team9.icontact.domain.chat.repository.ChatMessageRepository;
 import com.goorm.team9.icontact.domain.chat.repository.ChatRequestRepository;
@@ -14,7 +11,6 @@ import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -85,7 +81,7 @@ public class ChatRoomService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자는 채팅방에 존재하지 않습니다."));
 
         if (chatJoin.isExited()) {
-            throw new IllegalArgumentException("이미 나간 채팅방입니다.");
+            return;
         }
 
         chatJoin.exitChatRoom();
@@ -103,16 +99,14 @@ public class ChatRoomService {
         List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
         return results.stream()
-                .filter(result -> {
-                    ChatRoom chatRoom = (ChatRoom) result[0];
-                    return chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId())
-                            .map(join -> !join.isExited())
-                            .orElse(false);
-                })
                 .map(result -> {
                     ChatRoom chatRoom = (ChatRoom) result[0];
                     Long unreadCount = (Long) result[1];
-                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount);
+                    boolean exited = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId())
+                            .map(ChatJoin::isExited)
+                            .orElse(true);
+
+                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount, exited, client.getId());
                 })
                 .collect(Collectors.toList());
     }
@@ -121,16 +115,14 @@ public class ChatRoomService {
         List<Object[]> results = chatRoomRepository.findUnreadChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
         return results.stream()
-                .filter(result -> {
-                    ChatRoom chatRoom = (ChatRoom) result[0];
-                    return chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId())
-                            .map(join -> !join.isExited())
-                            .orElse(false);
-                })
                 .map(result -> {
                     ChatRoom chatRoom = (ChatRoom) result[0];
                     Long unreadCount = (Long) result[1];
-                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount);
+                    boolean exited = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId())
+                            .map(ChatJoin::isExited)
+                            .orElse(true);
+
+                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount, exited, client.getId());
                 })
                 .collect(Collectors.toList());
     }
@@ -139,28 +131,14 @@ public class ChatRoomService {
         List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
         return results.stream()
-                .filter(result -> {
-                    ChatRoom chatRoom = (ChatRoom) result[0];
-                    return chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId())
-                            .map(join -> !join.isExited())
-                            .orElse(false);
-                })
                 .map(result -> {
                     ChatRoom chatRoom = (ChatRoom) result[0];
                     Long unreadCount = (Long) result[1];
-                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount);
-                })
-                .collect(Collectors.toList());
-    }
+                    boolean exited = chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId())
+                            .map(ChatJoin::isExited)
+                            .orElse(true);
 
-    public List<ChatRoomResponse> getAllChatRooms(ClientEntity client) {
-        List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
-
-        return results.stream()
-                .map(result -> {
-                    ChatRoom chatRoom = (ChatRoom) result[0];
-                    Long unreadCount = (Long) result[1];
-                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount);
+                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount, exited, client.getId());
                 })
                 .collect(Collectors.toList());
     }

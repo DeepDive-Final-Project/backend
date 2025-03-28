@@ -22,12 +22,15 @@ public class ChatRequestDto {
 
     private String status;
 
+    private boolean exited;
+
     public static ChatRequestDto fromEntity(ChatRequest chatRequest) {
         return ChatRequestDto.builder()
                 .id(chatRequest.getId())
                 .senderNickname(chatRequest.getSenderNickname())
                 .receiverNickname(chatRequest.getReceiverNickname())
                 .status(chatRequest.getStatus().toString())
+                .exited(false)
                 .build();
     }
 }

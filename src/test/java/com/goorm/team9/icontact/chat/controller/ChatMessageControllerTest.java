@@ -1,45 +1,85 @@
 package com.goorm.team9.icontact.chat.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goorm.team9.icontact.domain.chat.controller.ChatMessageController;
 import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
 import com.goorm.team9.icontact.domain.chat.service.ChatMessageService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-import static org.mockito.Mockito.verify;
+import java.util.List;
 
-@ExtendWith(MockitoExtension.class)
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@WebMvcTest(controllers = ChatMessageController.class)
+@WithMockUser
 public class ChatMessageControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockitoBean
     private ChatMessageService chatMessageService;
 
-    @Mock
-    private SimpMessagingTemplate messagingTemplate;
+    @MockitoBean
+    private SimpMessagingTemplate simpMessagingTemplate;
 
-    @InjectMocks
-    private ChatMessageController chatMessageController;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
-    @DisplayName("채팅 메시지 전송 테스트")
-    public void testSendMessage() {
-        // Given
-        Long chatRoomId = 1L;
-        String senderNickname = "UserA";
-        String content = "안녕!";
-        ChatMessageDto chatMessageDto = ChatMessageDto.createChatMessage(chatRoomId, senderNickname, content);
+    @DisplayName("채팅 메시지 목록을 조회한다.")
+    void 채팅_메시지_목록_조회_테스트() throws Exception {
+        Long roomId = 1L;
+        Long clientId = 2L;
 
-        // When
-        chatMessageController.sendMessage(chatMessageDto);
+        ChatMessageDto message1 = ChatMessageDto.builder()
+                .roomId(roomId)
+                .senderNickname("Noah1")
+                .content("안녕하세요")
+                .build();
 
-        // Then
-        verify(chatMessageService).sendMessage(chatMessageDto);
+        ChatMessageDto message2 = ChatMessageDto.builder()
+                .roomId(roomId)
+                .senderNickname("Noah2")
+                .content("반가워요")
+                .build();
 
-        verify(messagingTemplate).convertAndSend("/queue/" + chatRoomId, chatMessageDto);
+        when(chatMessageService.getMessagesByRoomId(roomId, clientId))
+                .thenReturn(List.of(message1, message2));
+
+        mockMvc.perform(get("/api/messages/{roomId}", roomId)
+                        .param("clientId", String.valueOf(clientId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].senderNickname").value("Noah1"))
+                .andExpect(jsonPath("$[0].content").value("안녕하세요"))
+                .andExpect(jsonPath("$[1].senderNickname").value("Noah2"))
+                .andExpect(jsonPath("$[1].content").value("반가워요"));
+    }
+
+    @Test
+    @DisplayName("채팅 메시지 읽음 처리한다.")
+    void 채팅_메시지_읽음처리() throws Exception {
+        Long roomId = 1L;
+        Long clientId = 2L;
+
+        doNothing().when(chatMessageService).markMessagesAsRead(roomId, clientId);
+
+        mockMvc.perform(patch("/api/messages/{roomId}/read", roomId)
+                        .with(csrf())
+                        .param("clientId", String.valueOf(clientId)))
+                .andExpect(status().isNoContent());
     }
 }
