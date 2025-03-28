@@ -16,7 +16,12 @@ public class ClientConverter {
         clientResponseDTO.setCareer(clientEntity.getCareer() != null ? clientEntity.getCareer().getDescription() : null);
         clientResponseDTO.setStatus(clientEntity.getStatus().getDescription());
         clientResponseDTO.setIntroduction(clientEntity.getIntroduction());
-        clientResponseDTO.setLink(clientEntity.getLink());
+        clientResponseDTO.setLinks(
+                clientEntity.getLinks().stream()
+                        .map(linkEntity -> linkEntity.getLink())
+                        .toList()
+        );
+
         clientResponseDTO.setProfileImage(clientEntity.getProfileImage());
         clientResponseDTO.setCreatedAt(clientEntity.getCreated_at());
         clientResponseDTO.setUpdatedAt(clientEntity.getUpdated_at());
