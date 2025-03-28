@@ -45,7 +45,7 @@ public class WebSocketSessionServiceTest {
 
         // Verify
         ChatMessageDto capturedMessage = captor.getValue();
-        assertEquals("UserA님이 입장했습니다.", capturedMessage.getContent());
+        assertEquals("UserA님과의 대화가 시작되었어요.", capturedMessage.getContent());
     }
 
     @Test
