@@ -103,6 +103,12 @@ public class ChatRoomService {
         List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
         return results.stream()
+                .filter(result -> {
+                    ChatRoom chatRoom = (ChatRoom) result[0];
+                    return chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId())
+                            .map(join -> !join.isExited())
+                            .orElse(false);
+                })
                 .map(result -> {
                     ChatRoom chatRoom = (ChatRoom) result[0];
                     Long unreadCount = (Long) result[1];
@@ -115,6 +121,12 @@ public class ChatRoomService {
         List<Object[]> results = chatRoomRepository.findUnreadChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
         return results.stream()
+                .filter(result -> {
+                    ChatRoom chatRoom = (ChatRoom) result[0];
+                    return chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId())
+                            .map(join -> !join.isExited())
+                            .orElse(false);
+                })
                 .map(result -> {
                     ChatRoom chatRoom = (ChatRoom) result[0];
                     Long unreadCount = (Long) result[1];
@@ -127,6 +139,12 @@ public class ChatRoomService {
         List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
         return results.stream()
+                .filter(result -> {
+                    ChatRoom chatRoom = (ChatRoom) result[0];
+                    return chatJoinRepository.findByChatRoomAndClientId(chatRoom, client.getId())
+                            .map(join -> !join.isExited())
+                            .orElse(false);
+                })
                 .map(result -> {
                     ChatRoom chatRoom = (ChatRoom) result[0];
                     Long unreadCount = (Long) result[1];
