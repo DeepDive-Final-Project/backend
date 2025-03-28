@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -40,8 +42,9 @@ public class MyPageUpdateRequest {
     @Schema(example = "업데이트된 소개입니다!")
     private String introduction;
 
-    @Schema(example = "https://updated.com")
-    private String link;
+    @Schema(example = "[\"https://updatedlink1.com\", \"https://updatedlink2.com\"]")
+    private List<String> links;
+
 
     @Schema(example = "Cloud_Computing")
     private Interest topic1;

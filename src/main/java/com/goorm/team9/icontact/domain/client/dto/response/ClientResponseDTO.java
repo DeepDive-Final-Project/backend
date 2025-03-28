@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -16,7 +17,7 @@ public class ClientResponseDTO {
     private String career;
     private String status;
     private String introduction;
-    private String link;
+    private List<String> links;
     private String profileImage;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
