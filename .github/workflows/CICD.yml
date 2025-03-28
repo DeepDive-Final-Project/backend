@@ -28,7 +28,6 @@ jobs:
         run: |
           ./gradlew clean --refresh-dependencies
           ./gradlew build -x test --no-daemon
-
       - name: Debug Build Output
         run: |
           ls -lah build/libs/
@@ -36,7 +35,6 @@ jobs:
             echo "JAR file not found! Check build output."
             exit 1
           fi
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -49,7 +47,6 @@ jobs:
             echo "Docker login failed"
             exit 1
           fi
-
       - name: Clear Docker Cache
         run: docker system prune -af
 
@@ -59,7 +56,6 @@ jobs:
           docker tag dawnisproblem/i-contact-backend:latest dawnisproblem/i-contact-backend:${{ github.sha }}
           docker push dawnisproblem/i-contact-backend:latest
           docker push dawnisproblem/i-contact-backend:${{ github.sha }}
-
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -78,45 +74,35 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_A }} >> ~/.ssh/known_hosts
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP_B }} >> ~/.ssh/known_hosts
-
       - name: Ensure Dependencies on EC2 Server A
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
             export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
             echo "Ensuring required packages are installed..."
             sudo apt update
             sudo apt install -y git docker-compose-plugin
             sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
           EOF
-
       - name: Deploy to EC2 Server A
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_A }} << 'EOF'
             export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
             echo "Creating and moving to backend directory..."
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
-
             echo "Force updating to the latest dev branch..."
             git fetch --all
             git checkout dev || git checkout -b dev origin/dev
             git reset --hard origin/dev
             git pull origin dev
-
             echo "Stopping and removing existing containers..."
             docker-compose down || true
-
             echo "Removing existing Docker image (to prevent caching)..."
             docker rmi -f dawnisproblem/i-contact-backend:latest || true
-
             echo "Removing existing build folder (to clear JAR cache)..."
             sudo rm -rf build || true
-
             echo "Pulling the latest Docker image..."
             docker-compose pull
-
             echo "Forcibly restarting containers..."
             docker-compose up -d --force-recreate
           EOF
@@ -137,49 +123,38 @@ jobs:
           done
           echo "Server A did not become Healthy in time. Failing deployment."
           exit 1
-
       - name: Ensure Dependencies on EC2 Server B
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
             export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
             echo "Ensuring required packages are installed..."
             sudo apt update
             sudo apt install -y git docker-compose-plugin
             sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose || true
           EOF
-
       - name: Deploy to EC2 Server B
         run: |
           ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_PUBLIC_IP_B }} << 'EOF'
             export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
-
             echo "Creating and moving to backend directory..."
             mkdir -p /home/ubuntu/backend
             cd /home/ubuntu/backend
-
             echo "Force updating to the latest dev branch..."
             git fetch --all
             git checkout dev || git checkout -b dev origin/dev
             git reset --hard origin/dev
             git pull origin dev
-
             echo "Stopping and removing existing containers..."
             docker-compose down || true
-
             echo "Removing existing Docker image (to prevent caching)..."
             docker rmi -f dawnisproblem/i-contact-backend:latest || true
-
             echo "Removing existing build folder (to clear JAR cache)..."
             sudo rm -rf build || true
-
             echo "Pulling the latest Docker image..."
             docker-compose pull
-
             echo "Forcibly restarting containers..."
             docker-compose up -d --force-recreate
           EOF
-
       - name: ALB Health Check for Server B
         run: |
           echo "Waiting for Server B to be Healthy in ALB..."
