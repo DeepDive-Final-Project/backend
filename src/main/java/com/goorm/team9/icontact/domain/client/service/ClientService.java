@@ -8,6 +8,7 @@ import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequest;
 import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDTO;
 import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
+import com.goorm.team9.icontact.domain.client.entity.ClientLinkEntity;
 import com.goorm.team9.icontact.domain.client.entity.TopicEntity;
 import com.goorm.team9.icontact.domain.client.enums.*;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +42,18 @@ public class ClientService {
         clientEntity.setCareer(request.getCareer());
         clientEntity.setStatus(request.getStatus());
         clientEntity.setIntroduction(request.getIntroduction());
-        clientEntity.setLink(request.getLink());
+
+        List<ClientLinkEntity> linkEntities = new ArrayList<>();
+        if (request.getLinks() != null) {
+            for (String link : request.getLinks()) {
+                ClientLinkEntity linkEntity = ClientLinkEntity.builder()
+                        .link(link)
+                        .client(clientEntity)
+                        .build();
+                linkEntities.add(linkEntity);
+            }
+        }
+        clientEntity.setLinks(linkEntities);
 
         if (profileImage != null && !profileImage.isEmpty()) {
             String imagePath = imageFileStorageService.storeFile(profileImage);
@@ -87,7 +100,19 @@ public class ClientService {
         if (request.getCareer() != null) existingClient.setCareer(request.getCareer());
         if (request.getStatus() != null) existingClient.setStatus(request.getStatus());
         if (request.getIntroduction() != null) existingClient.setIntroduction(request.getIntroduction());
-        if (request.getLink() != null) existingClient.setLink(request.getLink());
+
+        existingClient.getLinks().clear();
+
+        if (request.getLinks() != null) {
+            List<ClientLinkEntity> updatedLinks = request.getLinks().stream()
+                    .map(link -> ClientLinkEntity.builder()
+                            .link(link)
+                            .client(existingClient)
+                            .build())
+                    .toList();
+
+            existingClient.getLinks().addAll(updatedLinks);
+        }
 
         TopicEntity topic = existingClient.getIt_topic();
         if (topic != null) {

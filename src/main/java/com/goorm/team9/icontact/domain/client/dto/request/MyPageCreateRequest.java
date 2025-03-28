@@ -12,6 +12,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Builder
@@ -50,8 +52,8 @@ public class MyPageCreateRequest {
     @Schema(example = "안녕하세요!")
     private String introduction;
 
-    @Schema(example = "https://www.test.com")
-    private String link;
+    @Schema(example = "[\"https://testlink1.com\", \"https://testlink2.com\"]")
+    private List<String> links;
 
     @Schema(example = "AI_Machine_Learning")
     private Interest topic1;

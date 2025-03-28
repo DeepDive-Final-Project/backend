@@ -52,8 +52,8 @@ public class ClientEntity extends BaseTimeEntity {
     @Column(length = 200)
     private String introduction;
 
-    @Column
-    private String link;
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ClientLinkEntity> links = new ArrayList<>();
 
     @Column
     private String profileImage;
