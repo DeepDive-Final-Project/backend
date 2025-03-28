@@ -87,7 +87,9 @@ class LocationControllerTest {
     void getNearbyUsersTest() throws Exception {
         NearbyRequest request = new NearbyRequest(1L, "개발자", "주니어");
         List<LocationResponse> dummyList = Collections.singletonList(
-                new LocationResponse(2L, 37.402100, 127.108300, 5.0, "백엔드,프론트엔드,AI", "개발자", "주니어")
+                new LocationResponse(2L, 37.402100, 127.108300, 5.0,
+                        "백엔드,프론트엔드,AI", "개발자", "주니어",
+                        "홍일동", "AI를 좋아하는 백엔드 개발자입니다.")
         );
 
         when(locationService.getNearbyUsers(anyLong(), any(), any())).thenReturn(dummyList);
@@ -107,7 +109,9 @@ class LocationControllerTest {
     void refreshNearbyUsersTest() throws Exception {
         RefreshRequest request = new RefreshRequest(1L, 37.402056, 127.108212, "개발자", "주니어");
         List<LocationResponse> dummyList = Collections.singletonList(
-                new LocationResponse(3L, 37.402200, 127.108400, 4.5, "백엔드,AI,보안", "개발자", "주니어")
+                new LocationResponse(3L, 37.402200, 127.108400, 4.5,
+                        "백엔드,AI,보안", "개발자", "주니어",
+                        "홍이동", "보안과 AI에 관심 많은 주니어입니다.")
         );
 
         when(locationService.refreshNearbyUsers(anyLong(), anyDouble(), anyDouble(), any(), any()))
@@ -136,7 +140,9 @@ class LocationControllerTest {
                         5.0,
                         "백엔드,AI",
                         "개발자",
-                        "주니어"))
+                        "주니어",
+                        "참가자" + i,
+                        "소개 메시지 " + i))
                 .toList();
 
         when(locationService.getNearbyUsers(anyLong(), any(), any())).thenReturn(nearbyUsers);
@@ -159,9 +165,15 @@ class LocationControllerTest {
         NearbyRequest request = new NearbyRequest(1L, "개발자", "주니어");
 
         List<LocationResponse> matchedUsers = List.of(
-                new LocationResponse(10L, 37.402100, 127.108210, 4.0, "백엔드,AI", "개발자", "주니어"),
-                new LocationResponse(11L, 37.402105, 127.108215, 3.5, "보안,AI", "개발자", "주니어"),
-                new LocationResponse(12L, 37.402110, 127.108220, 3.0, "AI", "개발자", "주니어")
+                new LocationResponse(10L, 37.402100, 127.108210, 4.0,
+                        "백엔드,AI", "개발자", "주니어",
+                        "홍삼동", "AI에 진심인 백엔드 주니어입니다."),
+                new LocationResponse(11L, 37.402105, 127.108215, 3.5,
+                        "보안,AI", "개발자", "주니어",
+                        "홍사동", "보안전문가를 꿈꾸는 개발자입니다."),
+                new LocationResponse(12L, 37.402110, 127.108220, 3.0,
+                        "AI", "개발자", "주니어",
+                        "홍오동", "AI 전공한 주니어입니다.")
         );
 
         when(locationService.getNearbyUsers(eq(1L), eq("개발자"), eq("주니어")))
