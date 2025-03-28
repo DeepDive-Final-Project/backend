@@ -135,26 +135,52 @@ public class ChatRequestService {
         chatRequestRepository.save(chatRequest);
     }
 
-    @Transactional(readOnly = true)
     public List<ChatRequestDto> getReceivedRequests(String receiverNickname, RequestStatus status) {
-        ClientEntity receiver = clientRepository.findByNickName(receiverNickname)
-                .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
+        List<ChatRequest> requests = chatRequestRepository.findByReceiverNicknameAndStatus(receiverNickname, status);
 
-        return chatRequestRepository.findByReceiverNicknameAndStatus(receiverNickname, status)
-                .stream()
-                .map(ChatRequestDto::fromEntity)
-                .collect(Collectors.toList());
+        return requests.stream().map(request -> {
+            ChatRoom chatRoom = chatRoomRepository.findBySenderAndReceiver(request.getSender().getNickName(), request.getReceiver().getNickName())
+                    .orElse(null);
+            boolean exited = true;
+
+            if (chatRoom != null) {
+                exited = chatJoinRepository.findByChatRoomAndClientId(chatRoom, request.getReceiver().getId())
+                        .map(ChatJoin::isExited)
+                        .orElse(true);
+            }
+
+            return ChatRequestDto.builder()
+                    .id(request.getId())
+                    .senderNickname(request.getSender().getNickName())
+                    .receiverNickname(request.getReceiver().getNickName())
+                    .status(request.getStatus().toString())
+                    .exited(exited)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
-    @Transactional(readOnly = true)
     public List<ChatRequestDto> getSentRequest(String senderNickname, RequestStatus status) {
-        ClientEntity sender = clientRepository.findByNickName(senderNickname)
-                .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
+        List<ChatRequest> requests = chatRequestRepository.findBySenderNicknameAndStatus(senderNickname, status);
 
-        return chatRequestRepository.findBySenderNicknameAndStatus(senderNickname, status)
-                .stream()
-                .map(ChatRequestDto::fromEntity)
-                .collect(Collectors.toList());
+        return requests.stream().map(request -> {
+            ChatRoom chatRoom = chatRoomRepository.findBySenderAndReceiver(request.getSender().getNickName(), request.getReceiver().getNickName())
+                    .orElse(null);
+            boolean exited = true;
+
+            if (chatRoom != null) {
+                exited = chatJoinRepository.findByChatRoomAndClientId(chatRoom, request.getSender().getId())
+                        .map(ChatJoin::isExited)
+                        .orElse(true);
+            }
+
+            return ChatRequestDto.builder()
+                    .id(request.getId())
+                    .senderNickname(request.getSender().getNickName())
+                    .receiverNickname(request.getReceiver().getNickName())
+                    .status(request.getStatus().toString())
+                    .exited(exited)
+                    .build();
+        }).collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
