@@ -186,8 +186,6 @@ public class ChatRequestServiceTest {
     @DisplayName("닉네임 기준으로 받은 요청 목록 반환한다.")
     void getReceivedRequests_success() {
         // Given
-        when(clientRepository.findByNickName("Noah2"))
-                .thenReturn(Optional.of(receiver));
         when(chatRequestRepository.findByReceiverNicknameAndStatus("Noah2", RequestStatus.PENDING))
                 .thenReturn(List.of(ChatRequest.create(sender, receiver)));
 
@@ -202,7 +200,6 @@ public class ChatRequestServiceTest {
     @DisplayName("닉네임 기준으로 보낸 요청 목록 반환한다.")
     void getSentRequests_success() {
         // Given
-        when(clientRepository.findByNickName("Noah1")).thenReturn(Optional.of(sender));
         when(chatRequestRepository.findBySenderNicknameAndStatus("Noah1", RequestStatus.PENDING))
                 .thenReturn(List.of(ChatRequest.create(sender, receiver)));
 
