@@ -40,7 +40,7 @@ public class ChatRoomController {
             Long clientId = request.get("clientId");
 
             if (roomId == null || clientId == null) {
-               return ResponseEntity.badRequest().body(Map.of("error", "roomId 또는 clientId가 비어 있습니다."));
+                return ResponseEntity.badRequest().body(Map.of("error", "roomId 또는 clientId가 비어 있습니다."));
             }
 
             ClientEntity client = clientRepository.findById(clientId)
@@ -155,4 +155,12 @@ public class ChatRoomController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
+
+    @Operation(summary = "채팅방 존재 여부 확인", description = "roomId로 채팅방 존재 여부를 확인합니다.")
+    @GetMapping("/{roomId}/exists")
+    public ResponseEntity<Map<String, Object>> checkRoomExists(@PathVariable Long roomId) {
+        boolean exists = chatRoomService.existsById(roomId);
+        return ResponseEntity.ok(Map.of("roomId", roomId, "exists", exists));
+    }
+
 }
