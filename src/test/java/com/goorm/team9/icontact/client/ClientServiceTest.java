@@ -57,7 +57,6 @@ class ClientServiceTest {
                 .email("noah@example.com")
                 .provider("kakao")
                 .role(Role.DEV)
-                .status(Status.PUBLIC)
                 .it_topic(mockTopic)
                 .profileImage("profile.jpg")
                 .links(new ArrayList<>())
@@ -75,7 +74,6 @@ class ClientServiceTest {
                 .email("noah@example.com")
                 .nickName("Noah")
                 .role(Role.DEV)
-                .status(Status.PUBLIC)
                 .provider("kakao")
                 .build();
 
@@ -109,24 +107,11 @@ class ClientServiceTest {
 
     @Test
     @Order(3)
-    @DisplayName("비공개 상태 사용자 정보 조회 테스트")
-    void 사용자ID로_비공개상태_사용자_조회_테스트() {
-        mockClient.setStatus(Status.PRIVATE);
-        given(clientRepository.findByIdAndIsDeletedFalse(1L)).willReturn(Optional.of(mockClient));
-
-        assertThatThrownBy(() -> clientService.getUserById(1L))
-                .isInstanceOf(CustomException.class)
-                .hasMessageContaining(ClientErrorCode.STATUS_IS_PRIVATE.getMessage());
-    }
-
-    @Test
-    @Order(4)
     @DisplayName("사용자 정보 업데이트 테스트")
     void 사용자_정보_업데이트_테스트() {
         // given
         MyPageUpdateRequest request = MyPageUpdateRequest.builder()
                 .nickName("Updated")
-                .status(Status.PUBLIC)
                 .build();
 
         given(clientRepository.findById(1L)).willReturn(Optional.of(mockClient));
@@ -142,7 +127,7 @@ class ClientServiceTest {
     }
 
     @Test
-    @Order(5)
+    @Order(4)
     @DisplayName("전체 사용자 조회 테스트")
     void 전체_사용자_조회_테스트() {
         given(clientRepository.findAllByIsDeletedFalse()).willReturn(List.of(mockClient));
@@ -155,7 +140,7 @@ class ClientServiceTest {
     }
 
     @Test
-    @Order(6)
+    @Order(5)
     @DisplayName("프로필 미등록 생성 계정의 이미지 반환 테스트")
     void 마이페이지_생성_후_가본이미지_반환_테스트() {
         given(clientRepository.findByIdAndIsDeletedFalse(anyLong())).willReturn(Optional.empty());
