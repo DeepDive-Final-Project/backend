@@ -12,9 +12,11 @@ import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -120,25 +122,18 @@ public class ChatMessageService {
     public List<ChatMessageDto> getMessagesByRoomId(Long roomId, Long clientId) {
 
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 채팅방을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "채팅방이 존재하지 않습니다."));
 
-        ClientEntity client = clientRepository.findById(clientId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, clientId)
+                .orElseThrow(() -> new IllegalArgumentException("사용자가 채팅방에 참여하지 않았습니다."));
 
-        boolean isMember = chatJoinRepository.existsByChatRoomAndClientId(chatRoom, clientId);
-        if (!isMember) {
-            throw new IllegalArgumentException("해당 채팅방에 속해있지 않습니다.");
+        if (chatJoin.isExited()) {
+            throw new IllegalStateException("이미 채팅방에서 퇴장한 사용자입니다.");
         }
 
-        List<ChatMessageDto> messages = chatMessageRepository.findByChatRoomId(roomId)
-                .stream()
+        return chatMessageRepository.findByChatRoomOrderByCreatedAtAsc(chatRoom).stream()
                 .map(ChatMessageDto::fromEntity)
                 .collect(Collectors.toList());
-
-        if (messages.isEmpty()) {
-            throw new IllegalArgumentException("주고받은 메시지가 없습니다.");
-        }
-        return messages;
     }
 
     @Transactional
