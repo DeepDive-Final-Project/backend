@@ -74,13 +74,10 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
-        clientRepository.findById(clientId)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
         ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, clientId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자는 채팅방에 존재하지 않습니다."));
+                .orElse(null);
 
-        if (chatJoin.isExited()) {
+        if (chatJoin == null || chatJoin.isExited()) {
             return;
         }
 
@@ -92,6 +89,7 @@ public class ChatRoomService {
         if (remainingUsers == 0) {
             chatJoinRepository.deleteAll(chatJoinRepository.findByChatRoom(chatRoom));
             chatRoomRepository.delete(chatRoom);
+            chatRoomRepository.flush();
         }
     }
 
@@ -159,4 +157,9 @@ public class ChatRoomService {
     public long countUnreadMessages(Long roomId, Long clientId) {
         return chatMessageRepository.countUnreadMessages(roomId, clientId);
     }
+
+    public boolean existsById(Long roomId) {
+        return chatRoomRepository.existsById(roomId);
+    }
+
 }

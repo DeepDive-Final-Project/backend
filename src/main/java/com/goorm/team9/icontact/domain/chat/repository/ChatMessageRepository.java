@@ -26,4 +26,9 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
             "AND m.senderNickname <> :reader")
     List<ChatMessage> findUnreadMessages(@Param("chatRoom") ChatRoom chatRoom,
                                          @Param("reader") ClientEntity reader);
+
+    @Query("SELECT m FROM ChatMessage m WHERE m.chatRoom = :chatRoom ORDER BY m.created_at ASC")
+    List<ChatMessage> findByChatRoomOrderByCreatedAtAsc(@Param("chatRoom") ChatRoom chatRoom);
+
+
 }
