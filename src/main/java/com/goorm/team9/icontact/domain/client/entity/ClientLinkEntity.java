@@ -17,6 +17,9 @@ public class ClientLinkEntity {
     private Long id;
 
     @Column(nullable = false)
+    private String title;
+
+    @Column(nullable = false)
     private String link;
 
     @ManyToOne(fetch = FetchType.LAZY)

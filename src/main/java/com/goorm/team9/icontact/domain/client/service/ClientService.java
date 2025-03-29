@@ -3,6 +3,7 @@ package com.goorm.team9.icontact.domain.client.service;
 import com.goorm.team9.icontact.common.error.ClientErrorCode;
 import com.goorm.team9.icontact.common.exception.CustomException;
 import com.goorm.team9.icontact.domain.client.converter.ClientConverter;
+import com.goorm.team9.icontact.domain.client.dto.request.ClientLinkRequestDTO;
 import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequest;
 import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequest;
 import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDTO;
@@ -10,7 +11,6 @@ import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.entity.ClientLinkEntity;
 import com.goorm.team9.icontact.domain.client.entity.TopicEntity;
-import com.goorm.team9.icontact.domain.client.enums.*;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -40,14 +40,14 @@ public class ClientService {
         clientEntity.setEmail(request.getEmail());
         clientEntity.setRole(request.getRole());
         clientEntity.setCareer(request.getCareer());
-        clientEntity.setStatus(request.getStatus());
         clientEntity.setIntroduction(request.getIntroduction());
 
         List<ClientLinkEntity> linkEntities = new ArrayList<>();
         if (request.getLinks() != null) {
-            for (String link : request.getLinks()) {
+            for (ClientLinkRequestDTO linkDto : request.getLinks()) {
                 ClientLinkEntity linkEntity = ClientLinkEntity.builder()
-                        .link(link)
+                        .title(linkDto.getTitle())
+                        .link(linkDto.getLink())
                         .client(clientEntity)
                         .build();
                 linkEntities.add(linkEntity);
@@ -66,8 +66,6 @@ public class ClientService {
         topicEntity.setTopic1(request.getTopic1());
         topicEntity.setTopic2(request.getTopic2());
         topicEntity.setTopic3(request.getTopic3());
-        topicEntity.setLanguage(request.getLanguage());
-        topicEntity.setFramework(request.getFramework());
         clientEntity.setProvider(request.getProvider());
 
         topicEntity.setClient(clientEntity);
@@ -83,10 +81,6 @@ public class ClientService {
         ClientEntity clientEntity = clientRepository.findByIdAndIsDeletedFalse(clientId)
                 .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
 
-        if (clientEntity.getStatus() == Status.PRIVATE) {
-            throw new CustomException(ClientErrorCode.STATUS_IS_PRIVATE);
-        }
-
         return clientConverter.toResponseDTO(clientEntity);
     }
 
@@ -98,15 +92,15 @@ public class ClientService {
         if (request.getNickName() != null) existingClient.setNickName(request.getNickName());
         if (request.getRole() != null) existingClient.setRole(request.getRole());
         if (request.getCareer() != null) existingClient.setCareer(request.getCareer());
-        if (request.getStatus() != null) existingClient.setStatus(request.getStatus());
         if (request.getIntroduction() != null) existingClient.setIntroduction(request.getIntroduction());
 
         existingClient.getLinks().clear();
 
         if (request.getLinks() != null) {
             List<ClientLinkEntity> updatedLinks = request.getLinks().stream()
-                    .map(link -> ClientLinkEntity.builder()
-                            .link(link)
+                    .map(linkDto -> ClientLinkEntity.builder()
+                            .title(linkDto.getTitle())
+                            .link(linkDto.getLink())
                             .client(existingClient)
                             .build())
                     .toList();
@@ -119,10 +113,7 @@ public class ClientService {
             if (request.getTopic1() != null) topic.setTopic1(request.getTopic1());
             if (request.getTopic2() != null) topic.setTopic2(request.getTopic2());
             if (request.getTopic3() != null) topic.setTopic3(request.getTopic3());
-            if (request.getLanguage() != null) topic.setLanguage(request.getLanguage());
-            if (request.getFramework() != null) topic.setFramework(request.getFramework());
         }
-
         // 기존 이미지 삭제 후 새 이미지 저장
         String currentImage = existingClient.getProfileImage();
         if (profileImage != null && !profileImage.isEmpty()) {
@@ -141,6 +132,7 @@ public class ClientService {
         ClientEntity updatedClient = clientRepository.save(existingClient);
         return clientConverter.toResponseDTO(updatedClient);
     }
+
 
     @Transactional(readOnly = true)
     public List<ClientResponseDTO> getAllClients() {
