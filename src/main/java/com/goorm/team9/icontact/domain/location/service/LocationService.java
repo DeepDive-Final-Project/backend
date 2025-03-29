@@ -43,8 +43,8 @@ public class LocationService {
         redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
         redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
 
-        redisTemplate.expire(userKey, Duration.ofSeconds(600));
-        redisTemplate.expire(globalKey, Duration.ofSeconds(600));
+        // redisTemplate.expire(userKey, Duration.ofSeconds(600));
+        // redisTemplate.expire(globalKey, Duration.ofSeconds(600));
 
         updateUserInterest(id);
 
@@ -122,8 +122,8 @@ public class LocationService {
         redisTemplate.opsForGeo().add(userKey, new Point(longitude, latitude), id.toString());
         redisTemplate.opsForGeo().add(globalKey, new Point(longitude, latitude), id.toString());
 
-        redisTemplate.expire(userKey, Duration.ofSeconds(600));
-        redisTemplate.expire(globalKey, Duration.ofSeconds(600));
+//        redisTemplate.expire(userKey, Duration.ofSeconds(600));
+//        redisTemplate.expire(globalKey, Duration.ofSeconds(600));
 
         log.info("[참가자 위치 새로고침] client_id: {}, 위치 갱신됨 (위도: {}, 경도: {})", id, latitude, longitude);
 
