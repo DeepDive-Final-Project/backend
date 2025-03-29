@@ -11,6 +11,8 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.Map;
 
 import java.util.List;
 
@@ -22,6 +24,7 @@ public class ChatMessageController {
 
     private final ChatMessageService chatMessageService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessageDto chatMessageDto) {
@@ -48,9 +51,16 @@ public class ChatMessageController {
                 chatMessageService.sendMessage(chatMessageDto);
                 messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), chatMessageDto);
             }
-    } catch (IllegalArgumentException e) {
-        String errorMessage = e.getMessage();
-        messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), errorMessage);
+        } catch (IllegalArgumentException e) {
+            try {
+                String errorJson = objectMapper.writeValueAsString(Map.of(
+                        "type", "error",
+                        "message", e.getMessage()
+                ));
+                messagingTemplate.convertAndSend("/queue/" + chatMessageDto.getRoomId(), errorJson);
+            } catch (Exception jsonException) {
+                jsonException.printStackTrace();
+            }
         }
     }
 
