@@ -153,7 +153,7 @@ public class OAuthService {
                             .provider(provider)
                             .nickName(NicknameGeneratorService.generateNickname())
                             .role(Role.DEV)
-                            .status(Status.PUBLIC)
+//                            .status(Status.PUBLIC)
                             .isDeleted(false)
                             .build();
                     return clientRepository.save(newClient);
