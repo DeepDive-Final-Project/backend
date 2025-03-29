@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -32,6 +34,9 @@ public class ChatRoom {
 
     @Column(name = "last_message_time")
     private LocalDateTime lastMessageTime;
+
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ChatMessage> messages = new ArrayList<>();
 
     @ElementCollection
     @CollectionTable(name = "chat_room_exit_status", joinColumns = @JoinColumn(name = "room_id"))
