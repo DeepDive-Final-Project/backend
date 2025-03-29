@@ -21,7 +21,6 @@ public class TopicEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @MapsId
     @JoinColumn(name = "client_id", nullable = false)
@@ -39,11 +38,4 @@ public class TopicEntity {
     @Column(nullable = false)
     private Interest topic3;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Language language;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Framework framework;
 }

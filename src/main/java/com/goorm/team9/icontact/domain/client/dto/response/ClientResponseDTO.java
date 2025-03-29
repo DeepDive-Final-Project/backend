@@ -15,9 +15,8 @@ public class ClientResponseDTO {
     private String email;
     private String role;
     private String career;
-    private String status;
     private String introduction;
-    private List<String> links;
+    private List<ClientLinkResponseDTO> links;
     private String profileImage;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -26,6 +25,4 @@ public class ClientResponseDTO {
     private String topic1;
     private String topic2;
     private String topic3;
-    private String language;
-    private String framework;
 }

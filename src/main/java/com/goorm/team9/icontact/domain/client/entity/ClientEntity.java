@@ -45,14 +45,11 @@ public class ClientEntity extends BaseTimeEntity {
     @Column
     private Career career;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Status status;
-
     @Column(length = 200)
     private String introduction;
 
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<ClientLinkEntity> links = new ArrayList<>();
 
     @Column

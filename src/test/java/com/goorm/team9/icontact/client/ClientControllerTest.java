@@ -62,7 +62,6 @@ class ClientControllerTest {
                 .email("test@example.com")
                 .nickName("테스터")
                 .role(Role.DEV)
-                .status(Status.PUBLIC)
                 .provider("kakao")
                 .build();
 

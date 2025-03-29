@@ -1,8 +1,12 @@
 package com.goorm.team9.icontact.domain.client.converter;
 
+import com.goorm.team9.icontact.domain.client.dto.response.ClientLinkResponseDTO;
 import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @Component
 public class ClientConverter {
@@ -14,12 +18,16 @@ public class ClientConverter {
         clientResponseDTO.setEmail(clientEntity.getEmail());
         clientResponseDTO.setRole(clientEntity.getRole().getDescription());
         clientResponseDTO.setCareer(clientEntity.getCareer() != null ? clientEntity.getCareer().getDescription() : null);
-        clientResponseDTO.setStatus(clientEntity.getStatus().getDescription());
         clientResponseDTO.setIntroduction(clientEntity.getIntroduction());
         clientResponseDTO.setLinks(
-                clientEntity.getLinks().stream()
-                        .map(linkEntity -> linkEntity.getLink())
-                        .toList()
+                clientEntity.getLinks() != null ?
+                        clientEntity.getLinks().stream()
+                                .map(link -> ClientLinkResponseDTO.builder()
+                                        .title(link.getTitle())
+                                        .link(link.getLink())
+                                        .build())
+                                .collect(Collectors.toList())
+                        : new ArrayList<>()
         );
 
         clientResponseDTO.setProfileImage(clientEntity.getProfileImage());
@@ -30,8 +38,6 @@ public class ClientConverter {
             clientResponseDTO.setTopic1(clientEntity.getIt_topic().getTopic1().getDescription());
             clientResponseDTO.setTopic2(clientEntity.getIt_topic().getTopic2().getDescription());
             clientResponseDTO.setTopic3(clientEntity.getIt_topic().getTopic3().getDescription());
-            clientResponseDTO.setLanguage(clientEntity.getIt_topic().getLanguage().getDescription());
-            clientResponseDTO.setFramework(clientEntity.getIt_topic().getFramework().getDescription());
         }
 
         return clientResponseDTO;

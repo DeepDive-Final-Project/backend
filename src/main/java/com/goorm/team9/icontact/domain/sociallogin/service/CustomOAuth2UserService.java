@@ -119,7 +119,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .email(userEmail)
                     .provider(normalizedProvider)
                     .role(Role.DEV)
-                    .status(Status.PUBLIC)
+//                    .status(Status.PUBLIC)
                     .isDeleted(false)
                     .build();
 

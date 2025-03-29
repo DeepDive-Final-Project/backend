@@ -23,14 +23,11 @@ import java.util.List;
         "  \"email\": \"noah@gmail.com\",\n" +
         "  \"role\": \"DEV\",\n" +
         "  \"career\": \"JUNIOR\",\n" +
-        "  \"status\": \"PUBLIC\",\n" +
         "  \"introduction\": \"안녕하세요!\",\n" +
         "  \"link\": \"https://www.test.com\",\n" +
         "  \"topic1\": \"AI_Machine_Learning\",\n" +
         "  \"topic2\": \"Server_Development\",\n" +
         "  \"topic3\": \"API_Development\",\n" +
-        "  \"language\": \"JAVA\",\n" +
-        "  \"framework\": \"SPRINGBOOT\"\n" +
         "  \"provider\": \"kakao\"\n" +
         "}")
 public class MyPageCreateRequest {
@@ -46,14 +43,11 @@ public class MyPageCreateRequest {
     @Schema(example = "JUNIOR")
     private Career career;
 
-    @Schema(example = "PUBLIC")
-    private Status status;
-
     @Schema(example = "안녕하세요!")
     private String introduction;
 
-    @Schema(example = "[\"https://testlink1.com\", \"https://testlink2.com\"]")
-    private List<String> links;
+    @Schema(description = "링크 리스트", example = "[{\"title\": \"정훈의 깃허브\", \"link\": \"https://github.com/jh\"}]")
+    private List<ClientLinkRequestDTO> links;
 
     @Schema(example = "AI_Machine_Learning")
     private Interest topic1;
@@ -63,12 +57,6 @@ public class MyPageCreateRequest {
 
     @Schema(example = "API_Development")
     private Interest topic3;
-
-    @Schema(example = "JAVA")
-    private Language language;
-
-    @Schema(example = "SPRINGBOOT")
-    private Framework framework;
 
     @Schema(example = "kakao")
     private String provider;
