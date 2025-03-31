@@ -109,22 +109,34 @@ public class ClientService {
         }
 
         TopicEntity topic = existingClient.getIt_topic();
-        if (topic != null) {
+
+        if (topic == null) {
+            TopicEntity newTopic = TopicEntity.builder()
+                    .topic1(request.getTopic1())
+                    .topic2(request.getTopic2())
+                    .topic3(request.getTopic3())
+                    .client(existingClient)
+                    .build();
+            existingClient.setIt_topic(newTopic);
+        } else {
             if (request.getTopic1() != null) topic.setTopic1(request.getTopic1());
             if (request.getTopic2() != null) topic.setTopic2(request.getTopic2());
             if (request.getTopic3() != null) topic.setTopic3(request.getTopic3());
         }
-        // 기존 이미지 삭제 후 새 이미지 저장
+
         String currentImage = existingClient.getProfileImage();
+
         if (profileImage != null && !profileImage.isEmpty()) {
             if (!imageFileStorageService.isDefaultImage(currentImage)) {
                 imageFileStorageService.deleteFile(currentImage);
             }
             String imagePath = imageFileStorageService.storeFile(profileImage);
             existingClient.setProfileImage(imagePath);
-        }
 
-        if (profileImage == null && !imageFileStorageService.isDefaultImage(currentImage)) {
+        } else if ((profileImage == null || profileImage.isEmpty()) && currentImage == null) {
+            existingClient.setProfileImage(imageFileStorageService.getDefaultImage());
+
+        } else if ((profileImage == null || profileImage.isEmpty()) && !imageFileStorageService.isDefaultImage(currentImage)) {
             imageFileStorageService.deleteFile(currentImage);
             existingClient.setProfileImage(imageFileStorageService.getDefaultImage());
         }
@@ -132,7 +144,6 @@ public class ClientService {
         ClientEntity updatedClient = clientRepository.save(existingClient);
         return clientConverter.toResponseDTO(updatedClient);
     }
-
 
     @Transactional(readOnly = true)
     public List<ClientResponseDTO> getAllClients() {
