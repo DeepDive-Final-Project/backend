@@ -111,7 +111,7 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         String nickname = optionalClient.map(ClientEntity::getNickName).orElse("unknown");
         String jwtToken = jwtTokenProvider.createToken(email, expiresAt, provider, nickname);
         setAuthorizationHeader(response, jwtToken);
-        setJwtCookie(response, jwtToken);
+        setJwtCookie(request, response, jwtToken);
         writeJsonResponse(response, jwtToken);
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
 
@@ -157,10 +157,10 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
     /**
      *  JWT를 브라우저 쿠키에 저장하는 메서드
      */
-    private void setJwtCookie(HttpServletResponse response, String jwtToken) {
+    private void setJwtCookie(HttpServletRequest request, HttpServletResponse response, String jwtToken) {
         Cookie jwtCookie = new Cookie("Authorization", jwtToken);
         jwtCookie.setHttpOnly(true);        // JS로 접근 못 하게 (보안 강화)
-        jwtCookie.setSecure(false);         // HTTPS 환경이면 true로 설정
+        jwtCookie.setSecure(request.isSecure());         // HTTPS 환경이면 true로 설정
         jwtCookie.setPath("/");             // 모든 경로에서 접근 가능
         jwtCookie.setMaxAge(60 * 60);       // 1시간 유효
 
