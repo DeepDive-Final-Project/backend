@@ -84,8 +84,18 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
                     return;
                 }
 
-                // 복구 가능 → 복구 페이지 리디렉션
-                String redirectUrl = "https://www.i-contacts.link/restore";
+                //복구 리다이렉트
+                String referer = request.getHeader("Referer");
+                String baseUrl = "https://www.i-contacts.link";
+                if (referer != null) {
+                    if (referer.contains("localhost:5173")) {
+                        baseUrl = "http://localhost:5173";
+                    } else if (referer.contains("www.i-contacts.link")) {
+                        baseUrl = "https://www.i-contacts.link";
+                    }
+                }
+
+                String redirectUrl = baseUrl + "/restore";
                 getRedirectStrategy().sendRedirect(request, response, redirectUrl);
                 logger.info("🚫 탈퇴자 리디렉션 완료: {}", redirectUrl);
                 return;
@@ -106,12 +116,22 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
 
         // 리디렉션 분기
+        String referer = request.getHeader("Referer");
+        String baseUrl = "https://www.i-contacts.link";
+        if (referer != null) {
+            if (referer.contains("localhost:5173")) {
+                baseUrl = "http://localhost:5173";
+            } else if (referer.contains("www.i-contacts.link")) {
+                baseUrl = "https://www.i-contacts.link";
+            }
+        }
+
         String redirectUrl = isNewUser
-                ? "https://www.i-contacts.link/profile1"
-                : "https://www.i-contacts.link/home";
+                ? baseUrl + "/profile1"
+                : baseUrl + "/home";
 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
-        logger.info("✅ 로그인 성공, 토큰 발급 및 리디렉션 완료");
+        logger.info("✅ 로그인 성공, 토큰 발급 및 리디렉션 완료: {}", redirectUrl);
     }
 
     /**
