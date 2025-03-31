@@ -127,7 +127,7 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         }
 
         String redirectUrl = isNewUser
-                ? baseUrl + "/profile/"
+                ? baseUrl + "/profile/1"
                 : baseUrl + "/home";
 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
