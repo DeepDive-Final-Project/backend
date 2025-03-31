@@ -8,7 +8,7 @@ import java.util.Arrays;
 @Getter
 public enum Role implements EnumWithDescription {
 
-    PD("프로덕트 디자이너", 1),
+    PD("디자이너", 1),
     PM("프로덕트 매니지먼트", 1),
     DEV("개발자", 1),
     STUDENT("학생", 2),
