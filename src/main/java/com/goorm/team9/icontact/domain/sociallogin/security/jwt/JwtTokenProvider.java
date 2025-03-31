@@ -8,6 +8,7 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -121,14 +122,29 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 요청 헤더에서 JWT 추출
+     * 요청에서 JWT 추출 (헤더 + 쿠키)
      *
      *  @param request HTTP 요청 객체
      *  @return JWT 문자열 (Bearer 제거 후 반환)
      */
     public String resolveToken(HttpServletRequest request) {
+        // 헤더에서 Authorization 추출
         String bearerToken = request.getHeader("Authorization");
-        return (bearerToken != null && bearerToken.startsWith("Bearer ")) ? bearerToken.substring(7) : null;
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+
+        // Authorization 쿠키에서 추출 (HttpOnly 대응용)
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("Authorization".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
+        }
+
+        return null;
     }
 
     /**
