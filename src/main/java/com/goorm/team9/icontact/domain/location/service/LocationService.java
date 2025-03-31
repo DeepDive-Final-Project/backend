@@ -152,8 +152,24 @@ public class LocationService {
 
             Map<String, Object> rcInfo = jdbcTemplate.queryForMap(
                     "SELECT role, career, nick_name, introduction FROM client WHERE id = ?", targetId);
-            String targetRole = rcInfo.getOrDefault("role", "").toString();
-            String targetCareer = rcInfo.getOrDefault("career", "").toString();
+            String roleEnumName = rcInfo.getOrDefault("role", "").toString();
+            String careerEnumName = rcInfo.getOrDefault("career", "").toString();
+
+            String targetRole;
+            String targetCareer;
+
+            try {
+                targetRole = Role.valueOf(roleEnumName).getDescription();
+            } catch (IllegalArgumentException e) {
+                targetRole = roleEnumName;
+            }
+
+            try {
+                targetCareer = Career.valueOf(careerEnumName).getDescription();
+            } catch (IllegalArgumentException e) {
+                targetCareer = careerEnumName;
+            }
+
             String nickname = rcInfo.getOrDefault("nick_name", "").toString();
             String introduction = rcInfo.getOrDefault("introduction", "").toString();
 
