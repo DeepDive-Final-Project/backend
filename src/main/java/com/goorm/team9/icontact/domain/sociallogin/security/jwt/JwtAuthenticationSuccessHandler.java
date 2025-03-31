@@ -85,7 +85,7 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
                 }
 
                 // 복구 가능 → 복구 페이지 리디렉션
-                String redirectUrl = "https://localhost:5137/restore";
+                String redirectUrl = "https://localhost:5173/restore";
                 getRedirectStrategy().sendRedirect(request, response, redirectUrl);
                 logger.info("🚫 탈퇴자 리디렉션 완료: {}", redirectUrl);
                 return;
@@ -107,8 +107,8 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
         // 리디렉션 분기
         String redirectUrl = isNewUser
-                ? "https://localhost:5137/profile1"
-                : "https://localhost:5137/home";
+                ? "https://localhost:5173/profile1"
+                : "https://localhost:5173/home";
 
         getRedirectStrategy().sendRedirect(request, response, redirectUrl);
         logger.info("✅ 로그인 성공, 토큰 발급 및 리디렉션 완료");
