@@ -197,23 +197,24 @@ public class AuthController {
 
     @GetMapping("/me")
     @Operation(summary = "내 정보 조회 API")
-    @Transactional(readOnly = true) // ✅ 추가
-    public ResponseEntity<?> getMyInfo(@RequestHeader("Authorization") String authorizationHeader) {
-        if (authorizationHeader == null || !authorizationHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authorization 헤더가 없습니다.");
+    @Transactional(readOnly = true)
+    public ResponseEntity<?> getMyInfo(@RequestHeader(value = "Authorization", required = false) String authorizationHeader,
+                                       HttpServletRequest request) {
+        // 토큰을 resolveToken()으로 추출 (헤더 또는 쿠키)
+        String token = jwtTokenProvider.resolveToken(request);
+
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT 토큰이 없습니다.");
         }
 
         try {
-            String token = authorizationHeader.substring(7);
             String email = jwtTokenProvider.getUserEmail(token);
             String provider = jwtTokenProvider.getProvider(token);
 
-            // OAuth 정보 조회
             Optional<OAuth> oauthInfo = oAuthRepository.findByProviderAndEmail(email, provider);
 
-            return clientRepository.findByEmailAndProviderAndIsDeletedFalse(email,provider)
+            return clientRepository.findByEmailAndProviderAndIsDeletedFalse(email, provider)
                     .map(client -> {
-                        // 최근 로그인 시간 조회
                         Optional<LoginHistory> lastLogin = loginHistoryRepository.findFirstByClientEntityOrderByLoginAtDesc(client);
                         LocalDateTime lastLoginAt = lastLogin.map(LoginHistory::getLoginAt).orElse(null);
 
@@ -221,7 +222,7 @@ public class AuthController {
                     })
                     .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).build());
         } catch (Exception e) {
-            e.printStackTrace(); // ❗ 예외 스택 트레이스 출력 추가
+            e.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("서버 오류 발생");
         }
     }
