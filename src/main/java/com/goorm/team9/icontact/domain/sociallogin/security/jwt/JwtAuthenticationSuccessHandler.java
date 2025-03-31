@@ -163,7 +163,7 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         jwtCookie.setSecure(request.isSecure());         // HTTPS 환경이면 true로 설정
         jwtCookie.setPath("/");             // 모든 경로에서 접근 가능
         jwtCookie.setMaxAge(60 * 60);       // 1시간 유효
-        jwtCookie.setDomain(".i-contacts.link"); // 서브도메인 전체에서 쿠키 사용 가능하도록 설정
+        jwtCookie.setDomain("i-contacts.link"); // 서브도메인 전체에서 쿠키 사용 가능하도록 설정
 
         response.addCookie(jwtCookie);
     }
