@@ -98,7 +98,8 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
 
         // JWT 생성
         long expiresAt = System.currentTimeMillis() + 3600000;
-        String jwtToken = jwtTokenProvider.createToken(email, expiresAt, provider);
+        String nickname = optionalClient.map(ClientEntity::getNickName).orElse("unknown");
+        String jwtToken = jwtTokenProvider.createToken(email, expiresAt, provider, nickname);
         setAuthorizationHeader(response, jwtToken);
         setJwtCookie(response, jwtToken);
         writeJsonResponse(response, jwtToken);

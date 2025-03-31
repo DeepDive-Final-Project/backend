@@ -102,9 +102,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             if (deletedClient.isPresent()) {
                 logger.warn("🚫 탈퇴한 사용자 - JWT만 발급하여 복구 API 접근 허용: email={}, provider={}", userEmail, normalizedProvider);
 
-                String jwtToken = jwtTokenProvider.createToken(userEmail, expiresAt, provider);
+                String nickname = client.getNickName();
+                String jwtToken = jwtTokenProvider.createToken(userEmail, expiresAt, provider, nickname);
                 userInfo.put("jwtToken", jwtToken);
                 userInfo.put("email", userEmail);
+                userInfo.put("nickname", nickname);
 
                 return new DefaultOAuth2User(
                         Collections.singleton(new SimpleGrantedAuthority("ROLE_WITHDRAWN")), // 복구 전용 권한
@@ -131,9 +133,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             if (client.isDeleted()) {
                 logger.warn("🚫 탈퇴 처리된 사용자가 조회됨 - 복구 API 접근 허용 only");
 
-                String jwtToken = jwtTokenProvider.createToken(userEmail, expiresAt, provider);
+                String nickname = client.getNickName();
+                String jwtToken = jwtTokenProvider.createToken(userEmail, expiresAt, provider, nickname);
                 userInfo.put("jwtToken", jwtToken);
                 userInfo.put("email", userEmail);
+                userInfo.put("nickname", nickname);
 
                 return new DefaultOAuth2User(
                         Collections.singleton(new SimpleGrantedAuthority("ROLE_WITHDRAWN")),
@@ -178,9 +182,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 .loginAt(LocalDateTime.now())
                 .build());
 
-        String jwtToken = jwtTokenProvider.createToken(email, expiresAt, provider);
+        String nickname = client.getNickName();
+        String jwtToken = jwtTokenProvider.createToken(userEmail, expiresAt, provider, nickname);
         userInfo.put("jwtToken", jwtToken);
         userInfo.put("email", email);
+        userInfo.put("nickname", nickname);
 
         logger.info("✅ {} 로그인 성공 - JWT 발급 완료: {}", normalizedProvider, jwtToken);
         return new DefaultOAuth2User(Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")), userInfo, "email");

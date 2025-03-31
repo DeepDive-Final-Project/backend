@@ -55,7 +55,7 @@ public class JwtTokenProvider {
     /**
      * JWT 생성 : 사용자 이메일 기반
      */
-    public String createToken(String email, long oauthTokenExpiryMillis,  String provider) {
+    public String createToken(String email, long oauthTokenExpiryMillis,  String provider, String nickname) {
 
         Date now = new Date();
         // JWT 만료 시간 = OAuth Access Token 만료 시간과 기존 만료 시간 중 더 짧은 값 선택
@@ -65,6 +65,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .setSubject(email)
                 .claim("provider", provider)
+                .claim("nickname", nickname)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256) // 서명 추가 (보안 강화를 위해 HS256 사용)
@@ -81,6 +82,14 @@ public class JwtTokenProvider {
      */
     public String getUserEmail(String token) {
         return parseToken(token).getSubject();
+    }
+
+    /**
+     * JWT에서 닉네임 추출
+     */
+    public String getNickname(String token) {
+        Claims claims = parseToken(token);
+        return (String) claims.get("nickname");
     }
 
     /**

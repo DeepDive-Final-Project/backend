@@ -12,13 +12,15 @@ public class OAuthLoginResponseDTO {
     private String refreshToken;
     private String role;
     private boolean isNewUser;
+    private String nickname;
 
-    public OAuthLoginResponseDTO(String email, String provider, String accessToken, String refreshToken, String role, boolean isNewUser) {
+    public OAuthLoginResponseDTO(String email, String provider, String accessToken, String refreshToken, String role, boolean isNewUser, String nickname) {
         this.email = email;
         this.provider = provider;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
         this.role = role;
         this.isNewUser = isNewUser;
+        this.nickname = nickname;
     }
 }

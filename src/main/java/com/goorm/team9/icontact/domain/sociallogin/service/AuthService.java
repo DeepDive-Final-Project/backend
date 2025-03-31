@@ -56,7 +56,8 @@ public class AuthService {
         ClientEntity clientEntity = clientRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
 
-        String accessToken = jwtTokenProvider.createToken(email, expiresAt,provider);
+        String nickname = clientEntity.getNickName();
+        String accessToken = jwtTokenProvider.createToken(email, expiresAt, provider, nickname);
         loginHistoryService.saveLoginHistory(clientEntity, provider);
 
         return new OAuthLoginResponseDTO(
@@ -65,7 +66,8 @@ public class AuthService {
                 accessToken,
                 null,
                 clientEntity.getRole().toString(),
-                isNewUser
+                isNewUser,
+                clientEntity.getNickName()
         );
     }
 
