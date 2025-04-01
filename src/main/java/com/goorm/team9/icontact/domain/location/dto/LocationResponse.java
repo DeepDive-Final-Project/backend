@@ -14,7 +14,7 @@ public class LocationResponse {
     private String interest;
     private String role;
     private String career;
-    private String nickname;
+    private String nickName;
     private String introduction;
 
     @JsonProperty("distanceToParticipant")
@@ -34,7 +34,7 @@ public class LocationResponse {
         this.interest = interest;
         this.role = role;
         this.career = career;
-        this.nickname = nickName;
+        this.nickName = nickName;
         this.introduction = introduction;
 
         if (distance != null) {
