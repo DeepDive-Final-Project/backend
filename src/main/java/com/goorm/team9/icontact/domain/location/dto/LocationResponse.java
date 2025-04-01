@@ -27,14 +27,14 @@ public class LocationResponse {
     private transient int matchScore;
 
     public LocationResponse(Long id, double latitude, double longitude, Double distance, String interest,
-                            String role, String career, String nickname, String introduction) {
+                            String role, String career, String nickName, String introduction) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;
         this.interest = interest;
         this.role = role;
         this.career = career;
-        this.nickname = nickname;
+        this.nickname = nickName;
         this.introduction = introduction;
 
         if (distance != null) {
