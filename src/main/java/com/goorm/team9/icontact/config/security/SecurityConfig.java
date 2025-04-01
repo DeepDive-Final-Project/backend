@@ -149,7 +149,9 @@ public class SecurityConfig {
                 "http://43.201.245.222:8080",
                 "https://www.i-contacts.link",
                 "http://localhost:5173",
-                "https://localhost:5173"
+                "https://localhost:5173",
+                "https://i-contact-s3.s3.ap-northeast-2.amazonaws.com",
+                "http://i-contact-s3.s3.ap-northeast-2.amazonaws.com"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "FETCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
