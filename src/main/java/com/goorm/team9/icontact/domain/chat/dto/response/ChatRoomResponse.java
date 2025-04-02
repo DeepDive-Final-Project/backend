@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.domain.chat.dto;
+package com.goorm.team9.icontact.domain.chat.dto.response;
 
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
 import lombok.AllArgsConstructor;
@@ -10,6 +10,7 @@ import java.util.List;
 @Getter
 @AllArgsConstructor
 public class ChatRoomResponse {
+
     private Long roomId;
     private List<String> participants;
     private String lastMessage;
@@ -33,4 +34,5 @@ public class ChatRoomResponse {
                 otherId
         );
     }
+
 }

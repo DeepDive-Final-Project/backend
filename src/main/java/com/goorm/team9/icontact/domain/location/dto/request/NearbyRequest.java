@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.domain.location.dto;
+package com.goorm.team9.icontact.domain.location.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -19,4 +19,5 @@ public class NearbyRequest {
 
     @Schema(description = "경력 (예: 주니어)", example = "주니어", required = false)
     private String career;
+
 }

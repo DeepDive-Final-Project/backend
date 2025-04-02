@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.domain.location.dto;
+package com.goorm.team9.icontact.domain.location.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -8,6 +8,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class LocationResponse {
+
     private Long id;
     private double latitude;
     private double longitude;

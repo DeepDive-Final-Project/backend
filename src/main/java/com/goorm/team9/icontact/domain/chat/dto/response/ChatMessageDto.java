@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.domain.chat.dto;
+package com.goorm.team9.icontact.domain.chat.dto.response;
 
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessage;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessageType;
@@ -33,16 +33,6 @@ public class ChatMessageDto {
                 .build();
     }
 
-    public static ChatMessageDto createChatMessage(Long roomId, String senderNickname, String content) {
-        return ChatMessageDto.builder()
-                .roomId(roomId)
-                .senderNickname(senderNickname)
-                .content(content)
-                .type(ChatMessageType.CHAT)
-                .timeStamp(LocalDateTime.now())
-                .build();
-    }
-
     public static ChatMessageDto createJoinMessage(Long roomId, String senderNickname) {
         return ChatMessageDto.builder()
                 .roomId(roomId)
@@ -61,4 +51,5 @@ public class ChatMessageDto {
                 .timeStamp(LocalDateTime.now())
                 .build();
     }
+
 }

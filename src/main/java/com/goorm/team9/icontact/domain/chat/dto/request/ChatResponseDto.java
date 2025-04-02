@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.domain.chat.dto;
+package com.goorm.team9.icontact.domain.chat.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -16,4 +16,5 @@ public class ChatResponseDto {
 
     @Schema(example = "123", description = "채팅방 ID")
     private final Long roomId;
+
 }

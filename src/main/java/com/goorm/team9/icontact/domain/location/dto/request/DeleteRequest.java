@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.domain.location.dto;
+package com.goorm.team9.icontact.domain.location.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -13,4 +13,5 @@ public class DeleteRequest {
 
     @Schema(description = "참가자 ID", example = "11")
     private Long id;
+
 }

@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.domain.chat.dto;
+package com.goorm.team9.icontact.domain.chat.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatRequestCountDto {
+
     private long receivedCount;
     private long sentCount;
+
 }

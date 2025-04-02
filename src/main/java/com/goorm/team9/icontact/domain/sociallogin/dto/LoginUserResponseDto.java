@@ -9,7 +9,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class LoginUserResponseDTO {
+public class LoginUserResponseDto {
     private Long id;
     private String email;
     private String nickName;
@@ -17,13 +17,12 @@ public class LoginUserResponseDTO {
     private String provider;
     private LocalDateTime lastLoginAt;
 
-    public LoginUserResponseDTO(ClientEntity client,String provider, LocalDateTime lastLoginAt) {
+    public LoginUserResponseDto(ClientEntity client, String provider, LocalDateTime lastLoginAt) {
         this.id = client.getId();
         this.email = client.getEmail();
         this.nickName = client.getNickName();
         this.role = client.getRole().toString();
 
-        // OAuth 데이터에서 provider 가져오기
         List<OAuth> oauthAccounts = client.getOauthAccounts();
         if (oauthAccounts == null || oauthAccounts.isEmpty()) {
             this.provider = "UNKNOWN";

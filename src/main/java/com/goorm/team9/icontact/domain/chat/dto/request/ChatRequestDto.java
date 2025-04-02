@@ -1,4 +1,4 @@
-package com.goorm.team9.icontact.domain.chat.dto;
+package com.goorm.team9.icontact.domain.chat.dto.request;
 
 import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder
 public class ChatRequestDto {
+
     private Long id;
 
     @Schema(example = "Noah1", description = "채팅을 요청하는 사용자 닉네임")
@@ -24,13 +25,4 @@ public class ChatRequestDto {
 
     private boolean exited;
 
-    public static ChatRequestDto fromEntity(ChatRequest chatRequest) {
-        return ChatRequestDto.builder()
-                .id(chatRequest.getId())
-                .senderNickname(chatRequest.getSenderNickname())
-                .receiverNickname(chatRequest.getReceiverNickname())
-                .status(chatRequest.getStatus().toString())
-                .exited(false)
-                .build();
-    }
 }
