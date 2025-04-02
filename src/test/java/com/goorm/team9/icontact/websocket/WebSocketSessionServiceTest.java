@@ -15,7 +15,7 @@ import static org.mockito.Mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.WebSocketSession;
-import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
+import com.goorm.team9.icontact.domain.chat.dto.response.ChatMessageDto;
 
 @ExtendWith(MockitoExtension.class)
 public class WebSocketSessionServiceTest {

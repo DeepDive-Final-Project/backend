@@ -5,7 +5,6 @@ import com.goorm.team9.icontact.domain.sociallogin.security.jwt.*;
 import com.goorm.team9.icontact.domain.sociallogin.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,9 +23,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.filter.ForwardedHeaderFilter;
 
 import java.util.List;
-import org.springframework.web.filter.ForwardedHeaderFilter;
 
 @Slf4j
 @Configuration
@@ -56,9 +55,7 @@ public class SecurityConfig {
         log.info("✅ SecurityFilterChain is active");
 
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // CORS 설정 분리
-                // .addFilterBefore(new OAuth2DomainRedirectFilter(), CorsFilter.class)
-                // .addFilterBefore(new RequestLoggingFilter(), CorsFilter.class)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/ws-chat/**",
@@ -89,7 +86,7 @@ public class SecurityConfig {
                 )
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authorization -> authorization
-                                .baseUri("/oauth2/authorization") // 프론트에서 요청할 경로
+                                .baseUri("/oauth2/authorization")
                                 .authorizationRequestRepository(cookieAuthorizationRequestRepository)
                         )
                         .redirectionEndpoint(redirection -> redirection
@@ -98,28 +95,28 @@ public class SecurityConfig {
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
                         )
-                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider, clientRepository)) // JWT 발급 후 반환
-                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider, clientRepository)) // JWT 발급 후 반환
+                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider, clientRepository))
+                        .successHandler(new JwtAuthenticationSuccessHandler(jwtTokenProvider, clientRepository))
                         .failureHandler((request, response, exception) -> {
-                            log.error("❌ OAuth2 인증 실패: {}", exception.getMessage(), exception); // 실패 원인 로그 출력
-                            response.sendRedirect("/login?error=" + exception.getMessage()); // 에러 메시지 포함
+                            log.error("❌ OAuth2 인증 실패: {}", exception.getMessage(), exception);
+                            response.sendRedirect("/login?error=" + exception.getMessage());
                         })
 
                 )
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider, jwtBlacklist),
-                        UsernamePasswordAuthenticationFilter.class) // JWT 필터 적용
+                        UsernamePasswordAuthenticationFilter.class)
 
                 .logout(logout -> logout
-                        .logoutUrl("/auth/logout")  // 로그아웃 엔드포인트
-                        .logoutSuccessHandler(jwtLogoutSuccessHandler) // 로그아웃 후 accessToken 삭제!
-                        .invalidateHttpSession(true)  // 세션 무효화
-                        .clearAuthentication(true)    // 인증 정보 삭제
-                        .deleteCookies("JSESSIONID", "Authorization") // 쿠키 삭제
+                        .logoutUrl("/auth/logout")
+                        .logoutSuccessHandler(jwtLogoutSuccessHandler)
+                        .invalidateHttpSession(true)
+                        .clearAuthentication(true)
+                        .deleteCookies("JSESSIONID", "Authorization")
                 )
                 .exceptionHandling(exception -> exception
                         .defaultAuthenticationEntryPointFor(
-                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED), // 보호된 API 접근 시 401 응답
-                                request -> request.getRequestURI().startsWith("/auth/home") // 여기만 401
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                                request -> request.getRequestURI().startsWith("/auth/home")
                         )
                 )
                 .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
@@ -156,7 +153,7 @@ public class SecurityConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "FETCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setExposedHeaders(List.of("Authorization", "Content-Type"));
-        config.setMaxAge(3600L); // 프리플라이트 요청 캐싱 (1시간)
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
@@ -167,7 +164,7 @@ public class SecurityConfig {
     public FilterRegistrationBean<ForwardedHeaderFilter> forwardedHeaderFilter() {
         FilterRegistrationBean<ForwardedHeaderFilter> filterRegBean = new FilterRegistrationBean<>();
         filterRegBean.setFilter(new ForwardedHeaderFilter());
-        filterRegBean.setOrder(0); // 제일 먼저 적용되도록
+        filterRegBean.setOrder(0);
         return filterRegBean;
     }
 
@@ -175,7 +172,7 @@ public class SecurityConfig {
     public FilterRegistrationBean<OAuth2DomainRedirectFilter> oauth2DomainRedirectFilter() {
         FilterRegistrationBean<OAuth2DomainRedirectFilter> filterRegBean = new FilterRegistrationBean<>();
         filterRegBean.setFilter(new OAuth2DomainRedirectFilter());
-        filterRegBean.setOrder(1); // ForwardedHeaderFilter보다 뒤에서 실행
+        filterRegBean.setOrder(1);
         return filterRegBean;
     }
 
@@ -183,7 +180,7 @@ public class SecurityConfig {
     public FilterRegistrationBean<RequestLoggingFilter> requestLoggingFilter() {
     FilterRegistrationBean<RequestLoggingFilter> filterRegBean = new FilterRegistrationBean<>();
     filterRegBean.setFilter(new RequestLoggingFilter());
-    filterRegBean.setOrder(0); // 가장 먼저 실행되게
+    filterRegBean.setOrder(0);
     return filterRegBean;
     }
     

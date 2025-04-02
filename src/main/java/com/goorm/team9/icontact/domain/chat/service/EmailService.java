@@ -30,4 +30,5 @@ public class EmailService {
         String text = senderNickname + "님이 보낸 메시지:\n\n\"" + messagePreview + "\"\n\n채팅방에서 확인해보세요!";
         sendSimpleMail(to, subject, text);
     }
+
 }

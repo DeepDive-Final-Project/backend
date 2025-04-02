@@ -9,6 +9,7 @@ import java.util.List;
 
 @Repository
 public interface MemoRepository extends JpaRepository<MemoEntity, Long> {
+
     List<MemoEntity> findByWriter(ClientEntity writer);
-    List<MemoEntity> findByTarget(ClientEntity target);
+
 }

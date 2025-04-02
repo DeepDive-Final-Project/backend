@@ -2,9 +2,9 @@ package com.goorm.team9.icontact.chat.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goorm.team9.icontact.domain.chat.controller.ChatRequestController;
-import com.goorm.team9.icontact.domain.chat.dto.ChatRequestCountDto;
-import com.goorm.team9.icontact.domain.chat.dto.ChatRequestDto;
-import com.goorm.team9.icontact.domain.chat.dto.ChatResponseDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatRequestCountDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatRequestDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatResponseDto;
 import com.goorm.team9.icontact.domain.chat.entity.RequestStatus;
 import com.goorm.team9.icontact.domain.chat.service.ChatRequestService;
 import com.goorm.team9.icontact.domain.chat.service.ChatRoomService;

@@ -12,11 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/**
- * JWT를 검증하고 SecurityContext에 인증 정보를 설정하는 필터.
- * - 요청에서 JWT를 추출하여 유효성 검증.
- * - 블랙리스트에 등록된 토큰은 차단.
- */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
@@ -34,7 +29,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String requestURI = request.getRequestURI();
 
-        // 특정 URI는 JWT 검증하지 않고 바로 통과
         if (List.of("/auth/token-status").contains(requestURI)) {
             filterChain.doFilter(request, response);
             return;
@@ -58,7 +52,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
-            // ecurityContextHolder에 Authentication 설정 추가
             Authentication authentication = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
             logger.info("✅ SecurityContext에 저장된 사용자: " + authentication.getName());
@@ -67,9 +60,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    /**
-     * JWT를 검증하고 인증 정보를 SecurityContext에 저장.
-     */
     private void processToken(String token, HttpServletResponse response) throws IOException {
         if (jwtBlacklist.isBlacklisted(token)) {
             handleInvalidToken(response, "🚨 차단된 토큰 사용 시도", token);
@@ -85,9 +75,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
-    /**
-     * 유효하지 않거나 블랙리스트에 등록된 토큰 처리.
-     */
     private void handleInvalidToken(HttpServletResponse response, String logMessage, String token) throws IOException {
         logger.warn("{}: {}", logMessage, token);
         SecurityContextHolder.clearContext();
@@ -95,4 +82,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.getWriter().write("{\"error\": \"유효하지 않은 토큰입니다.\"}");
         response.getWriter().flush();
     }
+
 }

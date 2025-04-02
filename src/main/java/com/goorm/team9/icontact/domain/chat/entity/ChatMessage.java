@@ -2,7 +2,12 @@ package com.goorm.team9.icontact.domain.chat.entity;
 
 import com.goorm.team9.icontact.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 
 @Entity
 @Getter
@@ -32,17 +37,8 @@ public class ChatMessage extends BaseTimeEntity {
     @Builder.Default
     private boolean isRead = false;
 
-    public static ChatMessage createChatMessage(ChatRoom chatRoom, String senderNickname, String content, ChatMessageType type) {
-        return ChatMessage.builder()
-                .chatRoom(chatRoom)
-                .senderNickname(senderNickname)
-                .content(content)
-                .type(type)
-                .isRead(false)
-                .build();
-    }
-
     public void markAsRead() {
         this.isRead = true;
     }
+
 }

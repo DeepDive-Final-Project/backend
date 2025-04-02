@@ -43,4 +43,5 @@ public enum Interest implements EnumWithDescription {
         this.description = description;
         this.apiCode = apiCode;
     }
+
 }

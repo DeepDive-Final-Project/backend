@@ -1,6 +1,3 @@
-/**
- *  카카오 로그인 구현
- */
 package com.goorm.team9.icontact.domain.sociallogin.security.provider;
 
 import com.goorm.team9.icontact.domain.sociallogin.service.CustomOAuth2UserService;
@@ -76,7 +73,7 @@ public class KakaoOAuthProvider implements OAuthProvider {
         tokenRequest.add("redirect_uri", kakaoRedirectUri);
         tokenRequest.add("grant_type", "authorization_code");
 
-        logger.info("🔍 카카오 인가 코드 요청: {}", code);  // 로그 추가
+        logger.info("🔍 카카오 인가 코드 요청: {}", code);
 
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(tokenRequest, headers);
 
@@ -119,23 +116,19 @@ public class KakaoOAuthProvider implements OAuthProvider {
 
             logger.info("✅ 카카오 사용자 정보: {}", responseBody);
 
-            // 사용자 정보에서 이메일 추출
             Map<String, Object> kakaoAccount = (Map<String, Object>) responseBody.get("kakao_account");
             if (kakaoAccount == null) {
                 throw new RuntimeException("❌ 카카오 계정 정보를 찾을 수 없음");
             }
 
-            // 이메일 가져오기 (동의하지 않았다면 null일 수 있음)
             String email = (String) kakaoAccount.get("email");
 
-            // 이메일이 null이면 예외 발생 대신 기본 처리
             if (email == null) {
                 logger.warn("⚠️ 카카오 로그인 사용자 이메일 정보가 제공되지 않음");
             } else {
                 logger.info("📧 카카오 사용자 이메일: {}", email);
             }
 
-            // 반환 데이터에 email 추가
             responseBody.put("email", email);
             return responseBody;
 
@@ -163,10 +156,9 @@ public class KakaoOAuthProvider implements OAuthProvider {
                     new ParameterizedTypeReference<>() {}
             );
 
-            // Object 타입으로 가져온 후, String -> Integer 변환
             Object expiresInObj = response.getBody().get("expires_in");
-            int expiresIn = Integer.parseInt(expiresInObj.toString()); // 안전한 변환 처리
-            return System.currentTimeMillis() + (expiresIn * 1000L); // 밀리초 변환 후 반환
+            int expiresIn = Integer.parseInt(expiresInObj.toString());
+            return System.currentTimeMillis() + (expiresIn * 1000L);
         } catch (Exception e) {
             throw new RuntimeException("❌ Kakao Access Token 만료 시간 조회 실패!", e);
         }

@@ -4,8 +4,7 @@ import com.goorm.team9.icontact.common.error.LectureErrorCode;
 import com.goorm.team9.icontact.common.exception.CustomException;
 import com.goorm.team9.icontact.domain.conference.entity.ConferenceEntity;
 import com.goorm.team9.icontact.domain.conference.repository.ConferenceRepository;
-import com.goorm.team9.icontact.domain.lecture.dto.request.LectureRequestDTO;
-import com.goorm.team9.icontact.domain.lecture.dto.response.LectureResponseDTO;
+import com.goorm.team9.icontact.domain.lecture.dto.response.LectureResponseDto;
 import com.goorm.team9.icontact.domain.lecture.entity.LectureEntity;
 import com.goorm.team9.icontact.domain.lecture.repository.LectureRepository;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,7 @@ public class LectureService {
     private final LectureRepository lectureRepository;
     private final ConferenceRepository conferenceRepository;
 
-    public LectureResponseDTO createLecture(String title, String lecturer, String openTime, String closeTime, Long conferenceId) {
+    public LectureResponseDto createLecture(String title, String lecturer, String openTime, String closeTime, Long conferenceId) {
         LocalTime open = LocalTime.parse(openTime);
         LocalTime close = LocalTime.parse(closeTime);
 
@@ -38,17 +37,17 @@ public class LectureService {
                 .build();
 
         lectureRepository.save(lecture);
-        return new LectureResponseDTO(lecture);
+        return new LectureResponseDto(lecture);
     }
 
-    public List<LectureResponseDTO> getLecturesByConference(Long conferenceId) {
+    public List<LectureResponseDto> getLecturesByConference(Long conferenceId) {
         List<LectureEntity> lectures = lectureRepository.findByConferenceIdWithConference(conferenceId);
         return lectures.stream()
-                .map(LectureResponseDTO::new)
+                .map(LectureResponseDto::new)
                 .collect(Collectors.toList());
     }
 
-    public LectureResponseDTO updateLecture(Long id, String title, String lecturer, String openTime, String closeTime) {
+    public LectureResponseDto updateLecture(Long id, String title, String lecturer, String openTime, String closeTime) {
         LectureEntity lecture = lectureRepository.findByIdWithConference(id)
                 .orElseThrow(() -> new CustomException(LectureErrorCode.LECTURE_NOT_FOUND));
 
@@ -58,7 +57,7 @@ public class LectureService {
         if (closeTime != null && !closeTime.isBlank()) lecture.setCloseTime(LocalTime.parse(closeTime));
 
         lectureRepository.save(lecture);
-        return new LectureResponseDTO(lecture);
+        return new LectureResponseDto(lecture);
     }
 
     public void deleteLecture(Long id) {

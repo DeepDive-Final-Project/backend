@@ -1,7 +1,7 @@
 package com.goorm.team9.icontact.chat.service;
 
-import com.goorm.team9.icontact.domain.chat.dto.ChatRequestDto;
-import com.goorm.team9.icontact.domain.chat.dto.ChatResponseDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatRequestDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatResponseDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
 import com.goorm.team9.icontact.domain.chat.entity.RequestStatus;

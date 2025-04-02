@@ -1,7 +1,7 @@
 package com.goorm.team9.icontact.domain.block.controller;
 
-import com.goorm.team9.icontact.domain.block.dto.BlockRequestDto;
-import com.goorm.team9.icontact.domain.block.dto.UnblockRequesetDto;
+import com.goorm.team9.icontact.domain.block.dto.request.BlockRequestDto;
+import com.goorm.team9.icontact.domain.block.dto.request.UnblockRequesetDto;
 import com.goorm.team9.icontact.domain.block.service.BlockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -30,4 +30,5 @@ public class BlockController {
         blockService.unblockUser(requeset.getBlockerNickname(), requeset.getBlockedNickname());
         return ResponseEntity.ok("사용자 차단이 해제되었습니다.");
     }
+
 }

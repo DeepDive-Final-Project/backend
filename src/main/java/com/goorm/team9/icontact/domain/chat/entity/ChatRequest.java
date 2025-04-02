@@ -1,7 +1,16 @@
 package com.goorm.team9.icontact.domain.chat.entity;
 
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -53,4 +62,5 @@ public class ChatRequest {
     public void reject() {
         this.status = RequestStatus.REJECTED;
     }
+
 }

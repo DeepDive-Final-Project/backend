@@ -9,15 +9,16 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AuthorizationRequ
 @Configuration
 public class OAuth2Config {
 
-    @Value("${app.domain:}") // application.yml에서 domain 받아오기 (없으면 빈 문자열)
+    @Value("${app.domain:}")
     private String domain;
 
-    @Value("${app.oauth.cookie-secure:true}") // 필요하다면 secure도 외부 설정 가능
+    @Value("${app.oauth.cookie-secure:true}")
     private boolean secure;
 
     @Bean
     public AuthorizationRequestRepository<OAuth2AuthorizationRequest> authorizationRequestRepository() {
         return new HttpCookieOAuth2AuthorizationRequestRepository(secure, domain);
     }
+
 }
 

@@ -38,4 +38,5 @@ public class BlockService {
 
         blockRepository.deleteByBlockerAndBlocked(blocker, blocked);
     }
+
 }

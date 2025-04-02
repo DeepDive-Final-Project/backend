@@ -2,11 +2,27 @@ package com.goorm.team9.icontact.domain.client.entity;
 
 import com.goorm.team9.icontact.domain.client.enums.Career;
 import com.goorm.team9.icontact.domain.client.enums.Role;
-import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.common.BaseTimeEntity;
 import com.goorm.team9.icontact.domain.sociallogin.entity.OAuth;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PostLoad;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,7 +36,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(name = "client", uniqueConstraints = {
-        @UniqueConstraint(name = "UniqueEmailProvider", columnNames = {"email", "provider"}) // ✅ email + provider 조합이 유니크하도록 설정
+        @UniqueConstraint(name = "UniqueEmailProvider", columnNames = {"email", "provider"})
 })
 public class ClientEntity extends BaseTimeEntity {
 
@@ -63,7 +79,7 @@ public class ClientEntity extends BaseTimeEntity {
 
     @Builder.Default
     @OneToMany(mappedBy = "client", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<OAuth> oauthAccounts = new ArrayList<>(); // 한 User가 여러 OAuth 계정을 가짐
+    private List<OAuth> oauthAccounts = new ArrayList<>();
 
     public void setDeleted(boolean deleted) {
         this.isDeleted = deleted;

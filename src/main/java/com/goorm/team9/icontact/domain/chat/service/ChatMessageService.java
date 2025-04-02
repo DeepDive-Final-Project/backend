@@ -1,8 +1,8 @@
 package com.goorm.team9.icontact.domain.chat.service;
 
 import com.goorm.team9.icontact.domain.block.repository.BlockRepository;
-import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
-import com.goorm.team9.icontact.domain.chat.dto.ChatMessageNotificationDto;
+import com.goorm.team9.icontact.domain.chat.dto.response.ChatMessageDto;
+import com.goorm.team9.icontact.domain.chat.dto.response.ChatMessageNotificationDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatJoin;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessage;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
@@ -152,4 +152,5 @@ public class ChatMessageService {
 
         chatMessageRepository.saveAll(unreadMessages);
     }
+
 }

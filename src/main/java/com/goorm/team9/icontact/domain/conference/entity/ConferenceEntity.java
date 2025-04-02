@@ -2,8 +2,20 @@ package com.goorm.team9.icontact.domain.conference.entity;
 
 import com.goorm.team9.icontact.domain.conference.enums.Day;
 import com.goorm.team9.icontact.domain.lecture.entity.LectureEntity;
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import jakarta.persistence.CascadeType;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,4 +42,5 @@ public class ConferenceEntity {
     @Builder.Default
     @OneToMany(mappedBy = "conference", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LectureEntity> lectures = new ArrayList<>();
+
 }

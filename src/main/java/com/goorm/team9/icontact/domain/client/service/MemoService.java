@@ -2,7 +2,7 @@ package com.goorm.team9.icontact.domain.client.service;
 
 import com.goorm.team9.icontact.common.exception.CustomException;
 import com.goorm.team9.icontact.common.error.MemoErrorCode;
-import com.goorm.team9.icontact.domain.client.dto.response.MemoResponseDTO;
+import com.goorm.team9.icontact.domain.client.dto.response.MemoResponseDto;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.entity.MemoEntity;
 import com.goorm.team9.icontact.domain.client.repository.MemoRepository;
@@ -22,7 +22,7 @@ public class MemoService {
     private final ClientRepository clientRepository;
 
     @Transactional
-    public MemoResponseDTO createMemo(Long writerId, Long targetId, String content) {
+    public MemoResponseDto createMemo(Long writerId, Long targetId, String content) {
         ClientEntity writer = clientRepository.findById(writerId)
                 .orElseThrow(() -> new CustomException(MemoErrorCode.MEMO_WRITER_NOT_FOUND));
 
@@ -36,16 +36,16 @@ public class MemoService {
                 .build();
 
         memoRepository.save(memo);
-        return new MemoResponseDTO(memo);
+        return new MemoResponseDto(memo);
     }
 
     @Transactional(readOnly = true)
-    public List<MemoResponseDTO> getMemosByWriter(Long writerId) {
+    public List<MemoResponseDto> getMemosByWriter(Long writerId) {
         ClientEntity writer = clientRepository.findById(writerId)
                 .orElseThrow(() -> new CustomException(MemoErrorCode.MEMO_WRITER_NOT_FOUND));
 
         return memoRepository.findByWriter(writer).stream()
-                .map(MemoResponseDTO::new)
+                .map(MemoResponseDto::new)
                 .collect(Collectors.toList());
     }
 
@@ -56,4 +56,5 @@ public class MemoService {
         }
         memoRepository.deleteById(memoId);
     }
+
 }

@@ -7,6 +7,7 @@ import java.util.Arrays;
 
 @Getter
 public enum Career implements EnumWithDescription {
+
     JUNIOR("주니어", 1),
     MIDDLE("미들", 1),
     SENIOR("시니어", 1),
@@ -30,4 +31,5 @@ public enum Career implements EnumWithDescription {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Career description: " + description));
     }
+
 }

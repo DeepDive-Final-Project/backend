@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum GlobalExceptionErrorCode implements ErrorCodeInterface {
+
     // --- 400 BAD_REQUEST ---
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 형식의 요청입니다.", 40001),
     INVALID_LOCATION_DATA(HttpStatus.BAD_REQUEST, "유효하지 않은 위도/경도 값입니다. 다시 확인해 주세요.", 40002),
@@ -51,11 +52,6 @@ public enum GlobalExceptionErrorCode implements ErrorCodeInterface {
     }
 
     @Override
-    public Integer getErrorCode() {
-        return errorCode;
-    }
-
-    @Override
     public String getDescription() {
         return message;
     }
@@ -63,4 +59,5 @@ public enum GlobalExceptionErrorCode implements ErrorCodeInterface {
     public String getFormattedMessage(Object... args) {
         return String.format(message, args);
     }
+
 }

@@ -1,10 +1,10 @@
 package com.goorm.team9.icontact.domain.client.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequest;
-import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequest;
-import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDTO;
-import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
+import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDto;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDto;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -12,7 +12,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
@@ -34,7 +41,7 @@ public class ClientController {
     ) {
         try {
             log.info("Received userData: {}", userData);  // JSON 데이터 로깅
-            MyPageCreateRequest request = objectMapper.readValue(userData.trim(), MyPageCreateRequest.class);
+            MyPageCreateRequestDto request = objectMapper.readValue(userData.trim(), MyPageCreateRequestDto.class);
             return ResponseEntity.ok(clientService.createMyPage(request, profileImage));
         } catch (Exception e) {
             log.error("JSON Parsing Error: {}", e.getMessage(), e);
@@ -51,7 +58,7 @@ public class ClientController {
     ) {
         try {
             log.info("Received userData for update: {}", userData);  // JSON 데이터 로깅
-            MyPageUpdateRequest request = objectMapper.readValue(userData.trim(), MyPageUpdateRequest.class);
+            MyPageUpdateRequestDto request = objectMapper.readValue(userData.trim(), MyPageUpdateRequestDto.class);
             return ResponseEntity.ok(clientService.updateUser(clientId, request, profileImage));
         } catch (Exception e) {
             log.error("JSON Parsing Error during update: {}", e.getMessage(), e);
@@ -61,7 +68,7 @@ public class ClientController {
 
     @GetMapping("/{clientId}")
     @Operation(summary = "사용자 정보 출력 API", description = "다른 사용자의 정보를 확인합니다.")
-    public ResponseEntity<ClientResponseDTO> getUserById(
+    public ResponseEntity<ClientResponseDto> getUserById(
             @PathVariable Long clientId
     ) {
         return ResponseEntity.ok(clientService.getUserById(clientId));
@@ -69,7 +76,7 @@ public class ClientController {
 
     @GetMapping("/all")
     @Operation(summary = "전체 사용자 조회 API", description = "삭제되지 않은 모든 사용자의 정보를 반환합니다.")
-    public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
+    public ResponseEntity<List<ClientResponseDto>> getAllClients() {
         return ResponseEntity.ok(clientService.getAllClients());
     }
 
@@ -82,7 +89,7 @@ public class ClientController {
             return ResponseEntity.badRequest().body("clientId는 최대 10개까지 입력 가능합니다.");
         }
 
-        List<ClientProfileImageDTO> images = clientService.getProfileImages(clientIds);
+        List<ClientProfileImageDto> images = clientService.getProfileImages(clientIds);
         return ResponseEntity.ok(images);
     }
 

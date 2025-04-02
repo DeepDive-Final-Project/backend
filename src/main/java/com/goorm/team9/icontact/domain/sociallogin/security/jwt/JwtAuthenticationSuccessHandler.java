@@ -19,17 +19,12 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.HashMap;
 
-/**
- * OAuth2 인증 성공 후 JWT를 발급하는 핸들러.
- * - JWT를 HTTP 헤더 및 JSON 응답으로 클라이언트에게 반환.
- * - 필요 시 클라이언트를 특정 URL로 리다이렉트 가능.
- */
 @Component
 public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationSuccessHandler.class);
     private final JwtTokenProvider jwtTokenProvider;
-    private final ClientRepository clientRepository; // 추가
+    private final ClientRepository clientRepository;
 
     public JwtAuthenticationSuccessHandler(JwtTokenProvider jwtTokenProvider, ClientRepository clientRepository) {
         this.jwtTokenProvider = jwtTokenProvider;
@@ -44,7 +39,6 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         String provider = oauthToken.getAuthorizedClientRegistrationId();
         String email = authentication.getName();
 
-        // 이메일 유효성 검증
         if (email == null || "no-email".equals(email)) {
             logger.error("❌ JWT 발급 실패: 유효한 이메일 정보가 없습니다.");
             response.setContentType("application/json");
@@ -57,10 +51,8 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
             return;
         }
 
-        // 클라이언트 정보 조회
         Optional<ClientEntity> optionalClient = clientRepository.findByEmailAndProvider(email, provider);
 
-        // 탈퇴 유저 처리
         if (optionalClient.isPresent()) {
             ClientEntity client = optionalClient.get();
 
@@ -84,7 +76,6 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
                     return;
                 }
 
-                //복구 리다이렉트
                 String referer = request.getHeader("Referer");
                 String baseUrl = "https://www.i-contacts.link";
                 if (referer != null) {
@@ -102,11 +93,9 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
             }
         }
 
-        // 신규 유저 여부 판단
         Map<String, Object> attributes = oauthToken.getPrincipal().getAttributes();
         boolean isNewUser = Boolean.TRUE.equals(attributes.get("isNewUser"));
 
-        // JWT 생성
         long expiresAt = System.currentTimeMillis() + 3600000;
         String nickname = optionalClient.map(ClientEntity::getNickName).orElse("unknown");
         String jwtToken = jwtTokenProvider.createToken(email, expiresAt, provider, nickname);
@@ -115,7 +104,6 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         writeJsonResponse(response, jwtToken);
         logger.info("✅ 생성된 JWT 토큰: {}", jwtToken);
 
-        // 리디렉션 분기
         String referer = request.getHeader("Referer");
         String baseUrl = "https://www.i-contacts.link";
         if (referer != null) {
@@ -134,16 +122,10 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         logger.info("✅ 로그인 성공, 토큰 발급 및 리디렉션 완료: {}", redirectUrl);
     }
 
-    /**
-     * JWT를 Authorization 헤더에 추가.
-     */
     private void setAuthorizationHeader(HttpServletResponse response, String jwtToken) {
         response.setHeader("Authorization", "Bearer " + jwtToken);
     }
 
-    /**
-     * JSON 응답을 클라이언트에게 전송.
-     */
     private void writeJsonResponse(HttpServletResponse response, String jwtToken) throws IOException {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
@@ -154,16 +136,13 @@ public class JwtAuthenticationSuccessHandler extends SimpleUrlAuthenticationSucc
         response.getWriter().write(new ObjectMapper().writeValueAsString(tokenResponse));
     }
 
-    /**
-     *  JWT를 브라우저 쿠키에 저장하는 메서드
-     */
     private void setJwtCookie(HttpServletRequest request, HttpServletResponse response, String jwtToken) {
         Cookie jwtCookie = new Cookie("Authorization", jwtToken);
-        jwtCookie.setHttpOnly(true);        // JS로 접근 못 하게 (보안 강화)
-        jwtCookie.setSecure(request.isSecure());         // HTTPS 환경이면 true로 설정
-        jwtCookie.setPath("/");             // 모든 경로에서 접근 가능
-        jwtCookie.setMaxAge(60 * 60);       // 1시간 유효
-        jwtCookie.setDomain("i-contacts.link"); // 서브도메인 전체에서 쿠키 사용 가능하도록 설정
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(request.isSecure());
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(60 * 60);
+        jwtCookie.setDomain("i-contacts.link");
 
         response.addCookie(jwtCookie);
     }

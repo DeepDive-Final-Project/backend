@@ -13,12 +13,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
-/**
- * JWT 로그아웃 핸들러.
- * - 로그아웃 시 JWT를 블랙리스트에 추가하여 차단.
- * - SecurityContext 초기화.
- * - JSON 응답 반환.
- */
 @Component
 @RequiredArgsConstructor
 public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
@@ -33,9 +27,8 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException {
 
-        // JWT 토큰 추출 및 블랙리스트 추가
         String token = jwtTokenProvider.resolveToken(request);
-        if (token != null && jwtTokenProvider.validateToken(token)) {  // 만료된 토큰 제외
+        if (token != null && jwtTokenProvider.validateToken(token)) {
             long expirationMillis = jwtTokenProvider.getExpirationMillis(token);
             jwtBlacklist.addToBlacklist(token, expirationMillis);
             logger.info("🚫 JWT 블랙리스트 추가 완료: {}", token);
@@ -43,20 +36,18 @@ public class JwtLogoutSuccessHandler implements LogoutSuccessHandler {
 
         SecurityContextHolder.clearContext();
 
-        // OAuth 토큰 무효화 (필요한 경우만)
         if (authentication != null && authentication.getName() != null) {
             String email = authentication.getName();
 
-            // OAuth 로그아웃 로그 추가
             logger.info("🔍 OAuth 로그아웃 시 accessToken 제거 요청: {}", email);
             oAuthService.invalidateAccessToken(email);
         }
 
-        // JSON 응답 반환
         response.setStatus(HttpServletResponse.SC_OK);
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write("{\"message\": \"로그아웃 완료 ✅\"}");
         response.getWriter().flush();
     }
+
 }

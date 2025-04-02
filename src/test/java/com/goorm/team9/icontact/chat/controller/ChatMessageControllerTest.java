@@ -2,7 +2,7 @@ package com.goorm.team9.icontact.chat.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goorm.team9.icontact.domain.chat.controller.ChatMessageController;
-import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
+import com.goorm.team9.icontact.domain.chat.dto.response.ChatMessageDto;
 import com.goorm.team9.icontact.domain.chat.service.ChatMessageService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

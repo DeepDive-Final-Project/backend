@@ -3,11 +3,11 @@ package com.goorm.team9.icontact.domain.client.service;
 import com.goorm.team9.icontact.common.error.ClientErrorCode;
 import com.goorm.team9.icontact.common.exception.CustomException;
 import com.goorm.team9.icontact.domain.client.converter.ClientConverter;
-import com.goorm.team9.icontact.domain.client.dto.request.ClientLinkRequestDTO;
-import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequest;
-import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequest;
-import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDTO;
-import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
+import com.goorm.team9.icontact.domain.client.dto.request.ClientLinkRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDto;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDto;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.entity.ClientLinkEntity;
 import com.goorm.team9.icontact.domain.client.entity.TopicEntity;
@@ -30,7 +30,7 @@ public class ClientService {
     private final S3ImageStorageService imageFileStorageService;
 
     @Transactional
-    public ClientResponseDTO createMyPage(MyPageCreateRequest request, MultipartFile profileImage) {
+    public ClientResponseDto createMyPage(MyPageCreateRequestDto request, MultipartFile profileImage) {
         if (clientRepository.existsByEmail(request.getEmail())) {
             throw new CustomException(ClientErrorCode.EXISTED_EMAIL);
         }
@@ -44,7 +44,7 @@ public class ClientService {
 
         List<ClientLinkEntity> linkEntities = new ArrayList<>();
         if (request.getLinks() != null) {
-            for (ClientLinkRequestDTO linkDto : request.getLinks()) {
+            for (ClientLinkRequestDto linkDto : request.getLinks()) {
                 ClientLinkEntity linkEntity = ClientLinkEntity.builder()
                         .title(linkDto.getTitle())
                         .link(linkDto.getLink())
@@ -77,7 +77,7 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public ClientResponseDTO getUserById(Long clientId) {
+    public ClientResponseDto getUserById(Long clientId) {
         ClientEntity clientEntity = clientRepository.findByIdAndIsDeletedFalse(clientId)
                 .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
 
@@ -85,7 +85,7 @@ public class ClientService {
     }
 
     @Transactional
-    public ClientResponseDTO updateUser(Long clientId, MyPageUpdateRequest request, MultipartFile profileImage) {
+    public ClientResponseDto updateUser(Long clientId, MyPageUpdateRequestDto request, MultipartFile profileImage) {
         ClientEntity existingClient = clientRepository.findById(clientId)
                 .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
 
@@ -146,7 +146,7 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public List<ClientResponseDTO> getAllClients() {
+    public List<ClientResponseDto> getAllClients() {
         List<ClientEntity> clients = clientRepository.findAllByIsDeletedFalse();
         return clients.stream()
                 .map(clientConverter::toResponseDTO)
@@ -154,12 +154,12 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public List<ClientProfileImageDTO> getProfileImages(List<Long> clientIds) {
+    public List<ClientProfileImageDto> getProfileImages(List<Long> clientIds) {
         return clientIds.stream()
                 .map(id -> clientRepository.findByIdAndIsDeletedFalse(id)
-                        .map(client -> new ClientProfileImageDTO(client.getId(),
+                        .map(client -> new ClientProfileImageDto(client.getId(),
                                 client.getProfileImage() != null ? client.getProfileImage() : imageFileStorageService.getDefaultImage()))
-                        .orElse(new ClientProfileImageDTO(id, imageFileStorageService.getDefaultImage())))
+                        .orElse(new ClientProfileImageDto(id, imageFileStorageService.getDefaultImage())))
                 .toList();
     }
 
