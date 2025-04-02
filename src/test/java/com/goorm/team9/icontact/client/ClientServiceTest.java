@@ -1,16 +1,13 @@
 package com.goorm.team9.icontact.client;
 
-import com.goorm.team9.icontact.common.error.ClientErrorCode;
-import com.goorm.team9.icontact.common.exception.CustomException;
 import com.goorm.team9.icontact.domain.client.converter.ClientConverter;
-import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequest;
-import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequest;
-import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDTO;
-import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
+import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDto;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDto;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.entity.TopicEntity;
 import com.goorm.team9.icontact.domain.client.enums.Role;
-import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
 import com.goorm.team9.icontact.domain.client.service.S3ImageStorageService;
@@ -70,7 +67,7 @@ class ClientServiceTest {
     @DisplayName("마이페이지 성공 테스트")
     void 마이페이지_생성_성공_테스트() {
         // given
-        MyPageCreateRequest request = MyPageCreateRequest.builder()
+        MyPageCreateRequestDto request = MyPageCreateRequestDto.builder()
                 .email("noah@example.com")
                 .nickName("Noah")
                 .role(Role.DEV)
@@ -80,10 +77,10 @@ class ClientServiceTest {
         given(clientRepository.existsByEmail(request.getEmail())).willReturn(false);
         given(imageStorageService.storeFile(mockFile)).willReturn("profile.jpg");
         given(clientRepository.save(any(ClientEntity.class))).willReturn(mockClient);
-        given(clientConverter.toResponseDTO(any())).willReturn(new ClientResponseDTO());
+        given(clientConverter.toResponseDTO(any())).willReturn(new ClientResponseDto());
 
         // when
-        ClientResponseDTO result = clientService.createMyPage(request, mockFile);
+        ClientResponseDto result = clientService.createMyPage(request, mockFile);
 
         // then
         assertThat(result).isNotNull();
@@ -96,10 +93,10 @@ class ClientServiceTest {
     void 사용자ID로_공개상태_사용자_조회_테스트() {
         // given
         given(clientRepository.findByIdAndIsDeletedFalse(1L)).willReturn(Optional.of(mockClient));
-        given(clientConverter.toResponseDTO(mockClient)).willReturn(new ClientResponseDTO());
+        given(clientConverter.toResponseDTO(mockClient)).willReturn(new ClientResponseDto());
 
         // when
-        ClientResponseDTO result = clientService.getUserById(1L);
+        ClientResponseDto result = clientService.getUserById(1L);
 
         // then
         assertThat(result).isNotNull();
@@ -110,16 +107,16 @@ class ClientServiceTest {
     @DisplayName("사용자 정보 업데이트 테스트")
     void 사용자_정보_업데이트_테스트() {
         // given
-        MyPageUpdateRequest request = MyPageUpdateRequest.builder()
+        MyPageUpdateRequestDto request = MyPageUpdateRequestDto.builder()
                 .nickName("Updated")
                 .build();
 
         given(clientRepository.findById(1L)).willReturn(Optional.of(mockClient));
         given(clientRepository.save(mockClient)).willReturn(mockClient);
-        given(clientConverter.toResponseDTO(mockClient)).willReturn(new ClientResponseDTO());
+        given(clientConverter.toResponseDTO(mockClient)).willReturn(new ClientResponseDto());
 
         // when
-        ClientResponseDTO result = clientService.updateUser(1L, request, mockFile);
+        ClientResponseDto result = clientService.updateUser(1L, request, mockFile);
 
         // then
         assertThat(result).isNotNull();
@@ -131,9 +128,9 @@ class ClientServiceTest {
     @DisplayName("전체 사용자 조회 테스트")
     void 전체_사용자_조회_테스트() {
         given(clientRepository.findAllByIsDeletedFalse()).willReturn(List.of(mockClient));
-        given(clientConverter.toResponseDTO(mockClient)).willReturn(new ClientResponseDTO());
+        given(clientConverter.toResponseDTO(mockClient)).willReturn(new ClientResponseDto());
 
-        List<ClientResponseDTO> result = clientService.getAllClients();
+        List<ClientResponseDto> result = clientService.getAllClients();
 
         assertThat(result).isNotEmpty();
         verify(clientRepository).findAllByIsDeletedFalse();
@@ -146,7 +143,7 @@ class ClientServiceTest {
         given(clientRepository.findByIdAndIsDeletedFalse(anyLong())).willReturn(Optional.empty());
         given(imageStorageService.getDefaultImage()).willReturn("default.jpg");
 
-        List<ClientProfileImageDTO> result = clientService.getProfileImages(List.of(99L));
+        List<ClientProfileImageDto> result = clientService.getProfileImages(List.of(99L));
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getProfileImageUrl()).isEqualTo("default.jpg");

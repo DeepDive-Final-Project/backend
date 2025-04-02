@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ChatRequestRepository extends JpaRepository<ChatRequest, Long> {
+
     Optional<ChatRequest> findByIdAndStatus(Long requestId, RequestStatus status);
 
     @Query("SELECT cr FROM ChatRequest cr WHERE " +
@@ -34,4 +35,5 @@ public interface ChatRequestRepository extends JpaRepository<ChatRequest, Long> 
     long countSentRequests(@Param("sender") String sender, @Param("status") RequestStatus status);
 
     List<ChatRequest> status(RequestStatus status);
+
 }

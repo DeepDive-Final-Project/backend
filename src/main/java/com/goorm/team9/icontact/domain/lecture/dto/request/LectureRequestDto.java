@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Schema(description = "강의 등록 요청 DTO")
-public class LectureRequestDTO {
+public class LectureRequestDto {
 
     @Schema(description = "강의 제목", example = "AI와 미래 기술")
     private String title;
@@ -23,4 +23,5 @@ public class LectureRequestDTO {
 
     @Schema(description = "컨퍼런스 ID", example = "1")
     private Long conferenceId;
+
 }

@@ -5,7 +5,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MemoRequestDTO {
+public class MemoRequestDto {
+
     private Long targetId;
     private String content;
+
 }

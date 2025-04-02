@@ -8,7 +8,8 @@ import java.util.List;
 
 @Getter
 @Setter
-public class ClientResponseDTO {
+public class ClientResponseDto {
+
     // client
     private Long id;
     private String nickName;
@@ -16,7 +17,7 @@ public class ClientResponseDTO {
     private String role;
     private String career;
     private String introduction;
-    private List<ClientLinkResponseDTO> links;
+    private List<ClientLinkResponseDto> links;
     private String profileImage;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -25,4 +26,5 @@ public class ClientResponseDTO {
     private String topic1;
     private String topic2;
     private String topic3;
+
 }

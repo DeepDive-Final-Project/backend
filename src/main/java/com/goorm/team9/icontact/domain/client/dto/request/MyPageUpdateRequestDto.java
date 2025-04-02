@@ -1,6 +1,8 @@
 package com.goorm.team9.icontact.domain.client.dto.request;
 
-import com.goorm.team9.icontact.domain.client.enums.*;
+import com.goorm.team9.icontact.domain.client.enums.Career;
+import com.goorm.team9.icontact.domain.client.enums.Interest;
+import com.goorm.team9.icontact.domain.client.enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,7 +25,8 @@ import java.util.List;
         "  \"topic2\": \"Data_Science\",\n" +
         "  \"topic3\": \"DevOps\",\n" +
         "}")
-public class MyPageUpdateRequest {
+public class MyPageUpdateRequestDto {
+
     @Schema(example = "NoahUpdated")
     private String nickName;
 
@@ -37,7 +40,7 @@ public class MyPageUpdateRequest {
     private String introduction;
 
     @Schema(description = "링크 리스트", example = "[{\"title\": \"정훈의 깃허브\", \"link\": \"https://github.com/jh\"}]")
-    private List<ClientLinkRequestDTO> links;
+    private List<ClientLinkRequestDto> links;
 
     @Schema(example = "Cloud_Computing")
     private Interest topic1;
@@ -47,6 +50,7 @@ public class MyPageUpdateRequest {
 
     @Schema(example = "DevOps")
     private Interest topic3;
+
 
 }
 

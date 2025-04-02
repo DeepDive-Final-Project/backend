@@ -1,14 +1,19 @@
 package com.goorm.team9.icontact.domain.client.controller;
 
-import com.goorm.team9.icontact.domain.client.dto.request.MemoRequestDTO;
-import com.goorm.team9.icontact.domain.client.dto.response.MemoResponseDTO;
+import com.goorm.team9.icontact.domain.client.dto.request.MemoRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.response.MemoResponseDto;
 import com.goorm.team9.icontact.domain.client.service.MemoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
@@ -22,9 +27,9 @@ public class MemoController {
 
     @PostMapping("/{writerId}")
     @Operation(summary = "메모 작성 API", description = "특정 대상에게 메모를 작성합니다.")
-    public ResponseEntity<MemoResponseDTO> createMemo(
+    public ResponseEntity<MemoResponseDto> createMemo(
             @PathVariable Long writerId,
-            @RequestBody MemoRequestDTO request
+            @RequestBody MemoRequestDto request
     ) {
         return ResponseEntity.ok(memoService.createMemo(writerId, request.getTargetId(), request.getContent()));
     }
@@ -32,7 +37,7 @@ public class MemoController {
 
     @GetMapping("/{writerId}")
     @Operation(summary = "작성 메모 목록 조회 API", description = "작성자가 작성한 메모 목록을 확인합니다.")
-    public ResponseEntity<List<MemoResponseDTO>> getMemosByWriter(
+    public ResponseEntity<List<MemoResponseDto>> getMemosByWriter(
             @PathVariable Long writerId
     ) {
         return ResponseEntity.ok(memoService.getMemosByWriter(writerId));
@@ -46,4 +51,5 @@ public class MemoController {
         memoService.deleteMemo(memoId);
         return ResponseEntity.noContent().build();
     }
+
 }

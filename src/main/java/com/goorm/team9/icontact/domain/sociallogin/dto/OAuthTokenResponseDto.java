@@ -3,11 +3,11 @@ package com.goorm.team9.icontact.domain.sociallogin.dto;
 import lombok.Getter;
 
 @Getter
-public class OAuthTokenResponse {
+public class OAuthTokenResponseDto {
     private final String email;
-    private final long expiresAt; // Access Token 만료 시간 (밀리초)
+    private final long expiresAt;
 
-    public OAuthTokenResponse(String email, long expiresAt) {
+    public OAuthTokenResponseDto(String email, long expiresAt) {
         this.email = email;
         this.expiresAt = expiresAt;
     }

@@ -1,7 +1,7 @@
 package com.goorm.team9.icontact.domain.client.converter;
 
-import com.goorm.team9.icontact.domain.client.dto.response.ClientLinkResponseDTO;
-import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientLinkResponseDto;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDto;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import org.springframework.stereotype.Component;
 
@@ -11,8 +11,8 @@ import java.util.stream.Collectors;
 @Component
 public class ClientConverter {
 
-    public ClientResponseDTO toResponseDTO(ClientEntity clientEntity) {
-        ClientResponseDTO clientResponseDTO = new ClientResponseDTO();
+    public ClientResponseDto toResponseDTO(ClientEntity clientEntity) {
+        ClientResponseDto clientResponseDTO = new ClientResponseDto();
         clientResponseDTO.setId(clientEntity.getId());
         clientResponseDTO.setNickName(clientEntity.getNickName());
         clientResponseDTO.setEmail(clientEntity.getEmail());
@@ -22,7 +22,7 @@ public class ClientConverter {
         clientResponseDTO.setLinks(
                 clientEntity.getLinks() != null ?
                         clientEntity.getLinks().stream()
-                                .map(link -> ClientLinkResponseDTO.builder()
+                                .map(link -> ClientLinkResponseDto.builder()
                                         .title(link.getTitle())
                                         .link(link.getLink())
                                         .build())
@@ -42,4 +42,5 @@ public class ClientConverter {
 
         return clientResponseDTO;
     }
+
 }

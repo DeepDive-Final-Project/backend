@@ -61,4 +61,5 @@ public class S3ImageStorageService {
     public String getDefaultImage() {
         return defaultImage;
     }
+
 }

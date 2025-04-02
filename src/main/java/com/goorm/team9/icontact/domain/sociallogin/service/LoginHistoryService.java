@@ -16,9 +16,6 @@ public class LoginHistoryService {
 
     private final LoginHistoryRepository loginHistoryRepository;
 
-    /**
-     * 사용자의 로그인 이력을 저장
-     */
     @Transactional
     public void saveLoginHistory(ClientEntity clientEntity, String provider) {
         LoginHistory loginHistory = LoginHistory.builder()
@@ -29,11 +26,9 @@ public class LoginHistoryService {
         loginHistoryRepository.save(loginHistory);
     }
 
-    /**
-     * 사용자의 최신 로그인 제공자 조회
-     */
     public Optional<String> getLastLoginProvider(ClientEntity clientEntity) {
         return loginHistoryRepository.findFirstByClientEntityOrderByLoginAtDesc(clientEntity)
                 .map(LoginHistory::getProvider);
     }
+
 }

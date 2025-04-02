@@ -12,4 +12,5 @@ public interface BlockRepository extends JpaRepository<Block, Long> {
 
     @Query("SELECT COUNT(b) > 0 FROM Block b WHERE b.blocker = :blocker AND b.blocked = :blocked")
     boolean isUserBlocked(@Param("blocker") ClientEntity blocker, @Param("blocked") ClientEntity blocked);
+
 }

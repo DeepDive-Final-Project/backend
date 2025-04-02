@@ -2,7 +2,6 @@ package com.goorm.team9.icontact.domain.sociallogin.service;
 
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.enums.Role;
-import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import com.goorm.team9.icontact.domain.client.service.ClientSaveService;
 import com.goorm.team9.icontact.domain.sociallogin.entity.LoginHistory;
@@ -36,9 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * OAuth 로그인 시 사용자 정보를 처리하는 서비스
- */
 @Service
 @RequiredArgsConstructor
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
@@ -109,19 +105,17 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 userInfo.put("nickname", nickname);
 
                 return new DefaultOAuth2User(
-                        Collections.singleton(new SimpleGrantedAuthority("ROLE_WITHDRAWN")), // 복구 전용 권한
+                        Collections.singleton(new SimpleGrantedAuthority("ROLE_WITHDRAWN")),
                         userInfo,
                         "email"
                 );
             }
 
-            // 신규 사용자 저장
             ClientEntity clientEntityToSave = ClientEntity.builder()
                     .nickName(NicknameGeneratorService.generateNickname())
                     .email(userEmail)
                     .provider(normalizedProvider)
                     .role(Role.DEV)
-//                    .status(Status.PUBLIC)
                     .isDeleted(false)
                     .build();
 
@@ -255,9 +249,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         throw new RuntimeException("GitHub OAuth는 리프레시 토큰을 지원하지 않습니다. 다시 로그인하세요.");
     }
 
-    /**
-     * GitHub API를 사용하여 사용자의 기본 이메일을 가져오는 메서드
-     */
     private String getPrimaryEmailFromGitHub(String accessToken) {
         String url = "https://api.github.com/user/emails";
         RestTemplate restTemplate = new RestTemplate();
@@ -278,12 +269,12 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                 String email = (String) emailData.get("email");
 
                 if (primary != null && primary && verified != null && verified) {
-                    return email; // 기본 이메일 반환
+                    return email;
                 }
             }
         }
 
-        return null; // 이메일 정보를 가져오지 못하면 null 반환
+        return null;
     }
 
 }

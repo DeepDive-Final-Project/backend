@@ -2,7 +2,11 @@ package com.goorm.team9.icontact.location;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goorm.team9.icontact.domain.location.controller.LocationController;
-import com.goorm.team9.icontact.domain.location.dto.*;
+import com.goorm.team9.icontact.domain.location.dto.request.DeleteRequestDto;
+import com.goorm.team9.icontact.domain.location.dto.request.LocationRequestDto;
+import com.goorm.team9.icontact.domain.location.dto.request.NearbyRequestDto;
+import com.goorm.team9.icontact.domain.location.dto.request.RefreshRequestDto;
+import com.goorm.team9.icontact.domain.location.dto.response.LocationResponseDto;
 import com.goorm.team9.icontact.domain.location.service.LocationService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,7 +55,7 @@ class LocationControllerTest {
     @WithMockUser
     @DisplayName("위치 저장 API 테스트")
     void saveLocationTest() throws Exception {
-        LocationRequest request = new LocationRequest(1L, 37.402056, 127.108212);
+        LocationRequestDto request = new LocationRequestDto(1L, 37.402056, 127.108212);
 
         mockMvc.perform(post("/api/location/save")
                         .with(csrf())
@@ -68,7 +72,7 @@ class LocationControllerTest {
     @WithMockUser
     @DisplayName("위치 삭제 API 테스트")
     void deleteLocationTest() throws Exception {
-        DeleteRequest request = new DeleteRequest(1L);
+        DeleteRequestDto request = new DeleteRequestDto(1L);
 
         mockMvc.perform(delete("/api/location/delete")
                         .with(csrf())
@@ -85,9 +89,9 @@ class LocationControllerTest {
     @WithMockUser
     @DisplayName("근처 참가자 조회 API 테스트")
     void getNearbyUsersTest() throws Exception {
-        NearbyRequest request = new NearbyRequest(1L, "개발자", "주니어");
-        List<LocationResponse> dummyList = Collections.singletonList(
-                new LocationResponse(2L, 37.402100, 127.108300, 5.0,
+        NearbyRequestDto request = new NearbyRequestDto(1L, "개발자", "주니어");
+        List<LocationResponseDto> dummyList = Collections.singletonList(
+                new LocationResponseDto(2L, 37.402100, 127.108300, 5.0,
                         "백엔드,프론트엔드,AI", "개발자", "주니어",
                         "홍일동", "AI를 좋아하는 백엔드 개발자입니다.")
         );
@@ -107,9 +111,9 @@ class LocationControllerTest {
     @WithMockUser
     @DisplayName("근처 참가자 재조회 API 테스트")
     void refreshNearbyUsersTest() throws Exception {
-        RefreshRequest request = new RefreshRequest(1L, 37.402056, 127.108212, "개발자", "주니어");
-        List<LocationResponse> dummyList = Collections.singletonList(
-                new LocationResponse(3L, 37.402200, 127.108400, 4.5,
+        RefreshRequestDto request = new RefreshRequestDto(1L, 37.402056, 127.108212, "개발자", "주니어");
+        List<LocationResponseDto> dummyList = Collections.singletonList(
+                new LocationResponseDto(3L, 37.402200, 127.108400, 4.5,
                         "백엔드,AI,보안", "개발자", "주니어",
                         "홍이동", "보안과 AI에 관심 많은 주니어입니다.")
         );
@@ -130,10 +134,10 @@ class LocationControllerTest {
     @WithMockUser
     @DisplayName("근처 참가자 조회 API - 반경 10m 내 17명, 외부 11명 존재")
     void getNearbyUsersTest_withManyParticipants() throws Exception {
-        NearbyRequest request = new NearbyRequest(1L, "개발자", "주니어");
+        NearbyRequestDto request = new NearbyRequestDto(1L, "개발자", "주니어");
 
-        List<LocationResponse> nearbyUsers = IntStream.rangeClosed(1, 17)
-                .mapToObj(i -> new LocationResponse(
+        List<LocationResponseDto> nearbyUsers = IntStream.rangeClosed(1, 17)
+                .mapToObj(i -> new LocationResponseDto(
                         (long) i,
                         37.402056 + i * 0.000001,
                         127.108212 + i * 0.000001,
@@ -162,16 +166,16 @@ class LocationControllerTest {
     @WithMockUser
     @DisplayName("근처 참가자 조회 API - 반경 10m 내 + 관심분야 + role + career 일치하는 참가자만 반환")
     void getNearbyUsers_withAllConditionsMatch() throws Exception {
-        NearbyRequest request = new NearbyRequest(1L, "개발자", "주니어");
+        NearbyRequestDto request = new NearbyRequestDto(1L, "개발자", "주니어");
 
-        List<LocationResponse> matchedUsers = List.of(
-                new LocationResponse(10L, 37.402100, 127.108210, 4.0,
+        List<LocationResponseDto> matchedUsers = List.of(
+                new LocationResponseDto(10L, 37.402100, 127.108210, 4.0,
                         "백엔드,AI", "개발자", "주니어",
                         "홍삼동", "AI에 진심인 백엔드 주니어입니다."),
-                new LocationResponse(11L, 37.402105, 127.108215, 3.5,
+                new LocationResponseDto(11L, 37.402105, 127.108215, 3.5,
                         "보안,AI", "개발자", "주니어",
                         "홍사동", "보안전문가를 꿈꾸는 개발자입니다."),
-                new LocationResponse(12L, 37.402110, 127.108220, 3.0,
+                new LocationResponseDto(12L, 37.402110, 127.108220, 3.0,
                         "AI", "개발자", "주니어",
                         "홍오동", "AI 전공한 주니어입니다.")
         );

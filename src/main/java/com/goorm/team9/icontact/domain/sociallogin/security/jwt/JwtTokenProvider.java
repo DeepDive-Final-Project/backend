@@ -26,11 +26,6 @@ import java.security.Key;
 import java.util.Date;
 import java.util.List;
 
-/**
- * JWT 생성 및 검증을 담당하는 클래스.
- * - JWT 발급
- * - JWT 검증 및 만료 확인
- */
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
@@ -53,13 +48,9 @@ public class JwtTokenProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
-    /**
-     * JWT 생성 : 사용자 이메일 기반
-     */
     public String createToken(String email, long oauthTokenExpiryMillis,  String provider, String nickname) {
 
         Date now = new Date();
-        // JWT 만료 시간 = OAuth Access Token 만료 시간과 기존 만료 시간 중 더 짧은 값 선택
         long jwtExpiryMillis = Math.min(now.getTime() + validityInMilliseconds, oauthTokenExpiryMillis);
         Date validity = new Date(jwtExpiryMillis);
 
@@ -69,7 +60,7 @@ public class JwtTokenProvider {
                 .claim("nickname", nickname)
                 .setIssuedAt(now)
                 .setExpiration(validity)
-                .signWith(key, SignatureAlgorithm.HS256) // 서명 추가 (보안 강화를 위해 HS256 사용)
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -78,24 +69,15 @@ public class JwtTokenProvider {
         return (String) claims.get("provider");
     }
 
-    /**
-     * JWT에서 사용자 이메일 추출
-     */
     public String getUserEmail(String token) {
         return parseToken(token).getSubject();
     }
 
-    /**
-     * JWT에서 닉네임 추출
-     */
     public String getNickname(String token) {
         Claims claims = parseToken(token);
         return (String) claims.get("nickname");
     }
 
-    /**
-     * JWT 유효성 검증
-     */
     public boolean validateToken(String token) {
         try {
             Jwts.parser().setSigningKey(key).build().parseClaimsJws(token);
@@ -110,31 +92,20 @@ public class JwtTokenProvider {
         return false;
     }
 
-    /**
-     * JWT 기반 사용자 인증 정보 반환
-     */
     public Authentication getAuthentication(String token) {
-        String email = getUserEmail(token); // 토큰에서 이메일 추출
-        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER")); // 기본 권한 설정
+        String email = getUserEmail(token);
+        List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority("ROLE_USER"));
 
         User principal = new User(email, "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, token, authorities);
     }
 
-    /**
-     * 요청에서 JWT 추출 (헤더 + 쿠키)
-     *
-     *  @param request HTTP 요청 객체
-     *  @return JWT 문자열 (Bearer 제거 후 반환)
-     */
     public String resolveToken(HttpServletRequest request) {
-        // 헤더에서 Authorization 추출
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7);
         }
 
-        // Authorization 쿠키에서 추출 (HttpOnly 대응용)
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
             for (Cookie cookie : cookies) {
@@ -147,19 +118,10 @@ public class JwtTokenProvider {
         return null;
     }
 
-    /**
-     * JWT 토큰의 만료 시간 반환
-     */
     public long getExpirationMillis(String token) {
         return parseToken(token).getExpiration().getTime() - System.currentTimeMillis();
     }
 
-    /**
-     * JWT를 파싱하여 Claims 객체 반환 + 예외 처리
-     *
-     * @param token JWT 토큰
-     * @return Claims (토큰 정보 포함)
-     */
     private Claims parseToken(String token) {
         try {
             return Jwts.parser()

@@ -11,11 +11,12 @@ import lombok.Setter;
         "  \"name\": \"AI Future Summit\",\n" +
         "  \"day\": \"DAY_1\"\n" +
         "}")
-public class ConferenceRequestDTO {
+public class ConferenceRequestDto {
 
     @Schema(description = "컨퍼런스 이름", example = "AI Future Summit")
     private String name;
 
     @Schema(description = "컨퍼런스 일자 (DAY_1 ~ DAY_5)", example = "DAY_1")
     private Day day;
+
 }

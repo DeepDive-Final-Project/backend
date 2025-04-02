@@ -1,6 +1,3 @@
-/**
- *  소셜 로그인 전략을 선택하는 팩토리!
- */
 package com.goorm.team9.icontact.domain.sociallogin.security.provider;
 
 import java.util.List;
@@ -10,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class OAuthProviderFactory {
+
     private final Map<String, OAuthProvider> providers;
 
     public OAuthProviderFactory(List<OAuthProvider> providerList) {
@@ -22,4 +20,5 @@ public class OAuthProviderFactory {
     public OAuthProvider getProvider(String providerName) {
         return providers.get(providerName.toLowerCase());
     }
+
 }

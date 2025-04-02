@@ -3,15 +3,13 @@ package com.goorm.team9.icontact.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goorm.team9.icontact.domain.client.controller.ClientController;
 import com.goorm.team9.icontact.domain.client.converter.ClientConverter;
-import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequest;
-import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequest;
-import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDTO;
-import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDTO;
+import com.goorm.team9.icontact.domain.client.dto.request.MyPageCreateRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.request.MyPageUpdateRequestDto;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientProfileImageDto;
+import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDto;
 import com.goorm.team9.icontact.domain.client.enums.Role;
-import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.client.service.ClientService;
 import com.goorm.team9.icontact.domain.client.service.S3ImageStorageService;
-import org.apiguardian.api.API;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +56,7 @@ class ClientControllerTest {
     @Test
     @DisplayName("마이페이지 생성 API 성공 테스트")
     void 마이페이지_생성_테스트() throws Exception {
-        MyPageCreateRequest request = MyPageCreateRequest.builder()
+        MyPageCreateRequestDto request = MyPageCreateRequestDto.builder()
                 .email("test@example.com")
                 .nickName("테스터")
                 .role(Role.DEV)
@@ -69,7 +67,7 @@ class ClientControllerTest {
         MockMultipartFile userData = new MockMultipartFile("userData", "", "text/plain",
                 objectMapper.writeValueAsString(request).getBytes());
 
-        when(clientService.createMyPage(any(), any())).thenReturn(new ClientResponseDTO());
+        when(clientService.createMyPage(any(), any())).thenReturn(new ClientResponseDto());
 
         mockMvc.perform(multipart("/api/client/profile")
                         .file(image)
@@ -83,7 +81,7 @@ class ClientControllerTest {
     @Test
     @DisplayName("마이페이지 수정 API 성공 테스트")
     void 마이페이지_수정_테스트() throws Exception {
-        MyPageUpdateRequest request = MyPageUpdateRequest.builder()
+        MyPageUpdateRequestDto request = MyPageUpdateRequestDto.builder()
                 .nickName("업데이트됨")
                 .build();
 
@@ -91,7 +89,7 @@ class ClientControllerTest {
         MockMultipartFile userData = new MockMultipartFile("userData", "", "application/json",
                 objectMapper.writeValueAsBytes(request));
 
-        when(clientService.updateUser(eq(1L), any(), any())).thenReturn(new ClientResponseDTO());
+        when(clientService.updateUser(eq(1L), any(), any())).thenReturn(new ClientResponseDto());
 
         mockMvc.perform(multipart("/api/client/profile/update/1")
                         .file(image)
@@ -109,7 +107,7 @@ class ClientControllerTest {
     @Test
     @DisplayName("특정 사용자 조회 API 성공 테스트")
     void 사용자_조회_테스트() throws Exception {
-        when(clientService.getUserById(1L)).thenReturn(new ClientResponseDTO());
+        when(clientService.getUserById(1L)).thenReturn(new ClientResponseDto());
 
         mockMvc.perform(get("/api/client/profile/1"))
                 .andExpect(status().isOk());
@@ -118,7 +116,7 @@ class ClientControllerTest {
     @Test
     @DisplayName("전체 사용자 조회 API 성공 테스트")
     void 전체_사용자_조회_테스트() throws Exception {
-        when(clientService.getAllClients()).thenReturn(List.of(new ClientResponseDTO()));
+        when(clientService.getAllClients()).thenReturn(List.of(new ClientResponseDto()));
 
         mockMvc.perform(get("/api/client/profile/all"))
                 .andExpect(status().isOk());
@@ -128,7 +126,7 @@ class ClientControllerTest {
     @DisplayName("프로필 이미지 목록 조회 API 성공 테스트")
     void 프로필_이미지_목록_조회_테스트() throws Exception {
         when(clientService.getProfileImages(any())).thenReturn(List.of(
-                new ClientProfileImageDTO(1L, "https://test-image.com/profile.jpg")
+                new ClientProfileImageDto(1L, "https://test-image.com/profile.jpg")
         ));
 
         mockMvc.perform(get("/api/client/profile/profile-images")

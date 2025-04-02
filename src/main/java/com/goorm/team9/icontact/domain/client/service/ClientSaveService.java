@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class ClientSaveService {
+
     private final ClientRepository clientRepository;
     private final EntityManager entityManager;
 
@@ -41,4 +42,5 @@ public class ClientSaveService {
         return clientRepository.findByEmailAndProviderNative(email, provider)
                 .orElseThrow(() -> new RuntimeException("재조회 실패: 유저 없음"));
     }
+
 }

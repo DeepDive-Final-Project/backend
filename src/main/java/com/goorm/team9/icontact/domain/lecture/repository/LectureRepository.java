@@ -17,4 +17,5 @@ public interface LectureRepository extends JpaRepository<LectureEntity, Long> {
 
     @Query("SELECT l FROM LectureEntity l JOIN FETCH l.conference WHERE l.id = :id")
     Optional<LectureEntity> findByIdWithConference(@Param("id") Long id);
+
 }

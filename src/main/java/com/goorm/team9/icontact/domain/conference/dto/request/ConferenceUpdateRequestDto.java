@@ -8,11 +8,12 @@ import lombok.Setter;
 @Getter
 @Setter
 @Schema(description = "컨퍼런스 수정 요청 DTO")
-public class ConferenceUpdateRequestDTO {
+public class ConferenceUpdateRequestDto {
 
     @Schema(description = "변경할 컨퍼런스 이름", example = "Updated Conference Name")
     private String name;
 
     @Schema(description = "변경할 컨퍼런스 날짜", example = "DAY_3")
     private Day day;
+
 }

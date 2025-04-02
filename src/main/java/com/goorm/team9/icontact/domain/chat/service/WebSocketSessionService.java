@@ -1,6 +1,6 @@
 package com.goorm.team9.icontact.domain.chat.service;
 
-import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
+import com.goorm.team9.icontact.domain.chat.dto.response.ChatMessageDto;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.WebSocketSession;
@@ -73,4 +73,5 @@ public class WebSocketSessionService {
             }
         });
     }
+
 }

@@ -5,18 +5,30 @@ import com.goorm.team9.icontact.common.exception.GlobalExceptionErrorCode;
 import com.goorm.team9.icontact.domain.client.enums.Career;
 import com.goorm.team9.icontact.domain.client.enums.Interest;
 import com.goorm.team9.icontact.domain.client.enums.Role;
-import com.goorm.team9.icontact.domain.location.dto.LocationResponse;
+import com.goorm.team9.icontact.domain.location.dto.response.LocationResponseDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.geo.*;
+import org.springframework.data.geo.Circle;
+import org.springframework.data.geo.Distance;
+import org.springframework.data.geo.GeoResult;
+import org.springframework.data.geo.GeoResults;
+import org.springframework.data.geo.Point;
 import org.springframework.data.redis.connection.RedisGeoCommands;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -24,6 +36,7 @@ import java.util.stream.Stream;
 @RequiredArgsConstructor
 @Slf4j
 public class LocationService {
+
     private final RedisTemplate<String, String> redisTemplate;
     private final JdbcTemplate jdbcTemplate;
 
@@ -97,7 +110,7 @@ public class LocationService {
                 id, interestData.get("topic1"), interestData.get("topic2"), interestData.get("topic3"));
     }
 
-    public List<LocationResponse> getNearbyUsers(Long id, String roleDesc, String careerDesc) {
+    public List<LocationResponseDto> getNearbyUsers(Long id, String roleDesc, String careerDesc) {
         syncInterestFromMySQLIfChanged(id);
 
         Point userPoint = getUserPoint(id);
@@ -106,7 +119,7 @@ public class LocationService {
         return findNearbyUsers(userPoint.getY(), userPoint.getX(), interest, roleDesc, careerDesc);
     }
 
-    public List<LocationResponse> refreshNearbyUsers(Long id, double latitude, double longitude, String roleDesc, String careerDesc) {
+    public List<LocationResponseDto> refreshNearbyUsers(Long id, double latitude, double longitude, String roleDesc, String careerDesc) {
         String userKey = "client:" + id;
         String globalKey = "location_data";
 
@@ -130,7 +143,7 @@ public class LocationService {
         return getNearbyUsers(id, roleDesc, careerDesc);
     }
 
-    public List<LocationResponse> findNearbyUsers(double latitude, double longitude, String interest, String roleDesc, String careerDesc) {
+    public List<LocationResponseDto> findNearbyUsers(double latitude, double longitude, String interest, String roleDesc, String careerDesc) {
         GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo().radius(
                 "location_data",
                 new Circle(new Point(longitude, latitude), new Distance(searchRadius, RedisGeoCommands.DistanceUnit.METERS)),
@@ -139,7 +152,7 @@ public class LocationService {
 
         if (results == null || results.getContent().isEmpty()) return Collections.emptyList();
 
-        List<LocationResponse> allCandidates = new ArrayList<>();
+        List<LocationResponseDto> allCandidates = new ArrayList<>();
 
         List<GeoResult<RedisGeoCommands.GeoLocation<String>>> resultList = results.getContent();
         for (int i = 0; i < resultList.size(); i++) {
@@ -179,7 +192,7 @@ public class LocationService {
                     .map(e -> e.getKey() + " : " + e.getValue())
                     .collect(Collectors.joining(", "));
 
-            LocationResponse response = new LocationResponse(
+            LocationResponseDto response = new LocationResponseDto(
                     targetId,
                     geoLocation.getPoint().getY(),
                     geoLocation.getPoint().getX(),
@@ -196,15 +209,15 @@ public class LocationService {
             allCandidates.add(response);
         }
 
-        Stream<LocationResponse> filteredStream = allCandidates.stream();
+        Stream<LocationResponseDto> filteredStream = allCandidates.stream();
         if (roleDesc != null || careerDesc != null) {
             filteredStream = filteredStream.filter(r -> isRoleCareerMatch(r.getId(), roleDesc, careerDesc));
         }
 
-        List<LocationResponse> sorted = filteredStream
+        List<LocationResponseDto> sorted = filteredStream
                 .sorted(Comparator
-                        .comparingDouble(LocationResponse::getDistanceValue)
-                        .thenComparing(Comparator.comparingInt(LocationResponse::getMatchScore).reversed())
+                        .comparingDouble(LocationResponseDto::getDistanceValue)
+                        .thenComparing(Comparator.comparingInt(LocationResponseDto::getMatchScore).reversed())
                 )
                 .limit(10)
                 .collect(Collectors.toList());

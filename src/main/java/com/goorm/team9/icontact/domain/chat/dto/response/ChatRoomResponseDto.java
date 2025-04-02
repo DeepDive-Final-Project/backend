@@ -9,7 +9,7 @@ import java.util.List;
 
 @Getter
 @AllArgsConstructor
-public class ChatRoomResponse {
+public class ChatRoomResponseDto {
 
     private Long roomId;
     private List<String> participants;
@@ -19,12 +19,12 @@ public class ChatRoomResponse {
     private boolean exited;
     private Long otherId;
 
-    public static ChatRoomResponse fromEntity(ChatRoom chatRoom, Long unreadCount, boolean exited, Long myId) {
+    public static ChatRoomResponseDto fromEntity(ChatRoom chatRoom, Long unreadCount, boolean exited, Long myId) {
         Long otherId = chatRoom.getSenderNickname().getId().equals(myId)
                 ? chatRoom.getReceiverNickname().getId()
                 : chatRoom.getSenderNickname().getId();
 
-        return new ChatRoomResponse(
+        return new ChatRoomResponseDto(
                 chatRoom.getRoomId(),
                 List.of(chatRoom.getSenderNickname().getNickName(), chatRoom.getReceiverNickname().getNickName()),
                 chatRoom.getLastMessage() != null ? chatRoom.getLastMessage() : "새 메시지가 없습니다.",

@@ -24,4 +24,5 @@ public interface ChatJoinRepository extends JpaRepository<ChatJoin, Long> {
             "FROM ChatJoin cj " +
             "WHERE cj.chatRoom = :chatRoom AND cj.client.id = :clientId")
     boolean existsByChatRoomAndClientId(@Param("chatRoom") ChatRoom chatRoom, @Param("clientId") Long clientId);
+
 }

@@ -5,10 +5,10 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class OAuthLoginRequest {
-    private String code; // GitHub OAuth에서 받은 코드
+public class OAuthLoginRequestDto {
+    private String code;
 
-    public OAuthLoginRequest(String code) {
+    public OAuthLoginRequestDto(String code) {
         this.code = code;
     }
 }

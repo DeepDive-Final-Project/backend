@@ -2,8 +2,8 @@ package com.goorm.team9.icontact.chat.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.goorm.team9.icontact.domain.chat.controller.ChatRoomController;
-import com.goorm.team9.icontact.domain.chat.dto.ChatRoomRequest;
-import com.goorm.team9.icontact.domain.chat.dto.ChatRoomResponse;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatRoomRequestDto;
+import com.goorm.team9.icontact.domain.chat.dto.response.ChatRoomResponseDto;
 import com.goorm.team9.icontact.domain.chat.service.ChatRoomService;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
@@ -46,7 +46,7 @@ public class ChatRoomControllerTest {
     @Test
     @DisplayName("채팅방 생성을 성공한다.")
     void 채팅방_생성_성공_테스트() throws Exception {
-        ChatRoomRequest request = new ChatRoomRequest("Noah1", "Noah2");
+        ChatRoomRequestDto request = new ChatRoomRequestDto("Noah1", "Noah2");
 
         ClientEntity sender = new ClientEntity();
         sender.setNickName("Noah1");
@@ -102,7 +102,7 @@ public class ChatRoomControllerTest {
         ClientEntity client = new ClientEntity();
         client.setNickName("Noah1");
 
-        ChatRoomResponse response = new ChatRoomResponse(
+        ChatRoomResponseDto response = new ChatRoomResponseDto(
                 1L,
                 List.of("Noah1", "Noah2"),
                 "안녕하세요",
@@ -131,7 +131,7 @@ public class ChatRoomControllerTest {
         ClientEntity client = new ClientEntity();
         client.setNickName("Noah1");
 
-        ChatRoomResponse response = new ChatRoomResponse(
+        ChatRoomResponseDto response = new ChatRoomResponseDto(
                 2L,
                 List.of("Noah1", "Noah2"),
                 "안녕하세요",

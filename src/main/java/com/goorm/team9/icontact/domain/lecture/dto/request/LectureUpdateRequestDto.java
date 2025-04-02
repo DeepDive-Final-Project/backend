@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @Schema(description = "강의 수정 요청 DTO")
-public class LectureUpdateRequestDTO {
+public class LectureUpdateRequestDto {
 
     @Schema(description = "수정할 강의 제목", example = "Advanced AI Techniques")
     private String title;
@@ -20,4 +20,5 @@ public class LectureUpdateRequestDTO {
 
     @Schema(description = "수정할 종료 시간", example = "11:00")
     private String closeTime;
+
 }

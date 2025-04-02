@@ -2,7 +2,11 @@ package com.goorm.team9.icontact.domain.sociallogin.security.provider;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -64,9 +68,9 @@ public class GoogleOAuthProvider implements OAuthProvider {
                     new ParameterizedTypeReference<>() {}
             );
             return response.getBody();
-        } catch (HttpClientErrorException.Unauthorized e) { // 🔥 Access Token이 만료되었을 때
+        } catch (HttpClientErrorException.Unauthorized e) {
             throw new RuntimeException("❌ Access Token이 만료되었습니다. 다시 로그인하세요!");
-        } catch (HttpClientErrorException.Forbidden e) { // 🔥 Access Token이 유효하지 않을 때
+        } catch (HttpClientErrorException.Forbidden e) {
             throw new RuntimeException("❌ Access Token이 유효하지 않습니다!");
         }
     }
@@ -87,12 +91,12 @@ public class GoogleOAuthProvider implements OAuthProvider {
                     new ParameterizedTypeReference<>() {}
             );
 
-            // Object 타입으로 가져온 후, String -> Integer 변환
             Object expiresInObj = response.getBody().get("expires_in");
-            int expiresIn = Integer.parseInt(expiresInObj.toString()); // 안전한 변환 처리
-            return System.currentTimeMillis() + (expiresIn * 1000L); // 밀리초 변환 후 반환
+            int expiresIn = Integer.parseInt(expiresInObj.toString());
+            return System.currentTimeMillis() + (expiresIn * 1000L);
         } catch (Exception e) {
             throw new RuntimeException("❌ Google Access Token 만료 시간 조회 실패!", e);
         }
     }
+
 }

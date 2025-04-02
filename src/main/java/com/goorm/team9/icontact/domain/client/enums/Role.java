@@ -28,4 +28,5 @@ public enum Role implements EnumWithDescription {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Invalid Role description: " + description));
     }
+
 }

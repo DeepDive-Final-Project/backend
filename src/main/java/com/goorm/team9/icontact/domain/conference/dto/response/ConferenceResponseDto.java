@@ -10,14 +10,16 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ConferenceResponseDTO {
+public class ConferenceResponseDto {
+
     private Long id;
     private String name;
     private String day;
 
-    public ConferenceResponseDTO(ConferenceEntity entity) {
+    public ConferenceResponseDto(ConferenceEntity entity) {
         this.id = entity.getId();
         this.name = entity.getName();
         this.day = entity.getDay().getDescription();
     }
+
 }

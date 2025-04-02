@@ -1,9 +1,9 @@
 package com.goorm.team9.icontact.domain.chat.service;
 
-import com.goorm.team9.icontact.domain.chat.dto.ChatRequestCountDto;
-import com.goorm.team9.icontact.domain.chat.dto.ChatRequestDto;
-import com.goorm.team9.icontact.domain.chat.dto.ChatRequestNotificationDto;
-import com.goorm.team9.icontact.domain.chat.dto.ChatResponseDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatRequestCountDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatRequestDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatRequestNotificationDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatResponseDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatJoin;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRequest;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
@@ -193,4 +193,5 @@ public class ChatRequestService {
 
         return new ChatRequestCountDto(receivedCount, sentCount);
     }
+
 }

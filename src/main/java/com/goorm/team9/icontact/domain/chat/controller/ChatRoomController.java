@@ -1,7 +1,7 @@
 package com.goorm.team9.icontact.domain.chat.controller;
 
-import com.goorm.team9.icontact.domain.chat.dto.ChatRoomRequest;
-import com.goorm.team9.icontact.domain.chat.dto.ChatRoomResponse;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatRoomRequestDto;
+import com.goorm.team9.icontact.domain.chat.dto.response.ChatRoomResponseDto;
 import com.goorm.team9.icontact.domain.chat.service.ChatRoomService;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
@@ -71,12 +71,12 @@ public class ChatRoomController {
 
     @Operation(summary = "최신 메시지 순으로 채팅방 조회", description = "특정 사용자가 참여한 채팅방을 최신 메시지 순으로 조회합니다.")
     @GetMapping("/latest")
-    public ResponseEntity<List<ChatRoomResponse>> getLatestChatRooms(@RequestParam String nickname) {
+    public ResponseEntity<List<ChatRoomResponseDto>> getLatestChatRooms(@RequestParam String nickname) {
         try {
             ClientEntity client = clientRepository.findByNickName(nickname)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-            List<ChatRoomResponse> chatRooms = chatRoomService.getLatestChatRooms(client);
+            List<ChatRoomResponseDto> chatRooms = chatRoomService.getLatestChatRooms(client);
 
             return ResponseEntity.ok(chatRooms);
         } catch (Exception e) {
@@ -87,12 +87,12 @@ public class ChatRoomController {
 
     @Operation(summary = "읽지 않은 메시지가 있는 채팅방 조회", description = "특정 사용자가 참여한 채팅방 중 최근 메시지가 읽지 않은 순으로 정렬하여 조회합니다.")
     @GetMapping("/unread")
-    public ResponseEntity<List<ChatRoomResponse>> getUnreadChatRooms(@RequestParam String nickname) {
+    public ResponseEntity<List<ChatRoomResponseDto>> getUnreadChatRooms(@RequestParam String nickname) {
         try {
             ClientEntity client = clientRepository.findByNickName(nickname)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-            List<ChatRoomResponse> chatRooms = chatRoomService.getUnreadChatRooms(client);
+            List<ChatRoomResponseDto> chatRooms = chatRoomService.getUnreadChatRooms(client);
 
             return ResponseEntity.ok(chatRooms);
         } catch (Exception e) {
@@ -108,7 +108,7 @@ public class ChatRoomController {
             ClientEntity client = clientRepository.findByNickName(nickname)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-            List<ChatRoomResponse> chatRooms = chatRoomService.getChatRoomsByUser(client);
+            List<ChatRoomResponseDto> chatRooms = chatRoomService.getChatRoomsByUser(client);
 
             if (chatRooms.isEmpty()) {
                 return ResponseEntity.ok(Map.of("message", "사용자가 속해있는 채팅방이 없습니다."));
@@ -129,7 +129,7 @@ public class ChatRoomController {
 
     @Operation(summary = "채팅방 생성 API", description = "새로운 1:1 채팅방을 생성합니다.")
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createChatRoom(@RequestBody ChatRoomRequest request) {
+    public ResponseEntity<Map<String, Object>> createChatRoom(@RequestBody ChatRoomRequestDto request) {
         Map<String, Object> response = new HashMap<>();
         try {
             ClientEntity senderNickname = clientRepository.findByNickName(request.getSenderNickname())

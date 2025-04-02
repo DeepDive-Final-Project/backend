@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class LocationResponse {
+public class LocationResponseDto {
 
     private Long id;
     private double latitude;
@@ -27,8 +27,8 @@ public class LocationResponse {
     @JsonIgnore
     private transient int matchScore;
 
-    public LocationResponse(Long id, double latitude, double longitude, Double distance, String interest,
-                            String role, String career, String nickName, String introduction) {
+    public LocationResponseDto(Long id, double latitude, double longitude, Double distance, String interest,
+                               String role, String career, String nickName, String introduction) {
         this.id = id;
         this.latitude = latitude;
         this.longitude = longitude;

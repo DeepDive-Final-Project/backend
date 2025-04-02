@@ -17,4 +17,5 @@ public enum Day implements EnumWithDescription {
     Day (String description) {
         this.description = description;
     }
+
 }

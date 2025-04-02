@@ -10,7 +10,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class LectureResponseDTO {
+public class LectureResponseDto {
+
     private Long id;
     private String title;
     private String lecturer;
@@ -19,7 +20,7 @@ public class LectureResponseDTO {
     private String conferenceName;
     private String conferenceDay;
 
-    public LectureResponseDTO(LectureEntity entity) {
+    public LectureResponseDto(LectureEntity entity) {
         this.id = entity.getId();
         this.title = entity.getTitle();
         this.lecturer = entity.getLecturer();

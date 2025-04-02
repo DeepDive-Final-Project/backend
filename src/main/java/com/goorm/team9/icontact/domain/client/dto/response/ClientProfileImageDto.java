@@ -7,7 +7,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @AllArgsConstructor
-public class ClientProfileImageDTO {
+public class ClientProfileImageDto {
+
     private Long clientId;
     private String profileImageUrl;
+
 }

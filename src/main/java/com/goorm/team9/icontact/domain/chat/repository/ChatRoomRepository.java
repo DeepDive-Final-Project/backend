@@ -41,4 +41,5 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             "(cr.senderNickname.nickName = :sender AND cr.receiverNickname.nickName = :receiver) " +
             "OR (cr.senderNickname.nickName = :receiver AND cr.receiverNickname.nickName = :sender)")
     Optional<ChatRoom> findBySenderAndReceiver(@Param("sender") String sender, @Param("receiver") String receiver);
+
 }

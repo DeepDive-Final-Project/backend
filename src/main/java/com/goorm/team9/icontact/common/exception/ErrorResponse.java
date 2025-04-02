@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ErrorResponse {
+
     private final Object data;
     private final String message;
 
@@ -26,4 +27,5 @@ public class ErrorResponse {
                 .message(errorCode.getDescription())
                 .build();
     }
+
 }

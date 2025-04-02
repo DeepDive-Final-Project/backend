@@ -43,5 +43,6 @@ public class ClientEnumService {
                 .map(interest -> Map.of("key", interest.name(), "description", interest.getDescription()))
                 .collect(Collectors.toList());
     }
+
 }
 

@@ -1,6 +1,7 @@
 package com.goorm.team9.icontact.domain.client.controller;
 
-import com.goorm.team9.icontact.domain.client.enums.*;
+import com.goorm.team9.icontact.domain.client.enums.InterestCategory;
+import com.goorm.team9.icontact.domain.client.enums.Role;
 import com.goorm.team9.icontact.domain.client.service.ClientEnumService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -28,12 +29,6 @@ public class EnumController {
         return ResponseEntity.ok(clientEnumService.getEnumListWithApiCode(Role.values()));
     }
 
-//    @GetMapping("/statuses")
-//    @Operation(summary = "공개여부 API", description = "공개 여부의 종류를 출력하는 API입니다.")
-//    public ResponseEntity<List<Map<String, String>>> getStatuses() {
-//        return ResponseEntity.ok(clientEnumService.getEnumList(Status.values()));
-//    }
-
     @GetMapping("/careers")
     @Operation(summary = "경력 API", description = "선택한 직업에 따라 필터링된 경력 목록을 반환하는 API입니다.")
     public ResponseEntity<List<Map<String, String>>> getCareers(
@@ -41,18 +36,6 @@ public class EnumController {
     ) {
         return ResponseEntity.ok(clientEnumService.getFilteredCareers(role));
     }
-
-//    @GetMapping("/frameworks")
-//    @Operation(summary = "프레임워크 API", description = "프레임워크의 종류를 출력하는 API입니다.")
-//    public ResponseEntity<List<Map<String, String>>> getFrameworks() {
-//        return ResponseEntity.ok(clientEnumService.getEnumList(Framework.values()));
-//    }
-
-//    @GetMapping("/languages")
-//    @Operation(summary = "언어 API", description = "언어의 종류를 출력하는 API입니다.")
-//    public ResponseEntity<List<Map<String, String>>> getLanguage() {
-//        return ResponseEntity.ok(clientEnumService.getEnumList(Language.values()));
-//    }
 
     @GetMapping("/interests")
     @Operation(summary = "관심 주제 API", description = "선택한 분야(DEV, PD, DS)에 따라 관심 주제 목록을 반환합니다.")
@@ -63,4 +46,3 @@ public class EnumController {
     }
 
 }
-

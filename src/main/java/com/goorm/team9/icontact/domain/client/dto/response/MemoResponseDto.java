@@ -6,14 +6,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MemoResponseDTO {
+public class MemoResponseDto {
+
     private Long id;
     private Long targetId;
     private String content;
 
-    public MemoResponseDTO(MemoEntity memo) {
+    public MemoResponseDto(MemoEntity memo) {
         this.id = memo.getId();
         this.targetId = memo.getTarget().getId();
         this.content = memo.getContent();
     }
+
 }

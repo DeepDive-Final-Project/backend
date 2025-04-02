@@ -28,5 +28,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
         String senderNickname = (String) session.getAttributes().get("senderNickname");
         webSocketSessionService.removeSession(roomId, senderNickname);
     }
+
 }
 

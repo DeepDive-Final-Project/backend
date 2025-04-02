@@ -1,6 +1,6 @@
 package com.goorm.team9.icontact.domain.chat.controller;
 
-import com.goorm.team9.icontact.domain.chat.dto.ChatMessageDto;
+import com.goorm.team9.icontact.domain.chat.dto.response.ChatMessageDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessageType;
 import com.goorm.team9.icontact.domain.chat.service.ChatMessageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -10,8 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import java.util.Map;
 
 import java.util.List;
@@ -80,4 +86,5 @@ public class ChatMessageController {
         chatMessageService.markMessagesAsRead(roomId, clientId);
         return ResponseEntity.noContent().build();
     }
+
 }

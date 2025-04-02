@@ -5,16 +5,16 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class OAuthLoginResponseDTO {
+public class OAuthLoginResponseDto {
     private String email;
-    private String provider; // github, google, kakao
+    private String provider;
     private String accessToken;
     private String refreshToken;
     private String role;
     private boolean isNewUser;
     private String nickname;
 
-    public OAuthLoginResponseDTO(String email, String provider, String accessToken, String refreshToken, String role, boolean isNewUser, String nickname) {
+    public OAuthLoginResponseDto(String email, String provider, String accessToken, String refreshToken, String role, boolean isNewUser, String nickname) {
         this.email = email;
         this.provider = provider;
         this.accessToken = accessToken;

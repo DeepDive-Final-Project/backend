@@ -1,10 +1,7 @@
 package com.goorm.team9.icontact.domain.client.dto.request;
 
 import com.goorm.team9.icontact.domain.client.enums.Career;
-import com.goorm.team9.icontact.domain.client.enums.Framework;
 import com.goorm.team9.icontact.domain.client.enums.Interest;
-import com.goorm.team9.icontact.domain.client.enums.Language;
-import com.goorm.team9.icontact.domain.client.enums.Status;
 import com.goorm.team9.icontact.domain.client.enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -30,7 +27,8 @@ import java.util.List;
         "  \"topic3\": \"API_Development\",\n" +
         "  \"provider\": \"kakao\"\n" +
         "}")
-public class MyPageCreateRequest {
+public class MyPageCreateRequestDto {
+
     @Schema(example = "Noah")
     private String nickName;
 
@@ -47,7 +45,7 @@ public class MyPageCreateRequest {
     private String introduction;
 
     @Schema(description = "링크 리스트", example = "[{\"title\": \"정훈의 깃허브\", \"link\": \"https://github.com/jh\"}]")
-    private List<ClientLinkRequestDTO> links;
+    private List<ClientLinkRequestDto> links;
 
     @Schema(example = "AI_Machine_Learning")
     private Interest topic1;
@@ -60,4 +58,5 @@ public class MyPageCreateRequest {
 
     @Schema(example = "kakao")
     private String provider;
+
 }

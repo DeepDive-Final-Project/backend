@@ -1,15 +1,12 @@
 package com.goorm.team9.icontact.domain.chat.service;
 
-import com.goorm.team9.icontact.domain.chat.dto.ChatRoomResponse;
+import com.goorm.team9.icontact.domain.chat.dto.response.ChatRoomResponseDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatJoin;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
 import com.goorm.team9.icontact.domain.chat.repository.ChatJoinRepository;
 import com.goorm.team9.icontact.domain.chat.repository.ChatMessageRepository;
-import com.goorm.team9.icontact.domain.chat.repository.ChatRequestRepository;
 import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
-import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
-import com.goorm.team9.icontact.domain.client.service.ClientService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +21,6 @@ public class ChatRoomService {
 
     private final ChatRoomRepository chatRoomRepository;
     private final ChatJoinRepository chatJoinRepository;
-    private final ClientRepository clientRepository;
-    private final ClientService clientService;
-    private final ChatRequestRepository chatRequestRepository;
     private final ChatMessageRepository chatMessageRepository;
 
     @Transactional
@@ -93,7 +87,7 @@ public class ChatRoomService {
         }
     }
 
-    public List<ChatRoomResponse> getLatestChatRooms(ClientEntity client) {
+    public List<ChatRoomResponseDto> getLatestChatRooms(ClientEntity client) {
         List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
         return results.stream()
@@ -104,12 +98,12 @@ public class ChatRoomService {
                             .map(ChatJoin::isExited)
                             .orElse(true);
 
-                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount, exited, client.getId());
+                    return ChatRoomResponseDto.fromEntity(chatRoom, unreadCount, exited, client.getId());
                 })
                 .collect(Collectors.toList());
     }
 
-    public List<ChatRoomResponse> getUnreadChatRooms(ClientEntity client) {
+    public List<ChatRoomResponseDto> getUnreadChatRooms(ClientEntity client) {
         List<Object[]> results = chatRoomRepository.findUnreadChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
         return results.stream()
@@ -120,12 +114,12 @@ public class ChatRoomService {
                             .map(ChatJoin::isExited)
                             .orElse(true);
 
-                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount, exited, client.getId());
+                    return ChatRoomResponseDto.fromEntity(chatRoom, unreadCount, exited, client.getId());
                 })
                 .collect(Collectors.toList());
     }
 
-    public List<ChatRoomResponse> getChatRoomsByUser(ClientEntity client) {
+    public List<ChatRoomResponseDto> getChatRoomsByUser(ClientEntity client) {
         List<Object[]> results = chatRoomRepository.findAllChatRoomsWithUnreadCount(client.getNickName(), client.getId());
 
         return results.stream()
@@ -136,7 +130,7 @@ public class ChatRoomService {
                             .map(ChatJoin::isExited)
                             .orElse(true);
 
-                    return ChatRoomResponse.fromEntity(chatRoom, unreadCount, exited, client.getId());
+                    return ChatRoomResponseDto.fromEntity(chatRoom, unreadCount, exited, client.getId());
                 })
                 .collect(Collectors.toList());
     }
