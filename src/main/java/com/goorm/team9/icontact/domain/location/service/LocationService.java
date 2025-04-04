@@ -40,7 +40,7 @@ public class LocationService {
     private final RedisTemplate<String, String> redisTemplate;
     private final JdbcTemplate jdbcTemplate;
 
-    @Value("${app.geo.search-radius:50}")
+    @Value("${app.geo.search-radius:1000}")
     private double searchRadius;
 
     public boolean saveUserInformation(Long id, double latitude, double longitude) {
