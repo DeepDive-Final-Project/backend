@@ -116,7 +116,8 @@ public class LocationService {
         Point userPoint = getUserPoint(id);
         String interest = getFormattedInterest(id);
 
-        return findNearbyUsers(userPoint.getY(), userPoint.getX(), interest, roleDesc, careerDesc);
+        return findNearbyUsers(id, userPoint.getY(), userPoint.getX(), interest, roleDesc, careerDesc);
+
     }
 
     public List<LocationResponseDto> refreshNearbyUsers(Long id, double latitude, double longitude, String roleDesc, String careerDesc) {
@@ -143,7 +144,7 @@ public class LocationService {
         return getNearbyUsers(id, roleDesc, careerDesc);
     }
 
-    public List<LocationResponseDto> findNearbyUsers(double latitude, double longitude, String interest, String roleDesc, String careerDesc) {
+    public List<LocationResponseDto> findNearbyUsers(Long currentUserId, double latitude, double longitude, String interest, String roleDesc, String careerDesc) {
         GeoResults<RedisGeoCommands.GeoLocation<String>> results = redisTemplate.opsForGeo().radius(
                 "location_data",
                 new Circle(new Point(longitude, latitude), new Distance(searchRadius, RedisGeoCommands.DistanceUnit.METERS)),
@@ -160,6 +161,8 @@ public class LocationService {
             RedisGeoCommands.GeoLocation<String> geoLocation = result.getContent();
 
             Long targetId = Long.valueOf(geoLocation.getName());
+            if (targetId.equals(currentUserId)) continue;
+
             Map<String, String> targetInterest = getUserInterest(targetId);
             int matchScore = calculateInterestMatch(interest, targetInterest);
 
