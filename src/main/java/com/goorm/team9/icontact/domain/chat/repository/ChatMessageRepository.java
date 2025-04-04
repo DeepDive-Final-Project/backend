@@ -4,8 +4,10 @@ import com.goorm.team9.icontact.domain.chat.entity.ChatMessage;
 import com.goorm.team9.icontact.domain.chat.entity.ChatRoom;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -30,5 +32,15 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     @Query("SELECT m FROM ChatMessage m WHERE m.chatRoom = :chatRoom ORDER BY m.created_at ASC")
     List<ChatMessage> findByChatRoomOrderByCreatedAtAsc(@Param("chatRoom") ChatRoom chatRoom);
+
+    @Modifying
+    @Query("UPDATE ChatMessage m " +
+            "SET m.isRead = true " +
+            "WHERE m.chatRoom = :chatRoom " +
+            "AND m.isRead = false " +
+            "AND m.senderNickname <> :readerNickname")
+    int markMessagesAsRead(@Param("chatRoom") ChatRoom chatRoom,
+                           @Param("readerNickname") String readerNickname);
+
 
 }

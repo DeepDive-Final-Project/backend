@@ -12,6 +12,7 @@ import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ChatMessageService {
@@ -144,13 +146,11 @@ public class ChatMessageService {
         ClientEntity reader = clientRepository.findById(clientId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        List<ChatMessage> unreadMessages = chatMessageRepository.findUnreadMessages(chatRoom, reader);
+        int updatedCount = chatMessageRepository.markMessagesAsRead(chatRoom, reader.getNickName());
 
-        for (ChatMessage chatMessage : unreadMessages) {
-            chatMessage.markAsRead();
+        if (updatedCount > 0) {
+            log.info("✅ {}개의 메시지를 읽음 처리했습니다. [roomId={}, reader={}]", updatedCount, roomId, reader.getNickName());
         }
-
-        chatMessageRepository.saveAll(unreadMessages);
     }
 
 }
