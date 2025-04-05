@@ -122,8 +122,11 @@ public class ChatRoomController {
 
     @Operation(summary = "안 읽은 메시지 개수 조회 API", description = "특정 채팅방에서 사용자의 안 읽은 메시지 개수를 반환합니다.")
     @GetMapping("/{roomId}/unread-count")
-    public ResponseEntity<Map<String, Long>> getUnreadMessageCount(@PathVariable Long chatRoomId, @RequestParam Long clientId) {
-        long unreadCount = chatRoomService.countUnreadMessages(chatRoomId, clientId);
+    public ResponseEntity<Map<String, Long>> getUnreadMessageCount(
+            @PathVariable Long roomId,
+            @RequestParam Long clientId
+    ) {
+        long unreadCount = chatRoomService.countUnreadMessages(roomId, clientId);
         return ResponseEntity.ok(Map.of("unreadCount", unreadCount));
     }
 
