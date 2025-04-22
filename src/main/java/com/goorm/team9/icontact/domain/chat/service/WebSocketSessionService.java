@@ -21,12 +21,13 @@ public class WebSocketSessionService {
         this.chatRoomService = chatRoomService;
     }
 
-    public void addSession(Long roomId, String senderNickname, WebSocketSession session) {
+    public void addSession(Long roomId, Long clientId, String nickname, WebSocketSession session) {
         chatRoomSessions
                 .computeIfAbsent(roomId, k -> new ConcurrentHashMap<>())
-                .put(senderNickname, session);
-        sendJoinMessage(roomId, senderNickname);
+                .put(nickname, session);
+        sendJoinMessage(roomId, nickname);
     }
+
 
     public void removeSession(Long roomId, String senderNickname) {
         Map<String, WebSocketSession> usersInRoom = chatRoomSessions.get(roomId);

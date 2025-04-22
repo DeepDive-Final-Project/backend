@@ -33,12 +33,12 @@ public class ChatRoom {
     private Long roomId;
 
     @ManyToOne
-    @JoinColumn(name = "sender_nickname", referencedColumnName = "nickName", nullable = false)
-    private ClientEntity senderNickname;
+    @JoinColumn(name = "sender_id", nullable = false)
+    private ClientEntity sender;
 
     @ManyToOne
-    @JoinColumn(name = "receiver_nickname", referencedColumnName = "nickName", nullable = false)
-    private ClientEntity receiverNickname;
+    @JoinColumn(name = "receiver_id", nullable = false)
+    private ClientEntity receiver;
 
     @Column(name = "last_message", length = 1000)
     private String lastMessage;
@@ -49,16 +49,10 @@ public class ChatRoom {
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ChatMessage> messages = new ArrayList<>();
 
-    @ElementCollection
-    @CollectionTable(name = "chat_room_exit_status", joinColumns = @JoinColumn(name = "room_id"))
-    @MapKeyColumn(name = "nickname")
-    @Column(name = "exit_status")
-    private Map<String, Boolean> exitStatus = new HashMap<>();
-
     public static ChatRoom createChatRoom(ClientEntity sender, ClientEntity receiver) {
         ChatRoom chatRoom = new ChatRoom();
-        chatRoom.setSenderNickname(sender);
-        chatRoom.setReceiverNickname(receiver);
+        chatRoom.setSender(sender);
+        chatRoom.setReceiver(receiver);
         chatRoom.setLastMessage(null);
         chatRoom.setLastMessageTime(null);
         return chatRoom;

@@ -25,11 +25,11 @@ public class ChatRoomService {
 
     @Transactional
     public Long createOrGetRoomId(ClientEntity sender, ClientEntity receiver) {
-        List<ChatRoom> chatRooms = chatRoomRepository.findBySenderNicknameOrReceiverNickname(sender.getNickName());
+        List<ChatRoom> chatRooms = chatRoomRepository.findAll(); // 단순화된 버전
 
         for (ChatRoom chatRoom : chatRooms) {
-            if ((chatRoom.getSenderNickname().equals(sender) && chatRoom.getReceiverNickname().equals(receiver)) ||
-                    (chatRoom.getSenderNickname().equals(receiver) && chatRoom.getReceiverNickname().equals(sender))) {
+            if ((chatRoom.getSender().getId().equals(sender.getId()) && chatRoom.getReceiver().getId().equals(receiver.getId())) ||
+                    (chatRoom.getSender().getId().equals(receiver.getId()) && chatRoom.getReceiver().getId().equals(sender.getId()))) {
                 return chatRoom.getRoomId();
             }
         }

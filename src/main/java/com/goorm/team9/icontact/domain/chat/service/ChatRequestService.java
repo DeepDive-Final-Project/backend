@@ -13,6 +13,7 @@ import com.goorm.team9.icontact.domain.chat.repository.ChatRequestRepository;
 import com.goorm.team9.icontact.domain.chat.repository.ChatRoomRepository;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -46,7 +47,7 @@ public class ChatRequestService {
             return ResponseEntity.ok(new ChatResponseDto(null, "이미 채팅방이 존재합니다.", null));
         }
 
-        Optional<ChatRequest> existingRequest = chatRequestRepository.findPendingRequest(sender.getNickName(), receiver.getNickName());
+        Optional<ChatRequest> existingRequest = chatRequestRepository.findPendingRequest(sender, receiver);
 
         if (existingRequest.isPresent()) {
             return ResponseEntity.ok(new ChatResponseDto(existingRequest.get().getId(), "이미 채팅 요청을 보냈습니다.", null));
@@ -70,6 +71,7 @@ public class ChatRequestService {
             String receiverEmail = receiver.getEmail();
             emailService.sendChatRequestNotification(receiverEmail, sender.getNickName());
         }
+
         return ResponseEntity.ok(new ChatResponseDto(requestId, "채팅 요청이 정상적으로 전송되었습니다.", null));
     }
 
@@ -83,8 +85,8 @@ public class ChatRequestService {
 
         if (chatRequest.getStatus() == RequestStatus.ACCEPTED) {
             Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findExistingChatRoom(
-                    chatRequest.getSenderNickname(),
-                    chatRequest.getReceiverNickname()
+                    chatRequest.getSender().getNickName(),
+                    chatRequest.getReceiver().getNickName()
             );
             roomId = chatRoomOpt.map(ChatRoom::getRoomId).orElse(null);
         }
@@ -101,9 +103,9 @@ public class ChatRequestService {
         ChatRequest chatRequest = chatRequestRepository.findByIdAndStatus(requestId, RequestStatus.PENDING)
                 .orElseThrow(() -> new IllegalArgumentException("해당 요청이 없거나 이미 처리되었습니다."));
 
-        ClientEntity sender = clientRepository.findByNickName(chatRequest.getSenderNickname())
+        ClientEntity sender = clientRepository.findByNickName(chatRequest.getSender().getNickName())
                         .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
-        ClientEntity receiver = clientRepository.findByNickName(chatRequest.getReceiverNickname())
+        ClientEntity receiver = clientRepository.findByNickName(chatRequest.getReceiver().getNickName())
                         .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
 
         chatRequest.accept();
@@ -136,7 +138,9 @@ public class ChatRequestService {
     }
 
     public List<ChatRequestDto> getReceivedRequests(String receiverNickname, RequestStatus status) {
-        List<ChatRequest> requests = chatRequestRepository.findByReceiverNicknameAndStatus(receiverNickname, status);
+        ClientEntity receiver = clientRepository.findByNickName(receiverNickname)
+                .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
+        List<ChatRequest> requests = chatRequestRepository.findByReceiverAndStatus(receiver, status);
 
         return requests.stream().map(request -> {
             ChatRoom chatRoom = chatRoomRepository.findBySenderAndReceiver(request.getSender().getNickName(), request.getReceiver().getNickName())
@@ -159,16 +163,17 @@ public class ChatRequestService {
         }).collect(Collectors.toList());
     }
 
-    public List<ChatRequestDto> getSentRequest(String senderNickname, RequestStatus status) {
-        List<ChatRequest> requests = chatRequestRepository.findBySenderNicknameAndStatus(senderNickname, status);
+    public List<ChatRequestDto> getSentRequest(ClientEntity sender, RequestStatus status) {
+        List<ChatRequest> requests = chatRequestRepository.findBySenderAndStatus(sender, status);
 
         return requests.stream().map(request -> {
-            ChatRoom chatRoom = chatRoomRepository.findBySenderAndReceiver(request.getSender().getNickName(), request.getReceiver().getNickName())
-                    .orElse(null);
-            boolean exited = true;
+            ChatRoom chatRoom = chatRoomRepository.findBySenderAndReceiver(
+                    request.getSender().getNickName(), request.getReceiver().getNickName()
+            ).orElse(null);
 
+            boolean exited = true;
             if (chatRoom != null) {
-                exited = chatJoinRepository.findByChatRoomAndClientId(chatRoom, request.getSender().getId())
+                exited = chatJoinRepository.findByChatRoomAndClientId(chatRoom, sender.getId())
                         .map(ChatJoin::isExited)
                         .orElse(true);
             }
@@ -188,8 +193,9 @@ public class ChatRequestService {
         ClientEntity client = clientRepository.findByNickName(nickname)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        long receivedCount = chatRequestRepository.countReceivedRequests(nickname, RequestStatus.PENDING);
-        long sentCount = chatRequestRepository.countSentRequests(nickname, RequestStatus.PENDING);
+        // 파라미터 수정 (String → ClientEntity)
+        long receivedCount = chatRequestRepository.countReceivedRequests(client, RequestStatus.PENDING);
+        long sentCount = chatRequestRepository.countSentRequests(client, RequestStatus.PENDING);
 
         return new ChatRequestCountDto(receivedCount, sentCount);
     }

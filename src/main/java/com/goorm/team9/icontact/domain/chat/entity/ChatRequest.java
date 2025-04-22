@@ -34,25 +34,15 @@ public class ChatRequest {
     @JoinColumn(name = "receiver_id", nullable = false)
     private ClientEntity receiver;
 
-    @Column(name = "sender_nickname", nullable = false)
-    private String senderNickname;
-
-    @Column(name = "receiver_nickname", nullable = false)
-    private String receiverNickname;
-
     @Enumerated(EnumType.STRING)
     private RequestStatus status;
 
-    public static ChatRequest create(ClientEntity senderNickname, ClientEntity receiverNickname) {
-        return new ChatRequest(senderNickname, receiverNickname);
-    }
-
-    public ChatRequest(ClientEntity sender, ClientEntity receiver) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.senderNickname = sender.getNickName();
-        this.receiverNickname = receiver.getNickName();
-        this.status = RequestStatus.PENDING;
+    public static ChatRequest create(ClientEntity sender, ClientEntity receiver) {
+        ChatRequest chatRequest = new ChatRequest();
+        chatRequest.sender = sender;
+        chatRequest.receiver = receiver;
+        chatRequest.status = RequestStatus.PENDING;
+        return chatRequest;
     }
 
     public void accept() {
@@ -62,5 +52,4 @@ public class ChatRequest {
     public void reject() {
         this.status = RequestStatus.REJECTED;
     }
-
 }

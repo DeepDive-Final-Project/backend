@@ -11,6 +11,9 @@ import com.goorm.team9.icontact.domain.client.dto.response.ClientResponseDto;
 import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.client.entity.ClientLinkEntity;
 import com.goorm.team9.icontact.domain.client.entity.TopicEntity;
+import com.goorm.team9.icontact.domain.client.enums.Career;
+import com.goorm.team9.icontact.domain.client.enums.Interest;
+import com.goorm.team9.icontact.domain.client.enums.Role;
 import com.goorm.team9.icontact.domain.client.repository.ClientRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -161,6 +164,96 @@ public class ClientService {
                                 client.getProfileImage() != null ? client.getProfileImage() : imageFileStorageService.getDefaultImage()))
                         .orElse(new ClientProfileImageDto(id, imageFileStorageService.getDefaultImage())))
                 .toList();
+    }
+
+    @Transactional
+    public void updateNickname(Long clientId, String nickname) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+        client.setNickName(nickname);
+    }
+
+    @Transactional
+    public void updateEmail(Long clientId, String email) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+        client.setEmail(email);
+    }
+
+    @Transactional
+    public void updateIntroduction(Long clientId, String introduction) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+        client.setIntroduction(introduction);
+    }
+
+    @Transactional
+    public void updateInterest(Long clientId, Interest topic1, Interest topic2, Interest topic3) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+
+        TopicEntity topic = client.getIt_topic();
+
+        if (topic == null) {
+            topic = TopicEntity.builder()
+                    .topic1(topic1)
+                    .topic2(topic2)
+                    .topic3(topic3)
+                    .client(client)
+                    .build();
+            client.setIt_topic(topic);
+        } else {
+            topic.setTopic1(topic1);
+            topic.setTopic2(topic2);
+            topic.setTopic3(topic3);
+        }
+    }
+
+    @Transactional
+    public void updateCareer(Long clientId, Career career) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+        client.setCareer(career);
+    }
+
+    @Transactional
+    public void updateRole(Long clientId, Role role) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+        client.setRole(role);
+    }
+
+    @Transactional
+    public void updateLinks(Long clientId, List<ClientLinkRequestDto> links) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+
+        client.getLinks().clear(); // 기존 링크 제거
+
+        List<ClientLinkEntity> newLinks = links.stream()
+                .map(linkDto -> ClientLinkEntity.builder()
+                        .title(linkDto.getTitle())
+                        .link(linkDto.getLink())
+                        .client(client)
+                        .build())
+                .toList();
+
+        client.getLinks().addAll(newLinks);
+    }
+
+    @Transactional
+    public void updateProfileImage(Long clientId, MultipartFile profileImage) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new CustomException(ClientErrorCode.CLIENT_NOT_FOUND));
+
+        String currentImage = client.getProfileImage();
+
+        if (!imageFileStorageService.isDefaultImage(currentImage)) {
+            imageFileStorageService.deleteFile(currentImage);
+        }
+
+        String imagePath = imageFileStorageService.storeFile(profileImage);
+        client.setProfileImage(imagePath);
     }
 
 }
