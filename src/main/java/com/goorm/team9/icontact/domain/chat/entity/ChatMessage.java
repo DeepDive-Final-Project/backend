@@ -1,5 +1,6 @@
 package com.goorm.team9.icontact.domain.chat.entity;
 
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import com.goorm.team9.icontact.domain.common.BaseTimeEntity;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -7,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 
 @Entity
 @Getter
@@ -24,8 +24,9 @@ public class ChatMessage extends BaseTimeEntity {
     @JoinColumn(name = "room_id", nullable = false)
     private ChatRoom chatRoom;
 
-    @Column(name = "sender_nickname", nullable = false)
-    private String senderNickname;
+    @ManyToOne
+    @JoinColumn(name = "sender_id", nullable = false)
+    private ClientEntity sender;
 
     @Column(nullable = false, length = 1000)
     private String content;
