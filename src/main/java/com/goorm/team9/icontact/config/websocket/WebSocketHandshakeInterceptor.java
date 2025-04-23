@@ -20,6 +20,7 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
 
         String roomIdStr = params.getFirst("roomId");
         String senderNickname = params.getFirst("senderNickname");
+        String clientIdStr = params.getFirst("clientId");
 
         if (roomIdStr != null) {
             attributes.put("roomId", Long.parseLong(roomIdStr));
@@ -27,6 +28,10 @@ public class WebSocketHandshakeInterceptor implements HandshakeInterceptor {
         if (senderNickname != null) {
             attributes.put("senderNickname", senderNickname);
         }
+        if (clientIdStr != null) {
+            attributes.put("clientId", Long.parseLong(clientIdStr));
+        }
+
         return true;
     }
 
