@@ -4,10 +4,7 @@ import com.goorm.team9.icontact.domain.client.enums.Career;
 import com.goorm.team9.icontact.domain.client.enums.Interest;
 import com.goorm.team9.icontact.domain.client.enums.Role;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 
@@ -15,6 +12,7 @@ import java.util.List;
 @Setter
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 @Schema(description = "마이페이지 생성 요청 DTO", example = "{\n" +
         "  \"nickName\": \"Noah\",\n" +
         "  \"email\": \"noah@gmail.com\",\n" +

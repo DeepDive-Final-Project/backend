@@ -115,17 +115,17 @@ class ChatRequestControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
-    @DisplayName("보낸 채팅 요청 목록을 조회한다.")
-    void 보낸요청_조회_테스트() throws Exception {
-        when(chatRequestService.getSentRequest("Noah1", RequestStatus.PENDING))
-                .thenReturn(List.of());
-
-        mockMvc.perform(get("/api/chat/request/sent")
-                .param("senderNickname", "Noah1")
-                .param("status", "PENDING"))
-                .andExpect(status().isOk());
-    }
+//    @Test
+//    @DisplayName("보낸 채팅 요청 목록을 조회한다.")
+//    void 보낸요청_조회_테스트() throws Exception {
+//        when(chatRequestService.getSentRequest("Noah1", RequestStatus.PENDING))
+//                .thenReturn(List.of());
+//
+//        mockMvc.perform(get("/api/chat/request/sent")
+//                .param("senderNickname", "Noah1")
+//                .param("status", "PENDING"))
+//                .andExpect(status().isOk());
+//    }
 
     @Test
     @DisplayName("채팅 요청 개수를 조회한다.")

@@ -18,21 +18,30 @@ public class ChatRoomResponseDto {
     private Long unreadCount;
     private boolean exited;
     private Long otherId;
+    private String otherUserNickname;
 
     public static ChatRoomResponseDto fromEntity(ChatRoom chatRoom, Long unreadCount, boolean exited, Long myId) {
-        Long otherId = chatRoom.getSenderNickname().getId().equals(myId)
-                ? chatRoom.getReceiverNickname().getId()
-                : chatRoom.getSenderNickname().getId();
+        boolean isSenderMe = chatRoom.getSender().getId().equals(myId);
+
+        Long otherId = isSenderMe
+                ? chatRoom.getReceiver().getId()
+                : chatRoom.getSender().getId();
+
+        String otherUserNickname = isSenderMe
+                ? chatRoom.getReceiver().getNickName()
+                : chatRoom.getSender().getNickName();
 
         return new ChatRoomResponseDto(
                 chatRoom.getRoomId(),
-                List.of(chatRoom.getSenderNickname().getNickName(), chatRoom.getReceiverNickname().getNickName()),
+                List.of(chatRoom.getSender().getNickName(), chatRoom.getReceiver().getNickName()),
                 chatRoom.getLastMessage() != null ? chatRoom.getLastMessage() : "새 메시지가 없습니다.",
                 chatRoom.getLastMessageTime(),
                 unreadCount,
                 exited,
-                otherId
+                otherId,
+                otherUserNickname
         );
     }
 
 }
+

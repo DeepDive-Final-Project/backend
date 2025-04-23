@@ -7,7 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,7 +16,9 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
 
     @Query("SELECT COUNT(m) FROM ChatMessage m " +
             "WHERE m.chatRoom.roomId = :chatRoomId " +
-            "AND m.created_at > (SELECT cj.lastReadAt FROM ChatJoin cj WHERE cj.chatRoom.roomId = :chatRoomId AND cj.client.id = :clientId)")
+            "AND m.created_at > (" +
+            "SELECT cj.lastReadAt FROM ChatJoin cj " +
+            "WHERE cj.chatRoom.roomId = :chatRoomId AND cj.client.id = :clientId)")
     long countUnreadMessages(@Param("chatRoomId") Long chatRoomId, @Param("clientId") Long clientId);
 
     @Query("SELECT m FROM ChatMessage m WHERE m.chatRoom.roomId = :roomId ORDER BY m.created_at ASC")
@@ -26,7 +27,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     @Query("SELECT m FROM ChatMessage m " +
             "WHERE m.chatRoom = :chatRoom " +
             "AND m.isRead = false " +
-            "AND m.senderNickname <> :reader")
+            "AND m.sender <> :reader")
     List<ChatMessage> findUnreadMessages(@Param("chatRoom") ChatRoom chatRoom,
                                          @Param("reader") ClientEntity reader);
 
@@ -38,9 +39,7 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
             "SET m.isRead = true " +
             "WHERE m.chatRoom = :chatRoom " +
             "AND m.isRead = false " +
-            "AND m.senderNickname <> :readerNickname")
+            "AND m.sender.nickName <> :readerNickname")
     int markMessagesAsRead(@Param("chatRoom") ChatRoom chatRoom,
                            @Param("readerNickname") String readerNickname);
-
-
 }

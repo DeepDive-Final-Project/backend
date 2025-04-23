@@ -71,33 +71,31 @@ public class ChatRoomController {
 
     @Operation(summary = "최신 메시지 순으로 채팅방 조회", description = "특정 사용자가 참여한 채팅방을 최신 메시지 순으로 조회합니다.")
     @GetMapping("/latest")
-    public ResponseEntity<List<ChatRoomResponseDto>> getLatestChatRooms(@RequestParam String nickname) {
+    public ResponseEntity<List<ChatRoomResponseDto>> getLatestChatRooms(@RequestParam Long clientId) {
         try {
-            ClientEntity client = clientRepository.findByNickName(nickname)
+            ClientEntity client = clientRepository.findById(clientId)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
             List<ChatRoomResponseDto> chatRooms = chatRoomService.getLatestChatRooms(client);
 
             return ResponseEntity.ok(chatRooms);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
     @Operation(summary = "읽지 않은 메시지가 있는 채팅방 조회", description = "특정 사용자가 참여한 채팅방 중 최근 메시지가 읽지 않은 순으로 정렬하여 조회합니다.")
     @GetMapping("/unread")
-    public ResponseEntity<List<ChatRoomResponseDto>> getUnreadChatRooms(@RequestParam String nickname) {
+    public ResponseEntity<List<ChatRoomResponseDto>> getUnreadChatRooms(@RequestParam Long clientId) {
         try {
-            ClientEntity client = clientRepository.findByNickName(nickname)
+            ClientEntity client = clientRepository.findById(clientId)
                     .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
             List<ChatRoomResponseDto> chatRooms = chatRoomService.getUnreadChatRooms(client);
 
             return ResponseEntity.ok(chatRooms);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -135,26 +133,23 @@ public class ChatRoomController {
     public ResponseEntity<Map<String, Object>> createChatRoom(@RequestBody ChatRoomRequestDto request) {
         Map<String, Object> response = new HashMap<>();
         try {
-            ClientEntity senderNickname = clientRepository.findByNickName(request.getSenderNickname())
+            ClientEntity sender = clientRepository.findById(request.getSenderId())
                     .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
-            ClientEntity receiverNickname = clientRepository.findByNickName(request.getReceiverNickname())
+            ClientEntity receiver = clientRepository.findById(request.getReceiverId())
                     .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
 
-            Long roomId = chatRoomService.createChatRoom(senderNickname, receiverNickname);
+            Long roomId = chatRoomService.createChatRoom(sender, receiver);
 
             Map<String, Object> data = new HashMap<>();
             data.put("roomId", roomId);
-            data.put("senderNickname", senderNickname.getNickName());
-            data.put("receiverNickname", receiverNickname.getNickName());
+            data.put("senderNickname", sender.getNickName());
+            data.put("receiverNickname", receiver.getNickName());
 
             response.put("data", data);
             response.put("message", "채팅방이 생성되었습니다.");
             return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            response.put("error", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         } catch (Exception e) {
-            response.put("error", "서버 오류가 발생했습니다.");
+            response.put("error", e.getMessage());
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }

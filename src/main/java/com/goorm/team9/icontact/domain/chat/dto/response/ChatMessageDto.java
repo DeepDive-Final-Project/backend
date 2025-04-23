@@ -2,6 +2,7 @@ package com.goorm.team9.icontact.domain.chat.dto.response;
 
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessage;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessageType;
+import com.goorm.team9.icontact.domain.client.entity.ClientEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,6 +18,7 @@ public class ChatMessageDto {
 
     private Long messageId;
     private Long roomId;
+    private Long senderId;
     private String senderNickname;
     private String content;
     private ChatMessageType type;
@@ -26,7 +28,8 @@ public class ChatMessageDto {
         return ChatMessageDto.builder()
                 .messageId(chatMessage.getId())
                 .roomId(chatMessage.getChatRoom().getRoomId())
-                .senderNickname(chatMessage.getSenderNickname())
+                .senderId(chatMessage.getSender().getId())
+                .senderNickname(chatMessage.getSender().getNickName())
                 .content(chatMessage.getContent())
                 .type(chatMessage.getType())
                 .timeStamp(chatMessage.getCreated_at())
@@ -42,6 +45,7 @@ public class ChatMessageDto {
                 .timeStamp(LocalDateTime.now())
                 .build();
     }
+
     public static ChatMessageDto createLeaveMessage(Long roomId, String senderNickname) {
         return ChatMessageDto.builder()
                 .roomId(roomId)

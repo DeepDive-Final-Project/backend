@@ -1,6 +1,7 @@
 package com.goorm.team9.icontact.domain.chat.controller;
 
 import com.goorm.team9.icontact.domain.chat.dto.request.ChatRequestCountDto;
+import com.goorm.team9.icontact.domain.chat.dto.request.ChatRequestCreateDto;
 import com.goorm.team9.icontact.domain.chat.dto.request.ChatRequestDto;
 import com.goorm.team9.icontact.domain.chat.dto.request.ChatResponseDto;
 import com.goorm.team9.icontact.domain.chat.entity.RequestStatus;
@@ -32,10 +33,10 @@ public class ChatRequestController {
 
     @Operation(summary = "채팅 요청 API", description = "상대방에게 채팅을 요청을 보냅니다.")
     @PostMapping
-    public ResponseEntity<ChatResponseDto> requestChat(@RequestBody ChatRequestDto requestDto) {
-        ClientEntity sender = clientRepository.findByNickName(requestDto.getSenderNickname())
+    public ResponseEntity<ChatResponseDto> requestChat(@RequestBody ChatRequestCreateDto requestDto) {
+        ClientEntity sender = clientRepository.findById(requestDto.getSenderId())
                 .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
-        ClientEntity receiver = clientRepository.findByNickName(requestDto.getReceiverNickname())
+        ClientEntity receiver = clientRepository.findById(requestDto.getReceiverId())
                 .orElseThrow(() -> new IllegalArgumentException("수신자를 찾을 수 없습니다."));
 
         return chatRequestService.requestChat(sender, receiver);
@@ -75,9 +76,13 @@ public class ChatRequestController {
     @Operation(summary = "보낸 채팅 요청 조회 API", description = "사용자가 보낸 채팅 요청을 조회합니다.")
     @GetMapping("/sent")
     public ResponseEntity<List<ChatRequestDto>> getSentRequests(
-            @RequestParam String senderNickname,
+            @RequestParam Long senderId,
             @RequestParam RequestStatus status) {
-        List<ChatRequestDto> sentRequests = chatRequestService.getSentRequest(senderNickname, status);
+
+        ClientEntity sender = clientRepository.findById(senderId)
+                .orElseThrow(() -> new IllegalArgumentException("발신자를 찾을 수 없습니다."));
+
+        List<ChatRequestDto> sentRequests = chatRequestService.getSentRequest(sender, status);
         return ResponseEntity.ok(sentRequests);
     }
 

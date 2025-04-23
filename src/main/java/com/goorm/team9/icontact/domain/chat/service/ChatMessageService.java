@@ -45,10 +45,10 @@ public class ChatMessageService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatMessageDto.getRoomId())
                 .orElseThrow(() -> new IllegalArgumentException("채팅방을 찾을 수 없습니다."));
 
-        ClientEntity senderNickname = clientRepository.findByNickName(chatMessageDto.getSenderNickname())
+        ClientEntity sender = clientRepository.findById(chatMessageDto.getSenderId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, senderNickname.getId())
+        ChatJoin chatJoin = chatJoinRepository.findByChatRoomAndClientId(chatRoom, sender.getId())
                 .orElseThrow(() -> new IllegalArgumentException("채팅방에 참여한 사용자가 아닙니다."));
 
         if (chatJoin.isExited()) {
@@ -58,14 +58,14 @@ public class ChatMessageService {
         List<ChatJoin> participants = chatJoinRepository.findByChatRoom(chatRoom);
         for (ChatJoin participant : participants) {
             ClientEntity recipient = participant.getClient();
-            if (blockRepository.isUserBlocked(senderNickname, recipient) || blockRepository.isUserBlocked(recipient, senderNickname)) {
+            if (blockRepository.isUserBlocked(sender, recipient) || blockRepository.isUserBlocked(recipient, sender)) {
                 throw new IllegalArgumentException("차단된 사용자와 메시지를 주고받을 수 없습니다.");
             }
         }
 
         ChatMessage chatMessage = ChatMessage.builder()
                 .chatRoom(chatRoom)
-                .senderNickname(senderNickname.getNickName())
+                .sender(sender)
                 .content(chatMessageDto.getContent())
                 .type(chatMessageDto.getType())
                 .build();
