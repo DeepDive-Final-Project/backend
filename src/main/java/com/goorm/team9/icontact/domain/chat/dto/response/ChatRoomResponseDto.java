@@ -19,6 +19,7 @@ public class ChatRoomResponseDto {
     private boolean exited;
     private Long otherId;
     private String otherUserNickname;
+    private Long lastSenderid;
 
     public static ChatRoomResponseDto fromEntity(ChatRoom chatRoom, Long unreadCount, boolean exited, Long myId) {
         boolean isSenderMe = chatRoom.getSender().getId().equals(myId);
@@ -31,6 +32,8 @@ public class ChatRoomResponseDto {
                 ? chatRoom.getReceiver().getNickName()
                 : chatRoom.getSender().getNickName();
 
+        Long lastSenderId = chatRoom.getLastSenderId();
+
         return new ChatRoomResponseDto(
                 chatRoom.getRoomId(),
                 List.of(chatRoom.getSender().getNickName(), chatRoom.getReceiver().getNickName()),
@@ -39,7 +42,8 @@ public class ChatRoomResponseDto {
                 unreadCount,
                 exited,
                 otherId,
-                otherUserNickname
+                otherUserNickname,
+                lastSenderId
         );
     }
 
