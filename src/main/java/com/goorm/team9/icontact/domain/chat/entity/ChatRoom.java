@@ -46,6 +46,9 @@ public class ChatRoom {
     @Column(name = "last_message_time")
     private LocalDateTime lastMessageTime;
 
+    @Column(name = "last_sender_id")
+    private Long lastSenderId;
+
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ChatMessage> messages = new ArrayList<>();
 
@@ -55,12 +58,14 @@ public class ChatRoom {
         chatRoom.setReceiver(receiver);
         chatRoom.setLastMessage(null);
         chatRoom.setLastMessageTime(null);
+        chatRoom.setLastSenderId(null);
         return chatRoom;
     }
 
-    public void updateLastMessage(String lastMessage, LocalDateTime lastMessageTime) {
+    public void updateLastMessage(String lastMessage, LocalDateTime lastMessageTime, Long senderId) {
         this.lastMessage = lastMessage;
         this.lastMessageTime = lastMessageTime;
+        this.lastSenderId = senderId;
     }
 
 }

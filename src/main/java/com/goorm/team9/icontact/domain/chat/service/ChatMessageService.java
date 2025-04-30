@@ -71,7 +71,7 @@ public class ChatMessageService {
                 .build();
         chatMessageRepository.save(chatMessage);
 
-        chatRoom.updateLastMessage(chatMessage.getContent(), chatMessage.getCreated_at());
+        chatRoom.updateLastMessage(chatMessage.getContent(), chatMessage.getCreated_at(), sender.getId());
         chatRoomRepository.save(chatRoom);
 
         String destination = "/queue/" + chatMessageDto.getRoomId();
