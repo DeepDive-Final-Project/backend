@@ -21,6 +21,7 @@ public class ChatMessageDto {
     private Long senderId;
     private String senderNickname;
     private String content;
+    private String recipientNickname;
     private ChatMessageType type;
     private LocalDateTime timeStamp;
 
