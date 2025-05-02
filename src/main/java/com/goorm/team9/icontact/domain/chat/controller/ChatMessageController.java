@@ -3,6 +3,7 @@ package com.goorm.team9.icontact.domain.chat.controller;
 import com.goorm.team9.icontact.domain.chat.dto.response.ChatMessageDto;
 import com.goorm.team9.icontact.domain.chat.entity.ChatMessageType;
 import com.goorm.team9.icontact.domain.chat.service.ChatMessageService;
+import com.goorm.team9.icontact.domain.chat.service.WebSocketSessionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ChatMessageController {
 
+    private final WebSocketSessionService webSocketSessionService;
     private final ChatMessageService chatMessageService;
     private final SimpMessagingTemplate messagingTemplate;
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -85,6 +87,15 @@ public class ChatMessageController {
     public ResponseEntity<Void> markMessagesRead(@PathVariable Long roomId, @RequestParam Long clientId) {
         chatMessageService.markMessagesAsRead(roomId, clientId);
         return ResponseEntity.noContent().build();
+    }
+
+    @MessageMapping("/chat.enter")
+    public void enterStomp(@Payload Map<String, Object> payload) {
+        Long roomId = Long.parseLong(payload.get("roomId").toString());
+        Long clientId = Long.parseLong(payload.get("clientId").toString());
+        String nickname = payload.get("senderNickname").toString();
+
+        webSocketSessionService.addStompSession(roomId, clientId, nickname);
     }
 
 }
