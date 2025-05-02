@@ -66,6 +66,11 @@ public class WebSocketSessionService {
                 .anyMatch(userMap -> userMap.containsKey(nickname));
     }
 
+    public boolean isUserInRoom(Long roomId, String nickname) {
+        return chatRoomSessions.getOrDefault(roomId, Map.of())
+                .containsKey(nickname);
+    }
+
     public void sendPrivateMessage(String nickname, String destination, Object payload) {
         chatRoomSessions.values().forEach(userMap -> {
             WebSocketSession session = userMap.get(nickname);
