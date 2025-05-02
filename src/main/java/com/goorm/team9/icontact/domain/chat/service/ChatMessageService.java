@@ -63,11 +63,16 @@ public class ChatMessageService {
             }
         }
 
+        String recipientNickname = chatMessageDto.getRecipientNickname();
+
+        boolean isRecipientInRoom = webSocketSessionService.isUserInRoom(chatRoom.getRoomId(), recipientNickname);
+
         ChatMessage chatMessage = ChatMessage.builder()
                 .chatRoom(chatRoom)
                 .sender(sender)
                 .content(chatMessageDto.getContent())
                 .type(chatMessageDto.getType())
+                .isRead(isRecipientInRoom)
                 .build();
         chatMessageRepository.save(chatMessage);
 
