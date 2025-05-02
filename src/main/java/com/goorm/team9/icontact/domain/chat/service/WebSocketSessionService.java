@@ -15,6 +15,7 @@ public class WebSocketSessionService {
     private final ChatRoomService chatRoomService;
 
     private final Map<Long, Map<String, WebSocketSession>> chatRoomSessions = new ConcurrentHashMap<>();
+    private final Map<Long, Map<String, Boolean>> stompSessionMap = new ConcurrentHashMap<>();
 
     public WebSocketSessionService(SimpMessagingTemplate messagingTemplate, ChatRoomService chatRoomService) {
         this.messagingTemplate = messagingTemplate;
@@ -67,8 +68,15 @@ public class WebSocketSessionService {
     }
 
     public boolean isUserInRoom(Long roomId, String nickname) {
-        return chatRoomSessions.getOrDefault(roomId, Map.of())
+        boolean webSocketConnected = chatRoomSessions
+                .getOrDefault(roomId, Map.of())
                 .containsKey(nickname);
+
+        boolean stompConnected = stompSessionMap
+                .getOrDefault(roomId, Map.of())
+                .getOrDefault(nickname, false);
+
+        return webSocketConnected || stompConnected;
     }
 
     public void sendPrivateMessage(String nickname, String destination, Object payload) {
@@ -78,6 +86,12 @@ public class WebSocketSessionService {
                 messagingTemplate.convertAndSendToUser(session.getId(), destination, payload);
             }
         });
+    }
+
+    public void addStompSession(Long roomId, Long clientId, String nickname) {
+        stompSessionMap
+                .computeIfAbsent(roomId, k -> new ConcurrentHashMap<>())
+                .put(nickname, true);
     }
 
 }
